@@ -11,21 +11,21 @@ import type {
   frourioSpec as querySpec,
   SymbolId,
   ZodId,
-} from '../projects/basic/app/(group1)/[pid]/frourio';
-import * as queryRoute from '../projects/basic/app/(group1)/[pid]/route';
-import * as numberRoute from '../projects/basic/app/(group1)/blog/[...slug]/route';
-import * as stringRoute from '../projects/basic/app/(group1)/blog/hoge/[[...fuga]]/route';
-import * as paramsRoute from '../projects/basic/app/[a]/[b]/[...c]/route';
-import * as baseRoute from '../projects/basic/app/route';
-import type { frourioSpec as formSpec } from '../projects/src-dir/src/app/api/frourio';
-import * as formReqRoute from '../projects/src-dir/src/app/api/route';
-import { CLIENT_FILE, SERVER_FILE } from '../src/constants';
-import { generate } from '../src/generate';
-import { listFrourioDirs } from '../src/listFrourioDirs';
-import { generateMsw } from '../src/msw/generateMsw';
-import { getMswConfig } from '../src/msw/getMswConfig';
-import { generateOpenapi } from '../src/openapi/generateOpenapi';
-import { getOpenapiConfig } from '../src/openapi/getOpenapiConfig';
+} from '../../projects/basic/app/(group1)/[pid]/frourio';
+import * as queryRoute from '../../projects/basic/app/(group1)/[pid]/route';
+import * as numberRoute from '../../projects/basic/app/(group1)/blog/[...slug]/route';
+import * as stringRoute from '../../projects/basic/app/(group1)/blog/hoge/[[...fuga]]/route';
+import * as paramsRoute from '../../projects/basic/app/[a]/[b]/[...c]/route';
+import * as baseRoute from '../../projects/basic/app/route';
+import type { frourioSpec as formSpec } from '../../projects/src-dir/src/app/api/frourio';
+import * as formReqRoute from '../../projects/src-dir/src/app/api/route';
+import { CLIENT_FILE, SERVER_FILE } from '../../src/constants';
+import { generate } from '../../src/generate';
+import { listFrourioDirs } from '../../src/listFrourioDirs';
+import { generateMsw } from '../../src/msw/generateMsw';
+import { getMswConfig } from '../../src/msw/getMswConfig';
+import { generateOpenapi } from '../../src/openapi/generateOpenapi';
+import { getOpenapiConfig } from '../../src/openapi/getOpenapiConfig';
 
 test('generate', async () => {
   const projectDirs = fs

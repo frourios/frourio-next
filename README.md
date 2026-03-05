@@ -1,7 +1,7 @@
 # FrourioNext
 
 <br />
-<img src="https://frouriojs.github.io/frourio/assets/images/ogp.png" width="1280" alt="frourio" />
+<img src="https://frourios.github.io/frourio/assets/images/ogp.png" width="1280" alt="frourio" />
 
 <div align="center">
   <a href="https://www.npmjs.com/package/@frourio/next">

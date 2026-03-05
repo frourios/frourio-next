@@ -4,7 +4,7 @@ import { setupServer } from 'msw/node';
 import React from 'react';
 import useSWR, { SWRConfig } from 'swr';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
-import { $fc, fc } from '../projects/basic/app/frourio.client';
+import { $fc, fc } from '../../projects/basic/app/frourio.client';
 
 const mockData = { bb: 'test-bb' };
 

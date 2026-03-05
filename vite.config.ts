@@ -4,8 +4,23 @@ import type { InlineConfig } from 'vitest/node';
 
 const includeFile = process.argv[4];
 const testBase: InlineConfig = {
-  environment: 'jsdom',
-  setupFiles: ['./tests/setup.ts'],
+  projects: [
+    {
+      extends: true,
+      test: {
+        environment: 'happy-dom',
+        include: ['tests/browser/*.spec.*'],
+        setupFiles: ['./tests/browser/setup.ts'],
+      },
+    },
+    {
+      extends: true,
+      test: {
+        environment: 'node',
+        include: ['tests/node/*'],
+      },
+    },
+  ],
   poolOptions: { forks: { singleFork: true } },
 };
 const coverageBase = {

@@ -6,8 +6,8 @@ import { ZodError } from 'zod';
 import type {
   frourioSpec as testClientSpec,
   User,
-} from '../projects/basic/app/api/test-client/frourio';
-import { $fc as base$Fc, fc as baseFc } from '../projects/basic/app/frourio.client';
+} from '../../projects/basic/app/api/test-client/frourio';
+import { $fc as base$Fc, fc as baseFc } from '../../projects/basic/app/frourio.client';
 
 const usersDb = new Map<number, User>([
   [1, { id: 1, name: 'Alice', isAdmin: true }],
