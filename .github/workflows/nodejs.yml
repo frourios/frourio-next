@@ -9,20 +9,23 @@ jobs:
     strategy:
       matrix:
         node-version: [22, 24]
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
+        include:
+          - os: windows-latest
+            node-version: 24
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: npm-cache
         with:
           path: node_modules
           key: ${{ runner.os }}-node-v${{ matrix.node-version }}-npm-${{ hashFiles('package-lock.json') }}
       - run: npm install
-        if: runner.os == 'Windows' || steps.npm-cache.outputs.cache-hit != 'true'
+        if: matrix.os == 'windows-latest' || steps.npm-cache.outputs.cache-hit != 'true'
       - run: npm run lint
       - run: npm run build
       - run: npm run typecheck
@@ -35,18 +38,21 @@ jobs:
       contents: read
       id-token: write
     if: startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      matrix:
+        node-version: [24]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 24
+          node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: npm-cache
         with:
           path: 'node_modules'
-          key: ${{ runner.os }}-node-v22-npm-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-node-v${{ matrix.node-version }}-npm-${{ hashFiles('package-lock.json') }}
       - run: npm install
         if: steps.npm-cache.outputs.cache-hit != 'true'
       - run: npm run build
