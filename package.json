@@ -22,7 +22,7 @@
   "homepage": "https://github.com/frouriojs/frourio-next#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/frouriojs/frourio-next.git"
+    "url": "https://github.com/frourios/frourio-next"
   },
   "files": [
     "dist",
