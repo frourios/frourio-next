@@ -3,18 +3,7 @@ import { z } from 'zod';
 import { frourioSpec } from './frourio';
 
 const paramToNumArr = <T extends z.ZodTypeAny>(schema: T) =>
-  z.array(z.string().or(z.number())).optional().transform<z.infer<T>>((val, ctx) => {
-    const numArr = val?.map((v) => {
-      const numVal = Number(v);
-
-      return isNaN(numVal) ? v : numVal;
-    });
-    const parsed = schema.safeParse(numArr);
-
-    if (parsed.success) return parsed.data;
-
-    parsed.error.issues.forEach((issue) => ctx.addIssue(issue));
-  });
+  z.preprocess((val) => Array.isArray(val) ? val.map(Number) : val, schema);
 
 export const paramsSchema = z.object({ 'slug': paramToNumArr(frourioSpec.param) });
 
@@ -63,7 +52,7 @@ const createReqErr = (err: z.ZodError) =>
     {
       status: 422,
       error: 'Unprocessable Entity',
-      issues: err.issues.map((issue) => ({ path: issue.path, message: issue.message })),
+      issues: err.issues.map((issue) => ({ path: issue.path.filter(p => typeof p !== 'symbol'), message: issue.message })),
     },
     { status: 422 },
   );

@@ -3,9 +3,10 @@ import gitignore from 'eslint-config-flat-gitignore';
 import prettierConfig from 'eslint-config-prettier';
 import testingLibrary from 'eslint-plugin-testing-library';
 import globals from 'globals';
+import type { Config } from 'typescript-eslint';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(
+const config: Config = tseslint.config(
   { files: ['**/*.{ts,tsx}'] },
   gitignore({ files: ['./.gitignore', './.prettierignore'] }),
   js.configs.recommended,
@@ -51,3 +52,5 @@ export default tseslint.config(
   },
   prettierConfig,
 );
+
+export default config;

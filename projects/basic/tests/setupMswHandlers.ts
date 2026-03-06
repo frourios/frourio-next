@@ -141,8 +141,8 @@ export function patchFilePrototype(): void {
     });
   };
 
-  File.prototype.bytes ??= function (): Promise<Uint8Array> {
-    return new Promise<Uint8Array>((resolve, reject) => {
+  File.prototype.bytes ??= function (): Promise<Uint8Array<ArrayBuffer>> {
+    return new Promise<Uint8Array<ArrayBuffer>>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (): void => resolve(new Uint8Array(reader.result as ArrayBuffer));
       reader.onerror = reject;
@@ -150,7 +150,7 @@ export function patchFilePrototype(): void {
     });
   };
 
-  File.prototype.stream ??= function (): ReadableStream<Uint8Array> {
+  File.prototype.stream ??= function (): ReadableStream<Uint8Array<ArrayBuffer>> {
     return new ReadableStream({
       start: (controller): void => {
         const reader = new FileReader();

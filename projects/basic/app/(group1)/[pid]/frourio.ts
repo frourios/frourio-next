@@ -5,9 +5,9 @@ const symbolBrand = Symbol();
 
 export type SymbolId = string & { [symbolBrand]: unknown };
 
-export type ZodId = number & z.BRAND<'ZodId'>;
+export type ZodId = number & z.$brand<'ZodId'>;
 
-export type MaybeId = ZodId | (number & z.BRAND<'maybe'>);
+export type MaybeId = ZodId | (number & z.$brand<'maybe'>);
 
 const query = z.object({
   requiredNum: z.number(),

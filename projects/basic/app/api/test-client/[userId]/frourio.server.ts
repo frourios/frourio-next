@@ -5,15 +5,7 @@ import type { PUT, DELETE } from './route';
 
 type RouteChecker = [typeof PUT, typeof DELETE];
 
-const paramToNum = <T extends z.ZodTypeAny>(schema: T) =>
-  z.string().or(z.number()).transform<z.infer<T>>((val, ctx) => {
-    const numVal = Number(val);
-    const parsed = schema.safeParse(isNaN(numVal) ? val : numVal);
-
-    if (parsed.success) return parsed.data;
-
-    parsed.error.issues.forEach((issue) => ctx.addIssue(issue));
-  });
+const paramToNum = <T extends z.ZodTypeAny>(schema: T) => z.preprocess(Number, schema);
 
 export const paramsSchema = z.object({ 'userId': paramToNum(frourioSpec.param) });
 
@@ -138,7 +130,7 @@ const createResponse = (body: unknown, init: ResponseInit): NextResponse => {
     body instanceof URLSearchParams ||
     typeof body === 'string'
   ) {
-    return new NextResponse(body, init);
+    return new NextResponse(body as string, init);
   }
 
   return NextResponse.json(body, init);
@@ -153,7 +145,7 @@ const createReqErr = (err: z.ZodError) =>
     {
       status: 422,
       error: 'Unprocessable Entity',
-      issues: err.issues.map((issue) => ({ path: issue.path, message: issue.message })),
+      issues: err.issues.map((issue) => ({ path: issue.path.filter(p => typeof p !== 'symbol'), message: issue.message })),
     },
     { status: 422 },
   );

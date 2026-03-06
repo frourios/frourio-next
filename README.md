@@ -391,7 +391,6 @@ export function TaskDetails({ taskId }: TaskDetailsProps) {
 **Client Functions (`fc` vs `$fc`)**:
 
 - **`$fc` (High-Level Client)**:
-
   - Designed for ease of use in typical scenarios.
   - Automatically parses and validates the response body against the Zod schema defined in `frourio.ts`.
   - **Returns the validated response body directly** on success (e.g., the `Task` object for a 200 OK).
@@ -402,7 +401,6 @@ export function TaskDetails({ taskId }: TaskDetailsProps) {
   - Ideal when you primarily need the success data and prefer exceptions for handling errors.
 
 - **`fc` (Low-Level Client)**:
-
   - Provides fine-grained control over request/response handling without throwing exceptions automatically (except for unexpected internal errors).
   - **Returns a detailed result object** whose properties depend on the outcome:
     - `ok`: Boolean indicating if the HTTP status code was in the 2xx range. `undefined` if the request wasn't sent (e.g., due to request validation failure).
@@ -677,12 +675,12 @@ export const { POST } = createRoute({
   post: async ({ body }) => {
     try {
       const result = await streamText({
-        model: openai('gpt-4o'),
+        model: openai('gpt-5.2'),
         messages: [{ role: 'user', content: body.prompt }],
       });
 
       // Return the streaming Response directly
-      return result.toAIStreamResponse();
+      return result.toTextStreamResponse();
     } catch (error: any) {
       console.error('LLM Error:', error);
       return new Response(JSON.stringify({ error: 'LLM request failed' }), { status: 500 });

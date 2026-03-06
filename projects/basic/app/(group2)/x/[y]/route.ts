@@ -8,11 +8,11 @@ export const { GET, middleware } = createRoute({
   },
   get: async ({ query }) => {
     const result = streamText({
-      model: openai('gpt-4o'),
+      model: openai('gpt-5.2'),
       system: 'You are a helpful assistant.',
       messages: [{ role: 'user', content: query.message }],
     });
 
-    return result.toDataStreamResponse();
+    return result.toTextStreamResponse();
   },
 });

@@ -173,13 +173,9 @@
         "properties": {
           "byteLength": {
             "type": "number"
-          },
-          "__@toStringTag@15435": {
-            "type": "string"
           }
         },
         "required": [
-          "__@toStringTag@15435",
           "byteLength"
         ]
       },
@@ -195,15 +191,12 @@
         ]
       },
       "Blob": {
-        "description": "A [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob) encapsulates immutable, raw data that can be safely shared across\nmultiple worker threads.",
         "type": "object",
         "properties": {
           "size": {
-            "description": "The total size of the `Blob` in bytes.",
             "type": "number"
           },
           "type": {
-            "description": "The content-type of the `Blob`.",
             "type": "string"
           }
         },

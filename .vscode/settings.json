@@ -5,8 +5,8 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.referencesCodeLens.enabled": true,
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.referencesCodeLens.enabled": true,
   "files.eol": "\n",
   "editor.tabSize": 2,
   "prettier.prettierPath": "node_modules/prettier"

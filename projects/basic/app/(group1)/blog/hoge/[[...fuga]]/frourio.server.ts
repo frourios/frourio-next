@@ -93,7 +93,7 @@ const createResponse = (body: unknown, init: ResponseInit): NextResponse => {
     body instanceof URLSearchParams ||
     typeof body === 'string'
   ) {
-    return new NextResponse(body, init);
+    return new NextResponse(body as string, init);
   }
 
   return NextResponse.json(body, init);
@@ -108,7 +108,7 @@ const createReqErr = (err: z.ZodError) =>
     {
       status: 422,
       error: 'Unprocessable Entity',
-      issues: err.issues.map((issue) => ({ path: issue.path, message: issue.message })),
+      issues: err.issues.map((issue) => ({ path: issue.path.filter(p => typeof p !== 'symbol'), message: issue.message })),
     },
     { status: 422 },
   );

@@ -31,6 +31,9 @@ export const generateOpenapi = ({ appDir, basePath, output, root }: OpenapiConfi
   console.log(`${output} was generated successfully.`);
 };
 
+const getRefText = (def: TJS.Definition) =>
+  !def.$ref ? '' : decodeURIComponent(def.$ref.replace('#/definitions/', ''));
+
 const toOpenAPI = (params: {
   appDir: string;
   template: OpenAPIV3_1.Document;
@@ -184,15 +187,9 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
       const paramsDefs = schema.allOf
         ? schema.allOf.map(
             (one) =>
-              paramsSchema?.definitions?.[
-                (one as TJS.Definition).$ref!.replace('#/definitions/', '')
-              ] as TJS.Definition,
+              paramsSchema?.definitions?.[getRefText(one as TJS.Definition)] as TJS.Definition,
           )
-        : [
-            paramsSchema?.definitions?.[
-              schema.$ref!.replace('#/definitions/', '')
-            ] as TJS.Definition,
-          ];
+        : [paramsSchema?.definitions?.[getRefText(schema)] as TJS.Definition];
 
       paramsDefs.forEach((def) => {
         parameters.push(
@@ -219,9 +216,7 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
       const methodParameters = [...parameters];
 
       if (props.query) {
-        const def = methodsSchema?.definitions?.[
-          props.query.$ref!.replace('#/definitions/', '')
-        ] as TJS.Definition;
+        const def = methodsSchema?.definitions?.[getRefText(props.query)] as TJS.Definition;
 
         if (def.properties) {
           methodParameters.push(
@@ -238,9 +233,7 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
       const reqFormat = props.format?.const as string;
       const headersDef =
         props.headers &&
-        (methodsSchema?.definitions?.[
-          props.headers.$ref!.replace('#/definitions/', '')
-        ] as TJS.Definition);
+        (methodsSchema?.definitions?.[getRefText(props.headers)] as TJS.Definition);
 
       if (headersDef?.properties) {
         methodParameters.push(
@@ -264,10 +257,7 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
               : 'application/json');
 
       const resDef =
-        props.res &&
-        (methodsSchema?.definitions?.[
-          props.res.$ref!.replace('#/definitions/', '')
-        ] as TJS.Definition);
+        props.res && (methodsSchema?.definitions?.[getRefText(props.res)] as TJS.Definition);
 
       return {
         ...dict,
@@ -280,15 +270,13 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
           responses: resDef?.properties
             ? Object.entries(resDef.properties).reduce((dict, [status, statusObj]) => {
                 const statusDef = methodsSchema?.definitions?.[
-                  (statusObj as TJS.Definition).$ref!.replace('#/definitions/', '')
+                  getRefText(statusObj as TJS.Definition)
                 ] as TJS.Definition;
 
                 const headersDef = (statusDef.properties as Record<string, TJS.Definition>)?.headers
                   ?.$ref
                   ? (methodsSchema?.definitions?.[
-                      (
-                        statusDef.properties as Record<string, TJS.Definition>
-                      ).headers.$ref!.replace('#/definitions/', '')
+                      getRefText((statusDef.properties as Record<string, TJS.Definition>).headers)
                     ] as TJS.Definition)
                   : (statusDef.properties as Record<string, TJS.Definition>)?.headers;
 
@@ -371,6 +359,14 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
 
   if (newDoc.components.schemas?.File) {
     newDoc.components.schemas.File = { type: 'string', format: 'binary' };
+  }
+
+  if (newDoc.components.schemas?.ArrayBuffer) {
+    newDoc.components.schemas.ArrayBuffer = {
+      type: 'object',
+      properties: { byteLength: { type: 'number' } },
+      required: ['byteLength'],
+    };
   }
 
   return JSON.stringify(newDoc, null, 2);

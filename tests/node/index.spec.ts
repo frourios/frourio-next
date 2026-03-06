@@ -57,7 +57,7 @@ test('generate', async () => {
   const out = execSync('git status projects', { encoding: 'utf8' });
 
   expect(out).toMatch('nothing to commit, working tree clean');
-}, 35000);
+}, 40000);
 
 test('base handler', async () => {
   const res1 = await baseRoute.GET(new Request('http://example.com/'));

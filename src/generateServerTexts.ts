@@ -285,7 +285,7 @@ ${m.res
     body instanceof URLSearchParams ||
     typeof body === 'string'
   ) {
-    return new NextResponse(body, init);
+    return new NextResponse(body as string, init);
   }
 
   return NextResponse.json(body, init);
@@ -329,7 +329,7 @@ const createReqErr = (err: z.ZodError) =>
     {
       status: 422,
       error: 'Unprocessable Entity',
-      issues: err.issues.map((issue) => ({ path: issue.path, message: issue.message })),
+      issues: err.issues.map((issue) => ({ path: issue.path.filter(p => typeof p !== 'symbol'), message: issue.message })),
     },
     { status: 422 },
   );
@@ -342,31 +342,12 @@ const createResErr = () =>
 ${suffixes.length > 0 ? `\n${suffixes.join(';\n\n')};\n` : ''}`;
 };
 
-const paramToNumText = `const paramToNum = <T extends z.ZodTypeAny>(schema: T) =>
-  z.string().or(z.number()).transform<z.infer<T>>((val, ctx) => {
-    const numVal = Number(val);
-    const parsed = schema.safeParse(isNaN(numVal) ? val : numVal);
-
-    if (parsed.success) return parsed.data;
-
-    parsed.error.issues.forEach((issue) => ctx.addIssue(issue));
-  });
+const paramToNumText = `const paramToNum = <T extends z.ZodTypeAny>(schema: T) => z.preprocess(Number, schema);
 
 `;
 
 const paramToNumArrText = `const paramToNumArr = <T extends z.ZodTypeAny>(schema: T) =>
-  z.array(z.string().or(z.number())).optional().transform<z.infer<T>>((val, ctx) => {
-    const numArr = val?.map((v) => {
-      const numVal = Number(v);
-
-      return isNaN(numVal) ? v : numVal;
-    });
-    const parsed = schema.safeParse(numArr);
-
-    if (parsed.success) return parsed.data;
-
-    parsed.error.issues.forEach((issue) => ctx.addIssue(issue));
-  });
+  z.preprocess((val) => Array.isArray(val) ? val.map(Number) : val, schema);
 
 `;
 
