@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         node-version: [22, 24]
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v3
       - name: setup Node.js ${{ matrix.node-version }}
@@ -22,7 +22,7 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-node-v${{ matrix.node-version }}-npm-${{ hashFiles('package-lock.json') }}
       - run: npm install
-        if: steps.npm-cache.outputs.cache-hit != 'true'
+        if: runner.os == 'Windows' || steps.npm-cache.outputs.cache-hit != 'true'
       - run: npm run lint
       - run: npm run build
       - run: npm run typecheck

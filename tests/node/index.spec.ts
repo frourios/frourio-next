@@ -31,7 +31,7 @@ test('generate', async () => {
   const projectDirs = fs
     .readdirSync('./projects', { withFileTypes: true })
     .filter((d) => d.isDirectory())
-    .map((d) => path.posix.resolve('./projects', d.name));
+    .map((d) => path.posix.join(process.cwd(), './projects', d.name));
 
   await Promise.all(
     projectDirs.map(async (dir) => {
