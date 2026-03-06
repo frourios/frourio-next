@@ -1,6 +1,6 @@
 import fs from 'fs';
-import type { NextConfig } from 'next';
 import path from 'path';
+import type { NextConfig } from 'next';
 
 export type Config = { appDir: string | undefined; basePath: string | undefined };
 

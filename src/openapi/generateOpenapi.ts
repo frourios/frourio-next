@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
-import type { OpenAPIV3_1 } from 'openapi-types';
 import path from 'path';
+import type { OpenAPIV3_1 } from 'openapi-types';
 import ts from 'typescript';
 import * as TJS from 'typescript-json-schema';
 import { FROURIO_FILE, SERVER_FILE } from '../constants';
@@ -183,7 +183,7 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
     const hasParams = dir.includes('[');
 
     if (hasParams) {
-      const schema = (paramsSchema?.items as TJS.Definition[])[hasParamsDirs.indexOf(dir)];
+      const schema = (paramsSchema!.items as TJS.Definition[])[hasParamsDirs.indexOf(dir)];
       const paramsDefs = schema.allOf
         ? schema.allOf.map(
             (one) =>

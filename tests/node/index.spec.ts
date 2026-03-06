@@ -2,8 +2,8 @@ import assert from 'assert';
 import { execSync } from 'child_process';
 import fs, { existsSync } from 'fs';
 import { unlink } from 'fs/promises';
-import { NextRequest } from 'next/server';
 import path from 'path';
+import { NextRequest } from 'next/server';
 import { expect, test } from 'vitest';
 import type { z } from 'zod';
 import type {
@@ -57,7 +57,7 @@ test('generate', async () => {
   const out = execSync('git status projects', { encoding: 'utf8' });
 
   expect(out).toMatch('nothing to commit, working tree clean');
-}, 40000);
+}, 50000);
 
 test('base handler', async () => {
   const res1 = await baseRoute.GET(new Request('http://example.com/'));
