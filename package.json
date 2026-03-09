@@ -12,7 +12,7 @@
   },
   "scripts": {
     "dev": "npm run build && npm run generate",
-    "generate": "ts-node projects/dev.ts",
+    "generate": "node projects/dev.ts",
     "build": "tsc -p tsconfig.build.json",
     "lint": "oxlint && oxfmt --check",
     "lint:fix": "oxlint --fix && oxfmt",
@@ -59,7 +59,6 @@
     "oxfmt": "^0.36.0",
     "oxlint": "^1.51.0",
     "swr": "^2.4.1",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4",
     "zod": "^4.3.6"
