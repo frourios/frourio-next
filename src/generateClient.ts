@@ -20,8 +20,11 @@ export const generateClientTexts = (
   }));
 };
 
+const hasUrlValues = (method: MethodInfo, params: ClientParamsInfo | undefined): boolean =>
+  !!(params || method.query);
+
 const hasMethodReqKeys = (method: MethodInfo, params: ClientParamsInfo | undefined): boolean =>
-  !!(params || method.hasHeaders || method.query);
+  !!(hasUrlValues(method, params) || method.hasHeaders);
 
 const generateApiPath = ({
   appDir,
@@ -194,8 +197,8 @@ const generateHighLevel$url = (
   return `${indent}  $url: {${methods
     .map(
       (method) => `
-${indent}    ${method.name}(${hasMethodReqKeys(method, params) ? `req${method.query?.isOptional ? '?' : ''}: Parameters<ReturnType<typeof $url_${hash}>['${method.name}']>[0]` : ''}): string {
-${indent}      const result = $url_${hash}(option).${method.name}(${hasMethodReqKeys(method, params) ? 'req' : ''});
+${indent}    ${method.name}(${hasUrlValues(method, params) ? `req${method.query?.isOptional ? '?' : ''}: Parameters<ReturnType<typeof $url_${hash}>['${method.name}']>[0]` : ''}): string {
+${indent}      const result = $url_${hash}(option).${method.name}(${hasUrlValues(method, params) ? 'req' : ''});
 
 ${indent}      if (!result.isValid) throw result.reason;
 
@@ -288,7 +291,7 @@ const generateUrlFn = (
 ): string => `(option?: FrourioClientOption) => ({${methods
   .map(
     (method) => `\n  ${method.name}(${
-      params || method.query
+      hasUrlValues(method, params)
         ? `req${params || method.query?.isOptional === false ? '' : '?'}: { ${[
             ...(params ? [`params: z.infer<typeof paramsSchema_${hash}>`] : []),
             ...(method.query
@@ -436,7 +439,7 @@ const generateMethodsFn = (
     | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
     | { ok?: undefined; isValid?: undefined; data?: undefined; failure?: undefined; raw?: undefined; reason?: undefined; error: unknown }
   > {
-    const url = $url_${hash}(option).${method.name}(${hasMethodReqKeys(method, params) ? 'req' : ''});
+    const url = $url_${hash}(option).${method.name}(${hasUrlValues(method, params) ? 'req' : ''});
 
     if (url.reason) return url;
 ${

@@ -17,6 +17,7 @@ import * as route_76vmqd from '../app/api/mw/public/route';
 import * as route_17yqnk1 from '../app/api/test-client/route';
 import * as route_1rqfh40 from '../app/api/test-client/[userId]/route';
 import * as route_1tp1ur6 from '../app/api/test-client/stream/route';
+import * as route_1dt6t80 from '../app/header-only/route';
 import * as route_fkgw0p from '../app/xxx/[id]/zzz/route';
 
 export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[] {
@@ -124,6 +125,12 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
     }),
     http.post(`${baseURL}/api/test-client/stream`, ({ request }) => {
       return route_1tp1ur6.POST(request);
+    }),
+    http.get(`${baseURL}/header-only`, ({ request }) => {
+      return route_1dt6t80.GET(request);
+    }),
+    http.post(`${baseURL}/header-only`, ({ request }) => {
+      return route_1dt6t80.POST(request);
     }),
     http.get(`${baseURL}/xxx/:id/zzz`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');

@@ -17,6 +17,7 @@ import { frourioSpec as frourioSpec_76vmqd } from './api/mw/public/frourio';
 import { frourioSpec as frourioSpec_17yqnk1 } from './api/test-client/frourio';
 import { frourioSpec as frourioSpec_1rqfh40 } from './api/test-client/[userId]/frourio';
 import { frourioSpec as frourioSpec_1tp1ur6 } from './api/test-client/stream/frourio';
+import { frourioSpec as frourioSpec_1dt6t80 } from './header-only/frourio';
 import { frourioSpec as frourioSpec_fkgw0p } from './xxx/[id]/zzz/frourio';
 import { frourioSpec as frourioSpec_8uo3t8 } from './xxx/[id]/frourio';
 import { frourioSpec as frourioSpec_ztntfp } from './frourio'
@@ -217,6 +218,20 @@ export const fc = (option?: FrourioClientOption) => ({
   'api/test-client/stream': {
     $url: $url_1tp1ur6(option),
     ...methods_1tp1ur6(option),
+  },
+  'header-only': {
+    $url: $url_1dt6t80(option),
+    $build(req: Parameters<ReturnType<typeof methods_1dt6t80>['$get']>[0] | null): [
+      key: { lowLevel: true; baseURL: FrourioClientOption['baseURL']; dir: string } & Omit<Parameters<ReturnType<typeof methods_1dt6t80>['$get']>[0], 'init'> | null,
+      fetcher: () => Promise<NonNullable<Awaited<ReturnType<ReturnType<typeof methods_1dt6t80>['$get']>>>>,
+    ] {
+      if (req === null) return [null, () => Promise.reject(new Error('Fetcher is disabled.'))];
+
+      const { init, ...rest } = req;
+
+      return [{ lowLevel: true, baseURL: option?.baseURL, dir: '/header-only', ...rest }, () => methods_1dt6t80(option).$get(req)];
+    },
+    ...methods_1dt6t80(option),
   },
   'xxx/[id]/zzz': {
     $url: $url_fkgw0p(option),
@@ -773,6 +788,52 @@ export const $fc = (option?: FrourioClientOption) => ({
       return result.data;
     },
   },
+  'header-only': {
+    $url: {
+      get(): string {
+        const result = $url_1dt6t80(option).get();
+
+        if (!result.isValid) throw result.reason;
+
+        return result.data;
+      },
+      post(): string {
+        const result = $url_1dt6t80(option).post();
+
+        if (!result.isValid) throw result.reason;
+
+        return result.data;
+      },
+    },
+    $build(req: Parameters<ReturnType<typeof methods_1dt6t80>['$get']>[0] | null): [
+      key: { lowLevel: false; baseURL: FrourioClientOption['baseURL']; dir: string } & Omit<Parameters<ReturnType<typeof methods_1dt6t80>['$get']>[0], 'init'> | null,
+      fetcher: () => Promise<Response>,
+    ] {
+      if (req === null) return [null, () => Promise.reject(new Error('Fetcher is disabled.'))];
+
+      const { init, ...rest } = req;
+
+      return [{ lowLevel: false, baseURL: option?.baseURL, dir: '/header-only', ...rest }, () => $fc(option)['header-only'].$get(req)];
+    },
+    async $get(req: Parameters<ReturnType<typeof methods_1dt6t80>['$get']>[0]): Promise<Response> {
+      const result = await methods_1dt6t80(option).$get(req);
+
+      if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+      if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
+
+      return result.data;
+    },
+    async $post(req: Parameters<ReturnType<typeof methods_1dt6t80>['$post']>[0]): Promise<Response> {
+      const result = await methods_1dt6t80(option).$post(req);
+
+      if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+      if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
+
+      return result.data;
+    },
+  },
   'xxx/[id]/zzz': {
     $url: {
       get(req: Parameters<ReturnType<typeof $url_fkgw0p>['get']>[0]): string {
@@ -1150,6 +1211,15 @@ const $url_1rqfh40 = (option?: FrourioClientOption) => ({
 const $url_1tp1ur6 = (option?: FrourioClientOption) => ({
   post(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/test-client/stream` };
+  },
+});
+
+const $url_1dt6t80 = (option?: FrourioClientOption) => ({
+  get(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/header-only` };
+  },
+  post(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/header-only` };
   },
 });
 
@@ -2499,6 +2569,71 @@ const methods_1tp1ur6 = (option?: FrourioClientOption) => ({
         body: JSON.stringify(parsedBody.data),
         ...req.init,
         headers: { ...option?.init?.headers, 'content-type': 'application/json', ...req.init?.headers },
+      }
+    ).then(res => ({ success: true, res } as const)).catch(error => ({ success: false, error }));
+
+    if (!result.success) return { error: result.error };
+
+    return result.res.ok ? { ok: true, isValid: true, data: result.res, raw: result.res } : { ok: false, isValid: true, failure: result.res, raw: result.res };
+  },
+});
+
+const methods_1dt6t80 = (option?: FrourioClientOption) => ({
+  async $get(req: { headers: z.infer<typeof frourioSpec_1dt6t80.get.headers>, init?: RequestInit }): Promise<
+    | { ok: true; isValid: true; data: Response; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: false; isValid: true; data?: undefined; failure: Response; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
+    | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
+    | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
+    | { ok?: undefined; isValid?: undefined; data?: undefined; failure?: undefined; raw?: undefined; reason?: undefined; error: unknown }
+  > {
+    const url = $url_1dt6t80(option).get();
+
+    if (url.reason) return url;
+
+    const parsedHeaders = frourioSpec_1dt6t80.get.headers.safeParse(req.headers);
+
+    if (!parsedHeaders.success) return { isValid: false, reason: parsedHeaders.error };
+
+    const fetchFn = option?.fetch ?? fetch;
+    const result: { success: true; res: Response } | { success: false; error: unknown } = await fetchFn(
+      url.data,
+      {
+        method: 'GET',
+        ...option?.init,
+        ...req.init,
+        headers: { ...option?.init?.headers, ...parsedHeaders.data as HeadersInit, ...req.init?.headers },
+      }
+    ).then(res => ({ success: true, res } as const)).catch(error => ({ success: false, error }));
+
+    if (!result.success) return { error: result.error };
+
+    return result.res.ok ? { ok: true, isValid: true, data: result.res, raw: result.res } : { ok: false, isValid: true, failure: result.res, raw: result.res };
+  },
+  async $post(req: { headers: z.infer<typeof frourioSpec_1dt6t80.post.headers>, init?: RequestInit }): Promise<
+    | { ok: true; isValid: true; data: Response; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: false; isValid: true; data?: undefined; failure: Response; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
+    | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
+    | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
+    | { ok?: undefined; isValid?: undefined; data?: undefined; failure?: undefined; raw?: undefined; reason?: undefined; error: unknown }
+  > {
+    const url = $url_1dt6t80(option).post();
+
+    if (url.reason) return url;
+
+    const parsedHeaders = frourioSpec_1dt6t80.post.headers.safeParse(req.headers);
+
+    if (!parsedHeaders.success) return { isValid: false, reason: parsedHeaders.error };
+
+    const fetchFn = option?.fetch ?? fetch;
+    const result: { success: true; res: Response } | { success: false; error: unknown } = await fetchFn(
+      url.data,
+      {
+        method: 'POST',
+        ...option?.init,
+        ...req.init,
+        headers: { ...option?.init?.headers, ...parsedHeaders.data as HeadersInit, ...req.init?.headers },
       }
     ).then(res => ({ success: true, res } as const)).catch(error => ({ success: false, error }));
 
