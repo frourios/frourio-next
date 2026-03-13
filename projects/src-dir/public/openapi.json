@@ -138,6 +138,29 @@
             }
           }
         }
+      },
+      "put": {
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/auqyuv"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ioc4q3"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/%E6%97%A5%E6%9C%AC%E8%AA%9E": {
@@ -410,6 +433,151 @@
           "booleanArr",
           "file",
           "fileArr",
+          "number",
+          "numberArr",
+          "string",
+          "stringArr"
+        ]
+      },
+      "auqyuv": {
+        "type": "object",
+        "properties": {
+          "string": {
+            "type": "string"
+          },
+          "number": {
+            "type": "number"
+          },
+          "boolean": {
+            "type": "boolean"
+          },
+          "stringArr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "numberArr": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "booleanArr": {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          },
+          "optionalString": {
+            "type": "string"
+          },
+          "optionalNumber": {
+            "type": "number"
+          },
+          "optionalBoolean": {
+            "type": "boolean"
+          },
+          "optionalStringArr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "optionalNumberArr": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "optionalBooleanArr": {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          }
+        },
+        "required": [
+          "boolean",
+          "booleanArr",
+          "number",
+          "numberArr",
+          "string",
+          "stringArr"
+        ]
+      },
+      "3ikyym": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/ioc4q3"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "ioc4q3": {
+        "type": "object",
+        "properties": {
+          "string": {
+            "type": "string"
+          },
+          "number": {
+            "type": "number"
+          },
+          "boolean": {
+            "type": "boolean"
+          },
+          "stringArr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "numberArr": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "booleanArr": {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          },
+          "optionalString": {
+            "type": "string"
+          },
+          "optionalNumber": {
+            "type": "number"
+          },
+          "optionalBoolean": {
+            "type": "boolean"
+          },
+          "optionalStringArr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "optionalNumberArr": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "optionalBooleanArr": {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          }
+        },
+        "required": [
+          "boolean",
+          "booleanArr",
           "number",
           "numberArr",
           "string",

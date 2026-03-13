@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { z } from 'zod';
 import { frourioSpec } from './frourio';
-import type { GET, POST, PATCH } from './route';
+import type { GET, POST, PATCH, DELETE } from './route';
 
-type RouteChecker = [typeof GET, typeof POST, typeof PATCH];
+type RouteChecker = [typeof GET, typeof POST, typeof PATCH, typeof DELETE];
 
 type SpecType = typeof frourioSpec;
 
@@ -54,6 +54,20 @@ type Controller = {
         body: z.infer<SpecType['patch']['res'][400]['body']>;
       }
   >;
+  delete: (
+    req: {
+      body: z.infer<SpecType['delete']['body']>;
+    },
+  ) => Promise<
+    | {
+        status: 200;
+        body: z.infer<SpecType['delete']['res'][200]['body']>;
+      }
+    | {
+        status: 400;
+        body: z.infer<SpecType['delete']['res'][400]['body']>;
+      }
+  >;
 };
 
 type MethodHandler = (req: NextRequest | Request) => Promise<NextResponse>;
@@ -62,6 +76,7 @@ type ResHandler = {
   GET: MethodHandler
   POST: MethodHandler
   PATCH: MethodHandler
+  DELETE: MethodHandler
 };
 
 export const createRoute = (controller: Controller): ResHandler => {
@@ -164,6 +179,40 @@ export const createRoute = (controller: Controller): ResHandler => {
           throw new Error(res satisfies never);
       }
     },
+    DELETE: async (req) => {
+      const urlSearchParams = new URLSearchParams(await req.text());
+      const body = frourioSpec.delete.body.safeParse(
+        Object.fromEntries(
+          [
+            ['reason', urlSearchParams.get('reason') ?? undefined],
+            ['confirm', urlencodedToBool(urlSearchParams.get('confirm') ?? undefined)],
+          ].filter(entry => entry[1] !== undefined),
+        ),
+      );
+
+      if (body.error) return createReqErr(body.error);
+
+      const res = await controller.delete({ body: body.data });
+
+      switch (res.status) {
+        case 200: {
+          const body = frourioSpec.delete.res[200].body.safeParse(res.body);
+
+          if (body.error) return createResErr();
+
+          return createResponse(body.data, { status: 200 });
+        }
+        case 400: {
+          const body = frourioSpec.delete.res[400].body.safeParse(res.body);
+
+          if (body.error) return createResErr();
+
+          return createResponse(body.data, { status: 400 });
+        }
+        default:
+          throw new Error(res satisfies never);
+      }
+    },
   };
 };
 
@@ -218,3 +267,6 @@ const formDataToFile = async (val: FormDataEntryValue | undefined) => {
 
   return new File([buffer], (val as File).name, val); // for jsdom
 };
+
+const urlencodedToBool = (val: string | undefined) =>
+  val === 'true' ? true : val === 'false' ? false : val;

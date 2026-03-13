@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { z } from 'zod';
 import { frourioSpec } from './frourio';
-import type { POST } from './route';
+import type { POST, PUT } from './route';
 
-type RouteChecker = [typeof POST];
+type RouteChecker = [typeof POST, typeof PUT];
 
 type SpecType = typeof frourioSpec;
 
@@ -18,12 +18,23 @@ type Controller = {
         body: z.infer<SpecType['post']['res'][200]['body']>;
       }
   >;
+  put: (
+    req: {
+      body: z.infer<SpecType['put']['body']>;
+    },
+  ) => Promise<
+    | {
+        status: 200;
+        body: z.infer<SpecType['put']['res'][200]['body']>;
+      }
+  >;
 };
 
 type MethodHandler = (req: NextRequest | Request) => Promise<NextResponse>;
 
 type ResHandler = {
   POST: MethodHandler
+  PUT: MethodHandler
 };
 
 export const createRoute = (controller: Controller): ResHandler => {
@@ -60,6 +71,43 @@ export const createRoute = (controller: Controller): ResHandler => {
       switch (res.status) {
         case 200: {
           const body = frourioSpec.post.res[200].body.safeParse(res.body);
+
+          if (body.error) return createResErr();
+
+          return createResponse(body.data, { status: 200 });
+        }
+        default:
+          throw new Error(res.status satisfies never);
+      }
+    },
+    PUT: async (req) => {
+      const urlSearchParams = new URLSearchParams(await req.text());
+      const body = frourioSpec.put.body.safeParse(
+        Object.fromEntries(
+          [
+            ['string', urlSearchParams.get('string') ?? undefined],
+            ['number', urlencodedToNum(urlSearchParams.get('number') ?? undefined)],
+            ['boolean', urlencodedToBool(urlSearchParams.get('boolean') ?? undefined)],
+            ['stringArr', urlSearchParams.getAll('stringArr')],
+            ['numberArr', urlencodedToNumArr(urlSearchParams.getAll('numberArr'))],
+            ['booleanArr', urlencodedToBoolArr(urlSearchParams.getAll('booleanArr'))],
+            ['optionalString', urlSearchParams.get('optionalString') ?? undefined],
+            ['optionalNumber', urlencodedToNum(urlSearchParams.get('optionalNumber') ?? undefined)],
+            ['optionalBoolean', urlencodedToBool(urlSearchParams.get('optionalBoolean') ?? undefined)],
+            ['optionalStringArr', urlSearchParams.getAll('optionalStringArr').length > 0 ? urlSearchParams.getAll('optionalStringArr') : undefined],
+            ['optionalNumberArr', urlSearchParams.getAll('optionalNumberArr').length > 0 ? urlencodedToNumArr(urlSearchParams.getAll('optionalNumberArr')) : undefined],
+            ['optionalBooleanArr', urlSearchParams.getAll('optionalBooleanArr').length > 0 ? urlencodedToBoolArr(urlSearchParams.getAll('optionalBooleanArr')) : undefined],
+          ].filter(entry => entry[1] !== undefined),
+        ),
+      );
+
+      if (body.error) return createReqErr(body.error);
+
+      const res = await controller.put({ body: body.data });
+
+      switch (res.status) {
+        case 200: {
+          const body = frourioSpec.put.res[200].body.safeParse(res.body);
 
           if (body.error) return createResErr();
 
@@ -132,3 +180,16 @@ const formDataToFile = async (val: FormDataEntryValue | undefined) => {
 };
 
 const formDataToFileArr = (vals: FormDataEntryValue[]) => Promise.all(vals.map(formDataToFile));
+
+const urlencodedToNum = (val: string | undefined) => {
+  const num = Number(val);
+
+  return isNaN(num) ? val : num;
+};
+
+const urlencodedToNumArr = (val: string[]) => val.map(urlencodedToNum);
+
+const urlencodedToBool = (val: string | undefined) =>
+  val === 'true' ? true : val === 'false' ? false : val;
+
+const urlencodedToBoolArr = (val: string[]) => val.map(urlencodedToBool);

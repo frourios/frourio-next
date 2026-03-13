@@ -30,6 +30,9 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
     http.post(`${baseURL}/api`, ({ request }) => {
       return route_36xt6y.POST(request);
     }),
+    http.put(`${baseURL}/api`, ({ request }) => {
+      return route_36xt6y.PUT(request);
+    }),
     http.post(`${baseURL}/api/%E6%97%A5%E6%9C%AC%E8%AA%9E`, ({ request }) => {
       return route_15e5upz.POST(request);
     }),

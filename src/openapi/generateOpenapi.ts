@@ -63,7 +63,7 @@ type Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 type FrourioResponse = {
   [Status in \`\${2 | 4 | 5}\${Digit}\${Digit}\`]?: {
     headers?: z.ZodTypeAny;
-    format?: 'formData';
+    format?: 'formData' | 'urlencoded';
     body?: z.ZodTypeAny;
   };
 };
@@ -250,11 +250,13 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
         ((headersDef?.properties?.['content-type'] as TJS.Definition)?.const as string) ??
         (reqFormat === 'formData'
           ? 'multipart/form-data'
-          : props.body?.$ref?.includes('Blob') || props.body?.$ref?.includes('ArrayBuffer')
-            ? 'application/octet-stream'
-            : typeof props.body?.type === 'string' && props.body.type === 'string'
-              ? 'text/plain'
-              : 'application/json');
+          : reqFormat === 'urlencoded'
+            ? 'application/x-www-form-urlencoded'
+            : props.body?.$ref?.includes('Blob') || props.body?.$ref?.includes('ArrayBuffer')
+              ? 'application/octet-stream'
+              : typeof props.body?.type === 'string' && props.body.type === 'string'
+                ? 'text/plain'
+                : 'application/json');
 
       const resDef =
         props.res && (methodsSchema?.definitions?.[getRefText(props.res)] as TJS.Definition);

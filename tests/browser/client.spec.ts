@@ -135,6 +135,27 @@ const handlers = [
     }
   }),
 
+  http.delete('http://localhost/api/test-client', async ({ request }) => {
+    try {
+      const text = await request.text();
+      const params = new URLSearchParams(text);
+      const reason = params.get('reason');
+      const confirm = params.get('confirm');
+
+      if (!reason) {
+        return HttpResponse.json({ message: 'Missing reason' }, { status: 400 });
+      }
+
+      if (confirm !== 'true') {
+        return HttpResponse.json({ message: 'Must confirm deletion' }, { status: 400 });
+      }
+
+      return HttpResponse.json({ message: `Deleted with reason: ${reason}` });
+    } catch (_) {
+      return HttpResponse.json({ message: 'Invalid request' }, { status: 400 });
+    }
+  }),
+
   http.post('http://localhost/api/test-client/stream', async ({ request }) => {
     try {
       const body = (await request.json()) as { prompt?: string };
@@ -470,6 +491,34 @@ describe('fc (Low-Level Client)', () => {
     expect(result.reason!).toBeInstanceOf(ZodError);
     expect(['userId', 'avatar']).toContain(result.reason!.issues[0].path[0]);
     expect(result.raw).toBeUndefined();
+  });
+
+  test('DELETE /api/test-client - urlencoded Success', async () => {
+    const result = await lowLevelApiClient['api/test-client'].$delete({
+      body: { reason: 'cleanup', confirm: true },
+    });
+    expect(result.ok).toBe(true);
+    expect(result.isValid).toBe(true);
+    expect(result.data!.status).toBe(200);
+    expect(result.data!.body.message).toContain('cleanup');
+  });
+
+  test('DELETE /api/test-client - urlencoded Error', async () => {
+    const result = await lowLevelApiClient['api/test-client'].$delete({
+      body: { reason: 'test', confirm: false },
+    });
+    expect(result.ok).toBe(false);
+    expect(result.isValid).toBe(true);
+    expect(result.failure!.status).toBe(400);
+  });
+
+  test('DELETE /api/test-client - urlencoded Validation Error', async () => {
+    const result = await lowLevelApiClient['api/test-client'].$delete({
+      body: {} as z.infer<typeof testClientSpec.delete.body>,
+    });
+    expect(result.ok).toBeUndefined();
+    expect(result.isValid).toBe(false);
+    expect(result.reason!).toBeInstanceOf(ZodError);
   });
 
   test('POST /api/test-client/stream - Success', async () => {

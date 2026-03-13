@@ -39,6 +39,18 @@ export const frourioSpec = {
       400: { body: ErrorSchema },
     },
   },
+
+  delete: {
+    format: 'urlencoded',
+    body: z.object({
+      reason: z.string(),
+      confirm: z.boolean(),
+    }),
+    res: {
+      200: { body: z.object({ message: z.string() }) },
+      400: { body: ErrorSchema },
+    },
+  },
 } satisfies FrourioSpec;
 
 export type User = z.infer<typeof UserSchema>;

@@ -339,3 +339,95 @@ test('formData request', async () => {
     }),
   );
 });
+
+type UrlencodedBody = z.infer<typeof formSpec.put.body>;
+
+test('urlencoded request', async () => {
+  await Promise.all(
+    [
+      {
+        string: 'aaa',
+        number: 11,
+        boolean: false,
+        optionalString: 'bbb',
+        optionalNumber: 22,
+        optionalBoolean: true,
+        stringArr: ['cc', 'dd'],
+        numberArr: [33, 44],
+        booleanArr: [true, false],
+        optionalStringArr: ['ee', 'ff'],
+        optionalNumberArr: [55, 66],
+        optionalBooleanArr: [false, true],
+      } satisfies UrlencodedBody,
+      {
+        string: 'aaa',
+        number: 11,
+        boolean: false,
+        stringArr: [],
+        numberArr: [33, 44],
+        booleanArr: [true, false],
+      } satisfies UrlencodedBody,
+    ].map(async (val) => {
+      const searchParams = new URLSearchParams();
+
+      Object.entries(val).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((item) => searchParams.append(key, String(item)));
+        } else {
+          searchParams.set(key, String(value));
+        }
+      });
+
+      const res = await formReqRoute.PUT(
+        new Request('http://example.com/', {
+          method: 'PUT',
+          body: searchParams.toString(),
+          headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        }),
+      );
+
+      await expect(res.json()).resolves.toEqual(val);
+    }),
+  );
+
+  await Promise.all(
+    [
+      {
+        string: 'aaa',
+        number: 11,
+        boolean: false,
+        stringArr: [],
+        numberArr: ['no number'],
+        booleanArr: [true, false],
+      },
+      {
+        string: 'aaa',
+        number: 11,
+        boolean: false,
+        stringArr: [],
+        numberArr: [33, 44],
+        booleanArr: ['no boolean'],
+      },
+    ].map(async (val) => {
+      const searchParams = new URLSearchParams();
+
+      Object.entries(val).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((item) => searchParams.append(key, String(item)));
+        } else {
+          searchParams.set(key, String(value));
+        }
+      });
+
+      const res = await formReqRoute.PUT(
+        new Request('http://example.com/', {
+          method: 'PUT',
+          body: searchParams.toString(),
+          headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        }),
+      );
+
+      expect(res.status).toBe(422);
+    }),
+  );
+});

@@ -646,6 +646,74 @@ if (imageFile) {
 }
 ```
 
+## 📝 Handling URL-Encoded Form Data
+
+Use `format: 'urlencoded'` for `application/x-www-form-urlencoded` requests. This is useful for simple form submissions without file uploads.
+
+`app/api/contact/frourio.ts`:
+
+```typescript
+import type { FrourioSpec } from '@frourio/next';
+import { z } from 'zod';
+
+export const frourioSpec = {
+  post: {
+    format: 'urlencoded', // Indicate URL-encoded request
+    body: z.object({
+      name: z.string(),
+      email: z.string(),
+      age: z.number().optional(),
+      subscribe: z.boolean().optional(),
+    }),
+    res: {
+      200: { body: z.object({ message: z.string() }) },
+      400: { body: z.object({ message: z.string() }) },
+    },
+  },
+} satisfies FrourioSpec;
+```
+
+`app/api/contact/route.ts`:
+
+```typescript
+import { createRoute } from './frourio.server';
+
+export const { POST } = createRoute({
+  post: async ({ body }) => {
+    // Type-safe access to form fields (already parsed from URL-encoded string)
+    console.log('Name:', body.name);
+    console.log('Email:', body.email);
+    console.log('Age:', body.age); // number | undefined
+    console.log('Subscribe:', body.subscribe); // boolean | undefined
+
+    return {
+      status: 200,
+      body: { message: `Thank you, ${body.name}!` },
+    };
+  },
+});
+```
+
+**Client-Side**: When `format: 'urlencoded'` is specified, the generated clients (`fc`, `$fc`) expect a plain JavaScript object matching the body schema. The client automatically constructs the `URLSearchParams` request body and sets the `Content-Type: application/x-www-form-urlencoded` header internally.
+
+```typescript
+try {
+  const result = await apiClient['api/contact'].$post({
+    body: {
+      name: 'Alice',
+      email: 'alice@example.com',
+      age: 30,
+      subscribe: true,
+    },
+  });
+  console.log('Success:', result.message);
+} catch (err) {
+  console.error('Failed:', err);
+}
+```
+
+**Supported Types**: `string`, `number`, `boolean`, and their optional/array variants. File uploads are **not** supported — use `format: 'formData'` instead.
+
 ## 🌊 LLM Streaming & Raw Response Handling
 
 If you omit the `res` property in `frourio.ts` for a specific method, `createRoute` allows the handler to return _any_ standard `Response` object directly. This is useful for streaming responses (e.g., from LLMs) or when you need full control over the response.

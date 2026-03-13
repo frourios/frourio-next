@@ -1,6 +1,6 @@
 import { createRoute } from './frourio.server';
 
-export const { POST } = createRoute({
+export const { POST, PUT } = createRoute({
   post: async ({ body }) => {
     return {
       status: 200,
@@ -11,6 +11,12 @@ export const { POST } = createRoute({
         optionalFile: body.optionalFile?.name,
         optionalFileArr: body.optionalFileArr?.map((f) => f.name),
       },
+    };
+  },
+  put: async ({ body }) => {
+    return {
+      status: 200,
+      body,
     };
   },
 });

@@ -107,6 +107,9 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
     http.patch(`${baseURL}/api/test-client`, ({ request }) => {
       return route_17yqnk1.PATCH(request);
     }),
+    http.delete(`${baseURL}/api/test-client`, ({ request }) => {
+      return route_17yqnk1.DELETE(request);
+    }),
     http.put(`${baseURL}/api/test-client/:userId`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'userId': `${pathChunks[3]}` };

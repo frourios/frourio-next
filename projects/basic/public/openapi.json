@@ -790,6 +790,39 @@
             }
           }
         }
+      },
+      "delete": {
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/g4er60"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/swxs1l"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/s2yyyo"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/test-client/{userId}": {
@@ -829,7 +862,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/swxs1l"
+                  "$ref": "#/components/schemas/smy6cm"
                 }
               }
             }
@@ -859,7 +892,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/swxs1l"
+                  "$ref": "#/components/schemas/smy6cm"
                 }
               }
             }
@@ -1700,6 +1733,54 @@
           "body"
         ]
       },
+      "g4er60": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "confirm": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "confirm",
+          "reason"
+        ]
+      },
+      "v63s21": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/swxs1l"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "swxs1l": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "xo07as": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/s2yyyo"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
       "ik6sp8": {
         "type": "object",
         "properties": {
@@ -1740,18 +1821,18 @@
           "name"
         ]
       },
-      "v63s21": {
+      "xxzszr": {
         "type": "object",
         "properties": {
           "body": {
-            "$ref": "#/components/schemas/swxs1l"
+            "$ref": "#/components/schemas/smy6cm"
           }
         },
         "required": [
           "body"
         ]
       },
-      "swxs1l": {
+      "smy6cm": {
         "type": "object",
         "properties": {
           "message": {
@@ -1765,11 +1846,11 @@
       "1n9hrn1": {
         "type": "object"
       },
-      "xo07as": {
+      "1pam7m5": {
         "type": "object",
         "properties": {
           "body": {
-            "$ref": "#/components/schemas/swxs1l"
+            "$ref": "#/components/schemas/smy6cm"
           }
         },
         "required": [

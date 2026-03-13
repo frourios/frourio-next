@@ -136,7 +136,7 @@ export type Task = z.infer<typeof TaskSchema>;
 - `query`: Zod object schema for query parameters. Handles type coercion (string to number/boolean) and array parsing.
 - `headers`: Zod object schema for request headers (use lowercase keys).
 - `body`: Zod schema for the request body.
-- `format`: `'formData'` for file uploads, otherwise assumes JSON.
+- `format`: `'formData'` for file uploads (multipart/form-data), `'urlencoded'` for URL-encoded form data (application/x-www-form-urlencoded), otherwise assumes JSON.
 - `res`: Object mapping status codes to response schemas (`{ body: ZodSchema }` or `{}` for no body). Omit entirely for raw `Response` handling (streaming).
 - `middleware`: Configures middleware behavior (see Section 7).
 
@@ -404,7 +404,30 @@ if (result.ok && result.isValid) {
   } catch (e) { console.error(e); }
   ```
 
-## 10. LLM Streaming & Raw Response Handling
+## 10. Handling URL-Encoded Form Data
+
+- **`frourio.ts`**: Set `format: 'urlencoded'`, define `body` schema with `string`, `number`, `boolean`, and their optional/array variants. File uploads are **not** supported — use `format: 'formData'` instead.
+- **`route.ts`**: Access validated fields in `body` (numbers and booleans are automatically parsed from strings).
+  ```typescript
+  // Example Handler Snippet
+  post: async ({ body }) => {
+    console.log('Name:', body.name); // string
+    console.log('Age:', body.age); // number | undefined
+    console.log('Subscribe:', body.subscribe); // boolean | undefined
+    return { status: 200, body: { message: `Thank you, ${body.name}!` } };
+  }
+  ```
+- **Client-Side**: Pass a *plain object* to the client's `body`. The client automatically constructs `URLSearchParams`, sets `Content-Type: application/x-www-form-urlencoded`, and sends the encoded string as the request body.
+  ```typescript
+  const requestBody = { name: 'Alice', email: 'alice@example.com', age: 30, subscribe: true };
+  try {
+    // Client automatically creates URLSearchParams from requestBody
+    const result = await apiClient['api/contact'].$post({ body: requestBody });
+    console.log('Success:', result);
+  } catch (e) { console.error(e); }
+  ```
+
+## 11. LLM Streaming & Raw Response Handling
 
 - **`frourio.ts`**: Omit the `res` property for the method.
 - **`route.ts`**: Handler *must* return a `Response` object (e.g., `return streamResult.toAIStreamResponse();`).
@@ -428,7 +451,7 @@ if (result.ok && result.isValid) {
       } else { /* Handle error */ }
       ```
 
-## 11. Integration with Data Fetching Libraries (`useSWR`, `useQuery`)
+## 12. Integration with Data Fetching Libraries (`useSWR`, `useQuery`)
 
 Use the `$build()` method on `$fc` client endpoints.
 
@@ -462,7 +485,7 @@ const { data, error, status } = useQuery({
 });
 ```
 
-## 12. Testing
+## 13. Testing
 
 - **Route Handlers (`route.ts`)**: Use `vitest` or similar. Create mock `NextRequest` objects. Call exported handlers directly. Assert response status and body.
   ```typescript
@@ -505,7 +528,7 @@ const { data, error, status } = useQuery({
   });
   ```
 
-## 13. OpenAPI 3.1 Generation
+## 14. OpenAPI 3.1 Generation
 
 Use the `frourio-next-openapi` CLI command.
 
@@ -522,12 +545,12 @@ npm run dev:openapi
 - `--watch`, `-w`: Enable watch mode.
 - `--root`, `-r` (string): Generate OpenAPI for endpoints only within the specified appDir subdirectory (e.g., `./src/app/api/v1`).
 
-## 14. Core CLI Options (`frourio-next`)
+## 15. Core CLI Options (`frourio-next`)
 
 **CLI Options (`frourio-next`):**
 - `--watch`, `-w`: Enable watch mode. Regenerates `*.server.ts` and `*.client.ts` on `frourio.ts` changes.
 
-## 15. MSW Handlers Generation
+## 16. MSW Handlers Generation
 
 FrourioNext can automatically generate MSW (Mock Service Worker) request handlers based on your `frourio.ts` definitions. This is particularly useful for mocking API calls in tests or during frontend development without a running backend.
 

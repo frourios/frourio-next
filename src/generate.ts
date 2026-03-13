@@ -21,8 +21,9 @@ export type MethodInfo = {
   hasHeaders: boolean;
   query: { isOptional: boolean; props: PropOption[] } | null;
   body:
-    | { isFormData: true; data: PropOption[] }
-    | { isFormData: false; type: 'text' | 'json' | 'arrayBuffer' | 'blob' }
+    | { isFormData: true; isUrlEncoded: false; data: PropOption[] }
+    | { isUrlEncoded: true; isFormData: false; data: PropOption[] }
+    | { isFormData: false; isUrlEncoded: false; type: 'text' | 'json' | 'arrayBuffer' | 'blob' }
     | null;
   res:
     | {
@@ -122,21 +123,45 @@ export const generate = async ({ appDir, basePath }: Config): Promise<void> => {
                     }
                   : null,
                 body: props.some((p) => p.getName() === 'body')
-                  ? props.some((p) => p.getName() === 'format') && bodyZodType
-                    ? { isFormData: true, data: getPropOptions(checker, bodyZodType) ?? [] }
-                    : bodyType
-                      ? {
-                          isFormData: false,
-                          type:
-                            bodyType.getSymbol()?.getName() === 'ArrayBuffer'
-                              ? ('arrayBuffer' as const)
-                              : blobType && checker.isTypeAssignableTo(bodyType, blobType)
-                                ? ('blob' as const)
-                                : checker.isTypeAssignableTo(bodyType, checker.getStringType())
-                                  ? ('text' as const)
-                                  : ('json' as const),
-                        }
-                      : null
+                  ? (() => {
+                      const formatSymbol = props.find((p) => p.getName() === 'format');
+                      const formatType =
+                        formatSymbol?.valueDeclaration &&
+                        checker.getTypeOfSymbolAtLocation(
+                          formatSymbol,
+                          formatSymbol.valueDeclaration,
+                        );
+                      const formatValue = formatType ? checker.typeToString(formatType) : null;
+
+                      if (formatValue === '"urlencoded"' && bodyZodType) {
+                        return {
+                          isUrlEncoded: true as const,
+                          isFormData: false as const,
+                          data: getPropOptions(checker, bodyZodType) ?? [],
+                        };
+                      }
+                      if (formatSymbol && bodyZodType) {
+                        return {
+                          isFormData: true as const,
+                          isUrlEncoded: false as const,
+                          data: getPropOptions(checker, bodyZodType) ?? [],
+                        };
+                      }
+                      return bodyType
+                        ? {
+                            isFormData: false as const,
+                            isUrlEncoded: false as const,
+                            type:
+                              bodyType.getSymbol()?.getName() === 'ArrayBuffer'
+                                ? ('arrayBuffer' as const)
+                                : blobType && checker.isTypeAssignableTo(bodyType, blobType)
+                                  ? ('blob' as const)
+                                  : checker.isTypeAssignableTo(bodyType, checker.getStringType())
+                                    ? ('text' as const)
+                                    : ('json' as const),
+                          }
+                        : null;
+                    })()
                   : null,
                 res: resType
                   ?.getProperties()

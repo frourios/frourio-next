@@ -22,7 +22,7 @@ export type FrourioSpec = {
   [method in 'post' | 'put' | 'patch' | 'delete']?: {
     headers?: z.ZodTypeAny;
     query?: z.ZodTypeAny;
-    format?: 'formData';
+    format?: 'formData' | 'urlencoded';
     body?: z.ZodTypeAny;
     res?: FrourioResponse;
   };

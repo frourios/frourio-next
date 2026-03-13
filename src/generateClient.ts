@@ -470,7 +470,19 @@ ${
         formData.set(key, value.toString());
       }
     });\n`
-          : ''
+          : method.body?.isUrlEncoded
+            ? `\n    const urlSearchParams = new URLSearchParams();
+
+    Object.entries(parsedBody.data).forEach(([key, value]) => {
+      if (value === undefined) return;
+
+      if (Array.isArray(value)) {
+        value.forEach((item) => urlSearchParams.append(key, item.toString()));
+      } else {
+        urlSearchParams.set(key, value.toString());
+      }
+    });\n`
+            : ''
       }
     const fetchFn = option?.fetch ?? fetch;
     const result: { success: true; res: Response } | { success: false; error: unknown } = await fetchFn(
@@ -480,22 +492,26 @@ ${
         ...option?.init,${
           method.body?.isFormData
             ? '\n        body: formData,'
-            : method.body
-              ? `\n        body: ${method.body.type === 'json' ? 'JSON.stringify(parsedBody.data)' : 'parsedBody.data'},`
-              : ''
+            : method.body?.isUrlEncoded
+              ? '\n        body: urlSearchParams.toString(),'
+              : method.body
+                ? `\n        body: ${method.body.type === 'json' ? 'JSON.stringify(parsedBody.data)' : 'parsedBody.data'},`
+                : ''
         }
         ...req${params || method.hasHeaders || method.query?.isOptional === false || method.body ? '' : '?'}.init,
         headers: { ...option?.init?.headers, ${
-          method.body?.isFormData === false
-            ? `'content-type': '${
-                {
-                  text: 'text/plain',
-                  json: 'application/json',
-                  arrayBuffer: 'application/octet-stream',
-                  blob: 'application/octet-stream',
-                }[method.body.type]
-              }', `
-            : ''
+          method.body?.isUrlEncoded
+            ? `'content-type': 'application/x-www-form-urlencoded', `
+            : method.body?.isFormData === false
+              ? `'content-type': '${
+                  {
+                    text: 'text/plain',
+                    json: 'application/json',
+                    arrayBuffer: 'application/octet-stream',
+                    blob: 'application/octet-stream',
+                  }[method.body.type]
+                }', `
+              : ''
         }${method.hasHeaders ? '...parsedHeaders.data as HeadersInit, ' : ''}...req${
           params || method.hasHeaders || method.query?.isOptional === false || method.body
             ? ''

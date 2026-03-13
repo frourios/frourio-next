@@ -221,7 +221,25 @@ ${m.body.data
   .join('\n')}
           ].filter(entry => entry[1] !== undefined),
         ),\n      `
-            : `await req.${m.body.type}().catch(() => undefined)`
+            : m.body.isUrlEncoded
+              ? `
+        Object.fromEntries(
+          [
+${m.body.data
+  .map((d) => {
+    const fn = `urlSearchParams.get${d.isArray ? 'All' : ''}('${d.name}')${d.isArray ? '' : ' ?? undefined'}`;
+    const wrapped = `${
+      d.typeName === 'string'
+        ? ''
+        : `urlencodedTo${d.typeName === 'number' ? 'Num' : 'Bool'}${d.isArray ? 'Arr' : ''}(`
+    }${fn}${d.typeName === 'string' ? '' : ')'}`;
+
+    return `            ['${d.name}', ${d.isArray && d.isOptional ? `${fn}.length > 0 ? ${wrapped} : undefined` : wrapped}],`;
+  })
+  .join('\n')}
+          ].filter(entry => entry[1] !== undefined),
+        ),\n      `
+              : `await req.${m.body.type}().catch(() => undefined)`
         })`,
       ],
     ].filter((r) => !!r);
@@ -232,7 +250,7 @@ ${m.body.data
         : m.query
           ? 'async (originalReq) => {\n      const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);'
           : 'async (req) => {'
-    }${m.body?.isFormData ? '\n      const formData = await req.formData();' : ''}${requests
+    }${m.body?.isFormData ? '\n      const formData = await req.formData();' : m.body?.isUrlEncoded ? '\n      const urlSearchParams = new URLSearchParams(await req.text());' : ''}${requests
       .map(
         (r) =>
           `\n      const ${r[0]} = ${r[1]};\n\n      if (${r[0]}.error) return createReqErr(${r[0]}.error);\n`,
@@ -314,6 +332,19 @@ ${m.res
     methods.some(
       (m) => m.body?.isFormData && m.body.data?.some((b) => b.typeName === 'File' && b.isArray),
     ) && formDataToFileArrText,
+    methods.some(
+      (m) => m.body?.isUrlEncoded && m.body.data?.some((b) => b.typeName === 'number'),
+    ) && urlencodedToNumText,
+    methods.some(
+      (m) => m.body?.isUrlEncoded && m.body.data?.some((b) => b.typeName === 'number' && b.isArray),
+    ) && urlencodedToNumArrText,
+    methods.some(
+      (m) => m.body?.isUrlEncoded && m.body.data?.some((b) => b.typeName === 'boolean'),
+    ) && urlencodedToBoolText,
+    methods.some(
+      (m) =>
+        m.body?.isUrlEncoded && m.body.data?.some((b) => b.typeName === 'boolean' && b.isArray),
+    ) && urlencodedToBoolArrText,
   ].filter((txt) => txt !== undefined && txt !== false);
 
   return `${imports.join(';\n')};
@@ -389,3 +420,18 @@ const formDataToFileText = `const formDataToFile = async (val: FormDataEntryValu
 
 const formDataToFileArrText =
   'const formDataToFileArr = (vals: FormDataEntryValue[]) => Promise.all(vals.map(formDataToFile))';
+
+const urlencodedToNumText = `const urlencodedToNum = (val: string | undefined) => {
+  const num = Number(val);
+
+  return isNaN(num) ? val : num;
+}`;
+
+const urlencodedToNumArrText =
+  'const urlencodedToNumArr = (val: string[]) => val.map(urlencodedToNum)';
+
+const urlencodedToBoolText = `const urlencodedToBool = (val: string | undefined) =>
+  val === 'true' ? true : val === 'false' ? false : val`;
+
+const urlencodedToBoolArrText =
+  'const urlencodedToBoolArr = (val: string[]) => val.map(urlencodedToBool)';
