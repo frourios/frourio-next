@@ -264,6 +264,32 @@
         }
       }
     },
+    "/{pid}/bar": {
+      "get": {
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/9qlfoo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/{pid}/foo": {
       "get": {
         "parameters": [
@@ -350,6 +376,22 @@
               "text/plain": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/aaa/api": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/25i1oq"
                 }
               }
             }
@@ -937,6 +979,28 @@
             }
           }
         ]
+      },
+      "delete": {
+        "responses": {
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/1fd3ziv"
+                }
+              }
+            },
+            "headers": {
+              "X-Error-Code": {
+                "schema": {
+                  "type": "string"
+                },
+                "required": true
+              }
+            }
+          }
+        }
       }
     },
     "/xxx/{id}/zzz": {
@@ -1194,6 +1258,28 @@
           "query"
         ]
       },
+      "npt6w5": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/9qlfoo"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "9qlfoo": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
       "zaozq4": {
         "type": "object",
         "properties": {
@@ -1241,6 +1327,28 @@
         },
         "required": [
           "body"
+        ]
+      },
+      "x79gd9": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/25i1oq"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "25i1oq": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
         ]
       },
       "1cpp9i8": {
@@ -1892,6 +2000,43 @@
         },
         "required": [
           "prompt"
+        ]
+      },
+      "1i7li16": {
+        "type": "object",
+        "properties": {
+          "headers": {
+            "$ref": "#/components/schemas/1lt2i58"
+          },
+          "body": {
+            "$ref": "#/components/schemas/1fd3ziv"
+          }
+        },
+        "required": [
+          "body",
+          "headers"
+        ]
+      },
+      "1lt2i58": {
+        "type": "object",
+        "properties": {
+          "X-Error-Code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "X-Error-Code"
+        ]
+      },
+      "1fd3ziv": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
         ]
       },
       "1ftcnr9": {

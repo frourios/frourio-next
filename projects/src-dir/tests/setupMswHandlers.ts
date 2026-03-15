@@ -1,4 +1,7 @@
 import { http, type RequestHandler } from 'msw';
+import * as route_ztntfp from '../src/app/route';
+import * as route_dn9cqh from '../src/app/[...all]/route';
+import * as route_1rzyav8 from '../src/app/[[...optAll]]/route';
 import * as route_og4f3x from '../src/app/[a]/arrayBuffer/route';
 import * as route_uq501x from '../src/app/[a]/blob/route';
 import * as route_bfn325 from '../src/app/[a]/text/route';
@@ -9,6 +12,21 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
   const baseURL = option?.baseURL.replace(/\/$/, '') ?? '';
 
   return [
+    http.get(`${baseURL}`, ({ request }) => {
+      return route_ztntfp.GET(request);
+    }),
+    http.get(`${baseURL}/*`, ({ request }) => {
+      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const params = { 'all': pathChunks.slice(1) };
+
+      return route_dn9cqh.GET(request, { params: Promise.resolve(params) });
+    }),
+    http.get(`${baseURL}/*`, ({ request }) => {
+      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const params = { 'optAll': pathChunks.slice(1) };
+
+      return route_1rzyav8.GET(request, { params: Promise.resolve(params) });
+    }),
     http.post(`${baseURL}/:a/arrayBuffer`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };

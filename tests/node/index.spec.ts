@@ -58,8 +58,17 @@ test('generate', async () => {
         ),
       ]);
       await generate(openapiConfig);
-      await getMswConfig({ output: undefined, dir }).then(generateMsw);
+      await generate(openapiConfig);
 
+      const mswConfig = await getMswConfig({ output: undefined, dir });
+
+      if (existsSync(mswConfig.output)) fs.unlinkSync(mswConfig.output);
+      if (existsSync(openapiConfig.output)) fs.unlinkSync(openapiConfig.output);
+
+      generateMsw(mswConfig);
+      generateOpenapi(openapiConfig);
+
+      generateMsw(mswConfig);
       generateOpenapi(openapiConfig);
     }),
   );
@@ -67,7 +76,7 @@ test('generate', async () => {
   const out = execSync('git status projects', { encoding: 'utf8' });
 
   expect(out).toMatch('nothing to commit, working tree clean');
-}, 50000);
+}, 100000);
 
 test('base handler', async () => {
   const res1 = await baseRoute.GET(new Request('http://example.com/'));

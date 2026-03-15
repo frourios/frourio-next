@@ -10,6 +10,92 @@
     }
   ],
   "paths": {
+    "/": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ii9vni"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/{all}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "all",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                }
+              ],
+              "minItems": 1,
+              "additionalItems": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/{optAll}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "optAll",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                }
+              ],
+              "minItems": 1,
+              "additionalItems": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/{a}/arrayBuffer": {
       "post": {
         "parameters": [
@@ -191,6 +277,50 @@
   },
   "components": {
     "schemas": {
+      "1xs8cf1": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/ii9vni"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "ii9vni": {
+        "type": "object",
+        "properties": {
+          "health": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "health"
+        ]
+      },
+      "1ycd0h9": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "1ftcnr9": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
       "ArrayBuffer": {
         "type": "object",
         "properties": {
@@ -239,7 +369,7 @@
           "body"
         ]
       },
-      "1ycd0h9": {
+      "1ezduoc": {
         "type": "object",
         "properties": {
           "body": {

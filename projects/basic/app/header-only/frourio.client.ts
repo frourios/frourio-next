@@ -34,6 +34,13 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       return result.data;
     },
+    delete(): string {
+      const result = $url_1dt6t80(option).delete();
+
+      if (!result.isValid) throw result.reason;
+
+      return result.data;
+    },
   },
   $build(req: Parameters<ReturnType<typeof methods_1dt6t80>['$get']>[0] | null): [
     key: { lowLevel: false; baseURL: FrourioClientOption['baseURL']; dir: string } & Omit<Parameters<ReturnType<typeof methods_1dt6t80>['$get']>[0], 'init'> | null,
@@ -63,6 +70,13 @@ export const $fc = (option?: FrourioClientOption) => ({
 
     return result.data;
   },
+  async $delete(req?: Parameters<ReturnType<typeof methods_1dt6t80>['$delete']>[0]): Promise<never> {
+    const result = await methods_1dt6t80(option).$delete(req);
+
+    if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+    throw new Error(`HTTP Error: ${result.failure.status}`);
+  },
 });
 
 export const fc_1dt6t80 = fc;
@@ -74,6 +88,9 @@ const $url_1dt6t80 = (option?: FrourioClientOption) => ({
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/header-only` };
   },
   post(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/header-only` };
+  },
+  delete(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/header-only` };
   },
 });
@@ -140,6 +157,55 @@ const methods_1dt6t80 = (option?: FrourioClientOption) => ({
     if (!result.success) return { error: result.error };
 
     return result.res.ok ? { ok: true, isValid: true, data: result.res, raw: result.res } : { ok: false, isValid: true, failure: result.res, raw: result.res };
+  },
+  async $delete(req?: { init?: RequestInit }): Promise<
+    | { ok: false; isValid: true; data?: undefined; failure: { status: 400; headers: z.infer<typeof frourioSpec_1dt6t80.delete.res[400]['headers']>; body: z.infer<typeof frourioSpec_1dt6t80.delete.res[400]['body']> }; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
+    | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
+    | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
+    | { ok?: undefined; isValid?: undefined; data?: undefined; failure?: undefined; raw?: undefined; reason?: undefined; error: unknown }
+  > {
+    const url = $url_1dt6t80(option).delete();
+
+    if (url.reason) return url;
+
+    const fetchFn = option?.fetch ?? fetch;
+    const result: { success: true; res: Response } | { success: false; error: unknown } = await fetchFn(
+      url.data,
+      {
+        method: 'DELETE',
+        ...option?.init,
+        ...req?.init,
+        headers: { ...option?.init?.headers, ...req?.init?.headers },
+      }
+    ).then(res => ({ success: true, res } as const)).catch(error => ({ success: false, error }));
+
+    if (!result.success) return { error: result.error };
+
+    switch (result.res.status) {
+      case 400: {
+        const headers = frourioSpec_1dt6t80.delete.res[400].headers.safeParse(Object.fromEntries(result.res.headers.entries()));
+
+        if (!headers.success) return { ok: false, isValid: false, raw: result.res, reason: headers.error };
+
+        const resBody: { success: true; data: unknown } | { success: false; error: unknown } = await result.res.json().then(data => ({ success: true, data } as const)).catch(error => ({ success: false, error }));
+
+        if (!resBody.success) return { ok: false, raw: result.res, error: resBody.error };
+
+        const body = frourioSpec_1dt6t80.delete.res[400].body.safeParse(resBody.data);
+
+        if (!body.success) return { ok: false, isValid: false, raw: result.res, reason: body.error };
+
+        return {
+          ok: false,
+          isValid: true,
+          failure: { status: 400, headers: headers.data, body: body.data },
+          raw: result.res,
+        };
+      }
+      default:
+        return { ok: result.res.ok, raw: result.res, error: new Error(`Unknown status: ${result.res.status}`) };
+    }
   },
 });
 

@@ -8,4 +8,12 @@ export const frourioSpec = {
   post: {
     headers: z.object({ 'Content-Type': z.string() }),
   },
+  delete: {
+    res: {
+      400: {
+        headers: z.object({ 'X-Error-Code': z.string() }),
+        body: z.object({ error: z.string() }),
+      },
+    },
+  },
 } satisfies FrourioSpec;

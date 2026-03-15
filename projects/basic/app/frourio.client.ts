@@ -2,9 +2,11 @@
 import type { FrourioClientOption } from '@frourio/next';
 import { z } from 'zod';
 import { frourioSpec as frourioSpec_rket09 } from './(group1)/[pid]/frourio';
+import { frourioSpec as frourioSpec_1pkrnw3 } from './(group1)/[pid]/bar/frourio';
 import { frourioSpec as frourioSpec_1c6qmxu } from './(group1)/[pid]/foo/frourio';
 import { frourioSpec as frourioSpec_er79ce } from './(group1)/blog/[...slug]/frourio';
 import { frourioSpec as frourioSpec_14jcy50 } from './(group1)/blog/hoge/[[...fuga]]/frourio';
+import { frourioSpec as frourioSpec_1x69jyx } from './(group2)/aaa/api/frourio';
 import { frourioSpec as frourioSpec_13e9lnf } from './(group2)/x/[y]/frourio';
 import { frourioSpec as frourioSpec_knqmrp } from './[a]/frourio';
 import { frourioSpec as frourioSpec_2ijh4e } from './[a]/[b]/[...c]/frourio';
@@ -37,6 +39,20 @@ export const fc = (option?: FrourioClientOption) => ({
       return [{ lowLevel: true, baseURL: option?.baseURL, dir: '/(group1)/[pid]', ...rest }, () => methods_rket09(option).$get(req)];
     },
     ...methods_rket09(option),
+  },
+  '(group1)/[pid]/bar': {
+    $url: $url_1pkrnw3(option),
+    $build(req: Parameters<ReturnType<typeof methods_1pkrnw3>['$get']>[0] | null): [
+      key: { lowLevel: true; baseURL: FrourioClientOption['baseURL']; dir: string } & Omit<Parameters<ReturnType<typeof methods_1pkrnw3>['$get']>[0], 'init'> | null,
+      fetcher: () => Promise<NonNullable<Awaited<ReturnType<ReturnType<typeof methods_1pkrnw3>['$get']>>>>,
+    ] {
+      if (req === null) return [null, () => Promise.reject(new Error('Fetcher is disabled.'))];
+
+      const { init, ...rest } = req;
+
+      return [{ lowLevel: true, baseURL: option?.baseURL, dir: '/(group1)/[pid]/bar', ...rest }, () => methods_1pkrnw3(option).$get(req)];
+    },
+    ...methods_1pkrnw3(option),
   },
   '(group1)/[pid]/foo': {
     $url: $url_1c6qmxu(option),
@@ -79,6 +95,16 @@ export const fc = (option?: FrourioClientOption) => ({
       return [{ lowLevel: true, baseURL: option?.baseURL, dir: '/(group1)/blog/hoge/[[...fuga]]', ...rest }, () => methods_14jcy50(option).$get(req)];
     },
     ...methods_14jcy50(option),
+  },
+  '(group2)/aaa/api': {
+    $url: $url_1x69jyx(option),
+    $build(req?: { init?: RequestInit }): [
+      key: { lowLevel: true; baseURL: FrourioClientOption['baseURL']; dir: string },
+      fetcher: () => Promise<NonNullable<Awaited<ReturnType<ReturnType<typeof methods_1x69jyx>['$get']>>>>,
+    ] {
+      return [{ lowLevel: true, baseURL: option?.baseURL, dir: '/(group2)/aaa/api' }, () => methods_1x69jyx(option).$get(req)];
+    },
+    ...methods_1x69jyx(option),
   },
   '(group2)/x/[y]': {
     $url: $url_13e9lnf(option),
@@ -291,6 +317,34 @@ export const $fc = (option?: FrourioClientOption) => ({
       return result.data.body;
     },
   },
+  '(group1)/[pid]/bar': {
+    $url: {
+      get(req: Parameters<ReturnType<typeof $url_1pkrnw3>['get']>[0]): string {
+        const result = $url_1pkrnw3(option).get(req);
+
+        if (!result.isValid) throw result.reason;
+
+        return result.data;
+      },
+    },
+    $build(req: Parameters<ReturnType<typeof methods_1pkrnw3>['$get']>[0] | null): [
+      key: { lowLevel: false; baseURL: FrourioClientOption['baseURL']; dir: string } & Omit<Parameters<ReturnType<typeof methods_1pkrnw3>['$get']>[0], 'init'> | null,
+      fetcher: () => Promise<z.infer<typeof frourioSpec_1pkrnw3.get.res[200]['body']>>,
+    ] {
+      if (req === null) return [null, () => Promise.reject(new Error('Fetcher is disabled.'))];
+
+      const { init, ...rest } = req;
+
+      return [{ lowLevel: false, baseURL: option?.baseURL, dir: '/(group1)/[pid]/bar', ...rest }, () => $fc(option)['(group1)/[pid]/bar'].$get(req)];
+    },
+    async $get(req: Parameters<ReturnType<typeof methods_1pkrnw3>['$get']>[0]): Promise<z.infer<typeof frourioSpec_1pkrnw3.get.res[200]['body']>> {
+      const result = await methods_1pkrnw3(option).$get(req);
+
+      if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+      return result.data.body;
+    },
+  },
   '(group1)/[pid]/foo': {
     $url: {
       get(req: Parameters<ReturnType<typeof $url_1c6qmxu>['get']>[0]): string {
@@ -369,6 +423,30 @@ export const $fc = (option?: FrourioClientOption) => ({
     },
     async $get(req: Parameters<ReturnType<typeof methods_14jcy50>['$get']>[0]): Promise<z.infer<typeof frourioSpec_14jcy50.get.res[200]['body']>> {
       const result = await methods_14jcy50(option).$get(req);
+
+      if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+      return result.data.body;
+    },
+  },
+  '(group2)/aaa/api': {
+    $url: {
+      get(): string {
+        const result = $url_1x69jyx(option).get();
+
+        if (!result.isValid) throw result.reason;
+
+        return result.data;
+      },
+    },
+    $build(req?: { init?: RequestInit }): [
+      key: { lowLevel: false; baseURL: FrourioClientOption['baseURL']; dir: string },
+      fetcher: () => Promise<z.infer<typeof frourioSpec_1x69jyx.get.res[200]['body']>>,
+    ] {
+      return [{ lowLevel: false, baseURL: option?.baseURL, dir: '/(group2)/aaa/api' }, () => $fc(option)['(group2)/aaa/api'].$get(req)];
+    },
+    async $get(req?: Parameters<ReturnType<typeof methods_1x69jyx>['$get']>[0]): Promise<z.infer<typeof frourioSpec_1x69jyx.get.res[200]['body']>> {
+      const result = await methods_1x69jyx(option).$get(req);
 
       if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
 
@@ -805,6 +883,13 @@ export const $fc = (option?: FrourioClientOption) => ({
 
         return result.data;
       },
+      delete(): string {
+        const result = $url_1dt6t80(option).delete();
+
+        if (!result.isValid) throw result.reason;
+
+        return result.data;
+      },
     },
     $build(req: Parameters<ReturnType<typeof methods_1dt6t80>['$get']>[0] | null): [
       key: { lowLevel: false; baseURL: FrourioClientOption['baseURL']; dir: string } & Omit<Parameters<ReturnType<typeof methods_1dt6t80>['$get']>[0], 'init'> | null,
@@ -833,6 +918,13 @@ export const $fc = (option?: FrourioClientOption) => ({
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
       return result.data;
+    },
+    async $delete(req?: Parameters<ReturnType<typeof methods_1dt6t80>['$delete']>[0]): Promise<never> {
+      const result = await methods_1dt6t80(option).$delete(req);
+
+      if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+      throw new Error(`HTTP Error: ${result.failure.status}`);
     },
   },
   'xxx/[id]/zzz': {
@@ -913,6 +1005,8 @@ export const $fc_ztntfp = $fc;
 
 const paramsSchema_rket09 = z.object({ 'pid': z.string() });
 
+const paramsSchema_1pkrnw3 = z.object({ 'pid': z.string() });
+
 const paramsSchema_1c6qmxu = z.object({ 'pid': z.string() });
 
 const paramsSchema_er79ce = z.object({ 'slug': frourioSpec_er79ce.param });
@@ -982,6 +1076,16 @@ const $url_rket09 = (option?: FrourioClientOption) => ({
   },
 });
 
+const $url_1pkrnw3 = (option?: FrourioClientOption) => ({
+  get(req: { params: z.infer<typeof paramsSchema_1pkrnw3> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+    const parsedParams = paramsSchema_1pkrnw3.safeParse(req.params);
+
+    if (!parsedParams.success) return { isValid: false, reason: parsedParams.error };
+
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/${parsedParams.data.pid}/bar` };
+  },
+});
+
 const $url_1c6qmxu = (option?: FrourioClientOption) => ({
   get(req: { params: z.infer<typeof paramsSchema_1c6qmxu> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
     const parsedParams = paramsSchema_1c6qmxu.safeParse(req.params);
@@ -1009,6 +1113,12 @@ const $url_14jcy50 = (option?: FrourioClientOption) => ({
     if (!parsedParams.success) return { isValid: false, reason: parsedParams.error };
 
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/blog/hoge${parsedParams.data.fuga !== undefined && parsedParams.data.fuga.length > 0 ? `/${parsedParams.data.fuga.join('/')}` : ''}` };
+  },
+});
+
+const $url_1x69jyx = (option?: FrourioClientOption) => ({
+  get(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/aaa/api` };
   },
 });
 
@@ -1222,6 +1332,9 @@ const $url_1dt6t80 = (option?: FrourioClientOption) => ({
   post(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/header-only` };
   },
+  delete(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/header-only` };
+  },
 });
 
 const $url_fkgw0p = (option?: FrourioClientOption) => ({
@@ -1397,6 +1510,54 @@ const methods_rket09 = (option?: FrourioClientOption) => ({
   },
 });
 
+const methods_1pkrnw3 = (option?: FrourioClientOption) => ({
+  async $get(req: { params: z.infer<typeof paramsSchema_1pkrnw3>, init?: RequestInit }): Promise<
+    | { ok: true; isValid: true; data: { status: 200; headers?: undefined; body: z.infer<typeof frourioSpec_1pkrnw3.get.res[200]['body']> }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
+    | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
+    | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
+    | { ok?: undefined; isValid?: undefined; data?: undefined; failure?: undefined; raw?: undefined; reason?: undefined; error: unknown }
+  > {
+    const url = $url_1pkrnw3(option).get(req);
+
+    if (url.reason) return url;
+
+    const fetchFn = option?.fetch ?? fetch;
+    const result: { success: true; res: Response } | { success: false; error: unknown } = await fetchFn(
+      url.data,
+      {
+        method: 'GET',
+        ...option?.init,
+        ...req.init,
+        headers: { ...option?.init?.headers, ...req.init?.headers },
+      }
+    ).then(res => ({ success: true, res } as const)).catch(error => ({ success: false, error }));
+
+    if (!result.success) return { error: result.error };
+
+    switch (result.res.status) {
+      case 200: {
+        const resBody: { success: true; data: unknown } | { success: false; error: unknown } = await result.res.json().then(data => ({ success: true, data } as const)).catch(error => ({ success: false, error }));
+
+        if (!resBody.success) return { ok: true, raw: result.res, error: resBody.error };
+
+        const body = frourioSpec_1pkrnw3.get.res[200].body.safeParse(resBody.data);
+
+        if (!body.success) return { ok: true, isValid: false, raw: result.res, reason: body.error };
+
+        return {
+          ok: true,
+          isValid: true,
+          data: { status: 200, body: body.data },
+          raw: result.res,
+        };
+      }
+      default:
+        return { ok: result.res.ok, raw: result.res, error: new Error(`Unknown status: ${result.res.status}`) };
+    }
+  },
+});
+
 const methods_1c6qmxu = (option?: FrourioClientOption) => ({
   async $get(req: { params: z.infer<typeof paramsSchema_1c6qmxu>, init?: RequestInit }): Promise<
     | { ok: true; isValid: true; data: { status: 200; headers: z.infer<typeof frourioSpec_1c6qmxu.get.res[200]['headers']>; body: z.infer<typeof frourioSpec_1c6qmxu.get.res[200]['body']> }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
@@ -1529,6 +1690,54 @@ const methods_14jcy50 = (option?: FrourioClientOption) => ({
         if (!resBody.success) return { ok: true, raw: result.res, error: resBody.error };
 
         const body = frourioSpec_14jcy50.get.res[200].body.safeParse(resBody.data);
+
+        if (!body.success) return { ok: true, isValid: false, raw: result.res, reason: body.error };
+
+        return {
+          ok: true,
+          isValid: true,
+          data: { status: 200, body: body.data },
+          raw: result.res,
+        };
+      }
+      default:
+        return { ok: result.res.ok, raw: result.res, error: new Error(`Unknown status: ${result.res.status}`) };
+    }
+  },
+});
+
+const methods_1x69jyx = (option?: FrourioClientOption) => ({
+  async $get(req?: { init?: RequestInit }): Promise<
+    | { ok: true; isValid: true; data: { status: 200; headers?: undefined; body: z.infer<typeof frourioSpec_1x69jyx.get.res[200]['body']> }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
+    | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
+    | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
+    | { ok?: undefined; isValid?: undefined; data?: undefined; failure?: undefined; raw?: undefined; reason?: undefined; error: unknown }
+  > {
+    const url = $url_1x69jyx(option).get();
+
+    if (url.reason) return url;
+
+    const fetchFn = option?.fetch ?? fetch;
+    const result: { success: true; res: Response } | { success: false; error: unknown } = await fetchFn(
+      url.data,
+      {
+        method: 'GET',
+        ...option?.init,
+        ...req?.init,
+        headers: { ...option?.init?.headers, ...req?.init?.headers },
+      }
+    ).then(res => ({ success: true, res } as const)).catch(error => ({ success: false, error }));
+
+    if (!result.success) return { error: result.error };
+
+    switch (result.res.status) {
+      case 200: {
+        const resBody: { success: true; data: unknown } | { success: false; error: unknown } = await result.res.json().then(data => ({ success: true, data } as const)).catch(error => ({ success: false, error }));
+
+        if (!resBody.success) return { ok: true, raw: result.res, error: resBody.error };
+
+        const body = frourioSpec_1x69jyx.get.res[200].body.safeParse(resBody.data);
 
         if (!body.success) return { ok: true, isValid: false, raw: result.res, reason: body.error };
 
@@ -2641,6 +2850,55 @@ const methods_1dt6t80 = (option?: FrourioClientOption) => ({
     if (!result.success) return { error: result.error };
 
     return result.res.ok ? { ok: true, isValid: true, data: result.res, raw: result.res } : { ok: false, isValid: true, failure: result.res, raw: result.res };
+  },
+  async $delete(req?: { init?: RequestInit }): Promise<
+    | { ok: false; isValid: true; data?: undefined; failure: { status: 400; headers: z.infer<typeof frourioSpec_1dt6t80.delete.res[400]['headers']>; body: z.infer<typeof frourioSpec_1dt6t80.delete.res[400]['body']> }; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
+    | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
+    | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
+    | { ok?: undefined; isValid?: undefined; data?: undefined; failure?: undefined; raw?: undefined; reason?: undefined; error: unknown }
+  > {
+    const url = $url_1dt6t80(option).delete();
+
+    if (url.reason) return url;
+
+    const fetchFn = option?.fetch ?? fetch;
+    const result: { success: true; res: Response } | { success: false; error: unknown } = await fetchFn(
+      url.data,
+      {
+        method: 'DELETE',
+        ...option?.init,
+        ...req?.init,
+        headers: { ...option?.init?.headers, ...req?.init?.headers },
+      }
+    ).then(res => ({ success: true, res } as const)).catch(error => ({ success: false, error }));
+
+    if (!result.success) return { error: result.error };
+
+    switch (result.res.status) {
+      case 400: {
+        const headers = frourioSpec_1dt6t80.delete.res[400].headers.safeParse(Object.fromEntries(result.res.headers.entries()));
+
+        if (!headers.success) return { ok: false, isValid: false, raw: result.res, reason: headers.error };
+
+        const resBody: { success: true; data: unknown } | { success: false; error: unknown } = await result.res.json().then(data => ({ success: true, data } as const)).catch(error => ({ success: false, error }));
+
+        if (!resBody.success) return { ok: false, raw: result.res, error: resBody.error };
+
+        const body = frourioSpec_1dt6t80.delete.res[400].body.safeParse(resBody.data);
+
+        if (!body.success) return { ok: false, isValid: false, raw: result.res, reason: body.error };
+
+        return {
+          ok: false,
+          isValid: true,
+          failure: { status: 400, headers: headers.data, body: body.data },
+          raw: result.res,
+        };
+      }
+      default:
+        return { ok: result.res.ok, raw: result.res, error: new Error(`Unknown status: ${result.res.status}`) };
+    }
   },
 });
 

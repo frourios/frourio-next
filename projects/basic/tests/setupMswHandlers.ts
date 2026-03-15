@@ -1,9 +1,11 @@
 import { http, type RequestHandler } from 'msw';
 import * as route_ztntfp from '../app/route';
 import * as route_rket09 from '../app/(group1)/[pid]/route';
+import * as route_1pkrnw3 from '../app/(group1)/[pid]/bar/route';
 import * as route_1c6qmxu from '../app/(group1)/[pid]/foo/route';
 import * as route_er79ce from '../app/(group1)/blog/[...slug]/route';
 import * as route_14jcy50 from '../app/(group1)/blog/hoge/[[...fuga]]/route';
+import * as route_1x69jyx from '../app/(group2)/aaa/api/route';
 import * as route_13e9lnf from '../app/(group2)/x/[y]/route';
 import * as route_knqmrp from '../app/[a]/route';
 import * as route_2ijh4e from '../app/[a]/[b]/[...c]/route';
@@ -36,6 +38,12 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
 
       return route_rket09.GET(request, { params: Promise.resolve(params) });
     }),
+    http.get(`${baseURL}/:pid/bar`, ({ request }) => {
+      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const params = { 'pid': `${pathChunks[1]}` };
+
+      return route_1pkrnw3.GET(request, { params: Promise.resolve(params) });
+    }),
     http.get(`${baseURL}/:pid/foo`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'pid': `${pathChunks[1]}` };
@@ -53,6 +61,9 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
       const params = { 'fuga': pathChunks.slice(3) };
 
       return route_14jcy50.GET(request, { params: Promise.resolve(params) });
+    }),
+    http.get(`${baseURL}/aaa/api`, ({ request }) => {
+      return route_1x69jyx.GET(request);
     }),
     http.get(`${baseURL}/x/:y`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
@@ -131,6 +142,9 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
     }),
     http.post(`${baseURL}/header-only`, ({ request }) => {
       return route_1dt6t80.POST(request);
+    }),
+    http.delete(`${baseURL}/header-only`, ({ request }) => {
+      return route_1dt6t80.DELETE(request);
     }),
     http.get(`${baseURL}/xxx/:id/zzz`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
