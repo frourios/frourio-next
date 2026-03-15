@@ -147,8 +147,9 @@ Implement the API logic using the `createRoute` helper.
 **`createRoute` Function:**
 
 - Imported from the generated `./frourio.server.ts`.
-- Takes an object mapping HTTP methods (uppercase) and/or `middleware` to their implementation functions.
+- Takes an object mapping HTTP method names (lowercase) to their implementation functions.
 - Returns an object with generated Next.js Route Handler functions (`GET`, `POST`, etc.).
+- Middleware is wired automatically — `createRoute` does not take a `middleware` property.
 
 **Handler Function Example (`app/api/tasks/[taskId]/route.ts`):**
 
@@ -160,50 +161,27 @@ import type { Task } from './frourio'; // Import inferred type
 const db = new Map<string, Task>();
 db.set('task-1', { id: 'task-1', label: 'Implement Frourio', isDone: false });
 
-// Example middleware implementation (matches middleware defined in frourio.ts)
-const taskMiddleware = async ({ req, next }: any, parentContext: any) => {
-  const traceId = req.headers.get('x-request-id') ?? require('crypto').randomUUID();
-  console.log(`Task Middleware: Trace ID = ${traceId}`);
-  // Pass context defined in frourio.ts's middleware.context
-  return next({ traceId });
-};
-
-export const { GET, PATCH, DELETE, middleware } = createRoute({
-  // Middleware implementation (optional)
-  middleware: taskMiddleware,
-
+export const { GET, PATCH, DELETE } = createRoute({
   // GET handler
   // Receives validated data and context from middleware
   get: async ({ params, query, headers }, context) => {
-    console.log('GET /tasks/:taskId');
     console.log('Trace ID from context:', context.traceId); // Access middleware context
-    console.log('Validated Params:', params); // Type: string (uuid)
-    console.log('Validated Query:', query); // Type: { includeAssignee?: boolean, limit?: number }
-    console.log('Validated Headers:', headers); // Type: { 'x-api-key'?: string }
-
-    const task = db.get(params); // Use validated param directly
+    const task = db.get(params);
 
     if (!task) {
-      // Return object matching 'res' schema for 404
       return { status: 404, body: { message: 'Task not found' } };
     }
-    // Return object matching 'res' schema for 200
     return { status: 200, body: task };
   },
 
   // PATCH handler
   patch: async ({ params, body }, context) => {
-    console.log('PATCH /tasks/:taskId');
-    console.log('Trace ID from context:', context.traceId);
-    console.log('Validated Params:', params);
-    console.log('Validated Body:', body); // Type: Partial<Pick<Task, 'label' | 'isDone'>>
-
     const existingTask = db.get(params);
     if (!existingTask) {
       return { status: 404, body: { message: 'Task not found' } };
     }
 
-    const updatedTask = { ...existingTask, ...body }; // Apply partial updates
+    const updatedTask = { ...existingTask, ...body };
     db.set(params, updatedTask);
 
     return { status: 200, body: updatedTask };
@@ -211,15 +189,10 @@ export const { GET, PATCH, DELETE, middleware } = createRoute({
 
   // DELETE handler
   delete: async ({ params }, context) => {
-    console.log('DELETE /tasks/:taskId');
-    console.log('Trace ID from context:', context.traceId);
-    console.log('Validated Params:', params);
-
     if (!db.has(params)) {
       return { status: 404, body: { message: 'Task not found' } };
     }
     db.delete(params);
-    // Return object matching 204 schema (no body)
     return { status: 204 };
   },
 });
@@ -230,7 +203,15 @@ export const { GET, PATCH, DELETE, middleware } = createRoute({
 
 ## 7. Middleware
 
-Execute code before handlers.
+> **Breaking Change (v0.22.0)**: Middleware implementation has moved from `route.ts` to a separate `route.middleware.ts` file. `createMiddleware` is now imported from the auto-generated `./frourio.middleware` instead of `./frourio.server`. `createRoute` no longer accepts a `middleware` property — middleware is wired automatically by the generated code.
+>
+> **Migration from v0.21.x**:
+> 1. Move your middleware function from `route.ts` to a new `route.middleware.ts` file.
+> 2. Change `import { createMiddleware } from './frourio.server'` to `import { createMiddleware } from './frourio.middleware'`.
+> 3. Remove the `middleware` property from `createRoute()` in `route.ts`.
+> 4. Run `npm run generate` to regenerate `frourio.server.ts` and the new `frourio.middleware.ts` files.
+
+Execute code before handlers. Middleware is implemented in separate `route.middleware.ts` files using the auto-generated `createMiddleware` helper from `frourio.middleware.ts`.
 
 **Defining Middleware (`frourio.ts`):**
 
@@ -238,63 +219,72 @@ Execute code before handlers.
 - `middleware: true`: Inherit parent context, execute current middleware, pass *unchanged* parent context down.
 - Omit `middleware`: Inherit parent context, skip current middleware execution.
 
-**Implementing Middleware (`route.ts`):**
+**Implementing Middleware (`route.middleware.ts`):**
 
-Provide a `middleware` function in `createRoute`.
+Create a `route.middleware.ts` file. Import `createMiddleware` from the auto-generated `./frourio.middleware` and export a `middleware` function.
 
 ```typescript
-// Example Root Middleware (app/api/mw/route.ts)
-import { createRoute } from './frourio.server';
-import type { AuthContext } from './frourio'; // Assuming AuthContext defined in frourio.ts
+// Example Root Middleware (app/api/mw/route.middleware.ts)
+import { createMiddleware } from './frourio.middleware';
 
-const authenticate = (req: Request): AuthContext['user'] => {
+export const middleware = createMiddleware(async ({ req, next }) => {
   const token = req.headers.get('Authorization')?.split(' ')[1];
-  if (token === 'valid-user-token') return { id: 'user-123', roles: ['viewer'] };
-  if (token === 'valid-admin-token') return { id: 'admin-456', roles: ['admin', 'viewer'] };
-  return undefined;
-};
-
-export const { middleware } = createRoute({
-  middleware: async ({ req, next }) => {
-    const user = authenticate(req);
-    console.log('Root Middleware: Authenticated user:', user?.id);
-    // Pass context matching middleware.context schema in frourio.ts
-    return next({ user });
-  },
+  const user = token === 'valid-user-token'
+    ? { id: 'user-123', roles: ['viewer'] }
+    : token === 'valid-admin-token'
+      ? { id: 'admin-456', roles: ['admin', 'viewer'] }
+      : undefined;
+  return next({ user });
 });
 
-// Example Nested Middleware (app/api/mw/admin/route.ts)
-import { createRoute } from './frourio.server';
-import type { AuthContext } from '../frourio'; // Context from parent
-import type { AdminContext } from './frourio'; // Context defined here
+// Example Nested Middleware (app/api/mw/admin/route.middleware.ts)
+import { NextResponse } from 'next/server';
+import { createMiddleware } from './frourio.middleware';
 
-export const { middleware, GET, POST } = createRoute({
-  middleware: async ({ req, next }, parentContext: AuthContext) => {
-    console.log('Admin Middleware: Received user:', parentContext.user?.id);
-    const isAdmin = parentContext.user?.roles.includes('admin') ?? false;
+export const middleware = createMiddleware(async ({ req, next }, parentContext) => {
+  const isAdmin = parentContext.user?.roles.includes('admin') ?? false;
 
-    // Example: Access control
-    if (req.method === 'POST' && !isAdmin) {
-      return new Response(JSON.stringify({ message: 'Forbidden: Admin access required' }), { status: 403 });
-    }
-
-    const permissions = isAdmin ? ['read', 'write', 'delete'] : ['read'];
-    // Pass context matching this middleware's context schema
-    return next({ isAdmin, permissions }); // Assuming AdminContext = { isAdmin: boolean, permissions: string[] }
-  },
-
-  // Handlers receive combined context (AuthContext & AdminContext)
-  get: async ({}, context) => {
-    console.log('Admin GET: User=', context.user?.id, 'IsAdmin=', context.isAdmin, 'Perms=', context.permissions);
-    return { status: 200, body: { ...context } };
-  },
-  post: async ({ body }, context) => {
-     // This handler only runs if middleware allowed it (isAdmin check passed)
-     console.log('Admin POST: User=', context.user?.id, 'IsAdmin=', context.isAdmin);
-     return { status: 201, body: { received: body, context } };
+  if (!isAdmin) {
+    return new NextResponse(JSON.stringify({ message: 'Forbidden' }), { status: 403 });
   }
+
+  return next({ isAdmin, permissions: ['read', 'write', 'delete'] });
 });
 ```
+
+**Route Handlers (`route.ts`):**
+
+Route handlers are separate from middleware. `createRoute` no longer takes a `middleware` property — middleware is wired automatically by the generated code.
+
+```typescript
+// app/api/mw/route.ts — handlers receive middleware context
+import { createRoute } from './frourio.server';
+
+export const { GET } = createRoute({
+  get: async (req, context) => {
+    return { status: 200, body: context };
+  },
+});
+
+// app/api/mw/admin/route.ts — handlers receive combined context
+import { createRoute } from './frourio.server';
+
+export const { GET, POST } = createRoute({
+  get: async (req, context) => {
+    return { status: 200, body: context };
+  },
+  post: async ({ body }, context) => {
+    return { status: 201, body: { received: body.data, context } };
+  },
+});
+```
+
+**File Structure:**
+- `frourio.ts` — API specification (schemas, middleware definition)
+- `frourio.middleware.ts` — Auto-generated: exports `createMiddleware`
+- `route.middleware.ts` — User-written: middleware implementation using `createMiddleware`
+- `frourio.server.ts` — Auto-generated: exports `createRoute` (middleware wired internally)
+- `route.ts` — User-written: route handlers using `createRoute`
 
 **Execution Flow:** Parent -> Child middleware execution. Context is inherited and potentially augmented at each level. Handlers receive the final merged context.
 

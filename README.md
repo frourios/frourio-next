@@ -440,11 +440,20 @@ export function TaskDetails({ taskId }: TaskDetailsProps) {
 
 ## 🧱 Middleware
 
+> **Breaking Change (v0.22.0)**: Middleware implementation has moved from `route.ts` to a separate `route.middleware.ts` file. `createMiddleware` is now imported from the auto-generated `./frourio.middleware` instead of `./frourio.server`. `createRoute` no longer accepts a `middleware` property — middleware is wired automatically by the generated code.
+>
+> **Migration from v0.21.x**:
+>
+> 1. Move your middleware function from `route.ts` to a new `route.middleware.ts` file.
+> 2. Change `import { createMiddleware } from './frourio.server'` to `import { createMiddleware } from './frourio.middleware'`.
+> 3. Remove the `middleware` property from `createRoute()` in `route.ts`.
+> 4. Run `npm run generate` to regenerate `frourio.server.ts` and the new `frourio.middleware.ts` files.
+
 Define middleware in `frourio.ts` to execute code before your main route handlers. Middleware can be inherited from parent directories.
 
 ### 1. Define Middleware in `frourio.ts`
 
-- **Inherit & Execute Logic (No Context Change)**: Set `middleware: true` to inherit context from parent middleware AND execute middleware logic defined in the current directory's `route.ts`. The context passed to children (handlers or nested middleware) remains unchanged from the parent.
+- **Inherit & Execute Logic (No Context Change)**: Set `middleware: true` to inherit context from parent middleware AND execute middleware logic defined in the current directory's `route.middleware.ts`. The context passed to children (handlers or nested middleware) remains unchanged from the parent.
 - **Inherit & Add Context**: Specify a `middleware` object with a `context` schema (using Zod) to inherit context from parent middleware AND define additional context passed _from_ this middleware _to_ its children.
 - **Inherit Only (Default)**: Omitting the `middleware` property entirely defaults to inheriting context from the parent middleware without executing any middleware logic in the current directory. Handlers will receive the parent's context directly.
 
@@ -491,76 +500,92 @@ export const frourioSpec = {
 export type AdminContext = z.infer<typeof AdminContextSchema>;
 ```
 
-### 2. Implement Middleware in `route.ts`
+### 2. Implement Middleware in `route.middleware.ts`
 
-Implement the middleware logic within the `createRoute` call. The `middleware` function receives the request (`req`), a `next` function, and the context (`parentContext`) passed from parent middleware. It calls `next(newContext)` to proceed, passing the context defined in its corresponding `frourio.ts`.
+Create a `route.middleware.ts` file in the same directory as `frourio.ts`. Import `createMiddleware` from the auto-generated `./frourio.middleware` and export a `middleware` function. The middleware function receives the request (`req`), a `next` function, and optionally the parent context (`parentContext`). It calls `next(newContext)` to proceed, passing the context defined in its corresponding `frourio.ts`.
 
-`app/api/route.ts` (Root middleware implementation):
+`app/api/route.middleware.ts` (Root middleware implementation):
 
 ```typescript
-import { createRoute } from './frourio.server';
-import type { AuthContext } from './frourio'; // Import context type
+import { createMiddleware } from './frourio.middleware';
 
-// Mock auth logic
-const authenticate = (req: Request): AuthContext['user'] => {
+export const middleware = createMiddleware(async ({ req, next }) => {
   const token = req.headers.get('Authorization')?.split(' ')[1];
-  if (token === 'valid-user-token') {
-    return { id: 'user-123', roles: ['viewer'] };
-  }
-  if (token === 'valid-admin-token') {
-    return { id: 'admin-456', roles: ['admin', 'viewer'] };
-  }
-  return undefined;
-};
+  const user =
+    token === 'valid-user-token'
+      ? { id: 'user-123', roles: ['viewer'] }
+      : token === 'valid-admin-token'
+        ? { id: 'admin-456', roles: ['admin', 'viewer'] }
+        : undefined;
 
-export const { middleware } = createRoute({
-  // Implement the middleware defined in app/api/frourio.ts
-  middleware: async ({ req, next }) => {
-    const user = authenticate(req);
-    console.log('Root Middleware: User authenticated:', user?.id);
-
-    // Pass the AuthContext to the next handler/middleware
-    return next({ user }); // Must match AuthContextSchema
-  },
-
-  // You can also define routes here that directly use AuthContext
-  // get: async (req, context: AuthContext) => { ... }
+  // Pass the AuthContext to the next handler/middleware
+  return next({ user }); // Must match AuthContextSchema
 });
 ```
 
-`app/api/admin/route.ts` (Nested middleware implementation):
+`app/api/admin/route.middleware.ts` (Nested middleware implementation):
+
+```typescript
+import { NextResponse } from 'next/server';
+import { createMiddleware } from './frourio.middleware';
+
+export const middleware = createMiddleware(async ({ req, next }, parentContext) => {
+  // parentContext contains AuthContext from parent middleware
+  const isAdmin = parentContext.user?.roles.includes('admin') ?? false;
+
+  if (!isAdmin) {
+    // Middleware can return early to block access
+    return new NextResponse(JSON.stringify({ message: 'Forbidden' }), { status: 403 });
+  }
+
+  // Pass the AdminContext to the next handler/middleware
+  return next({ isAdmin }); // Must match AdminContextSchema
+});
+```
+
+### 3. Implement Route Handlers in `route.ts`
+
+Route handlers are separate from middleware. Import `createRoute` from `./frourio.server` as usual — middleware is automatically applied by the generated code.
+
+`app/api/route.ts` (Route with middleware context):
 
 ```typescript
 import { createRoute } from './frourio.server';
 
-export const { middleware } = createRoute({
-  // Implement middleware defined in app/api/admin/frourio.ts
-  // Receives AuthContext from the parent middleware
-  middleware: async ({ req, next }, parentContext) => {
-    console.log('Admin Middleware: Received user:', parentContext.user?.id);
-
-    // Check if user has admin role (using context from parent)
-    const isAdmin = parentContext.user?.roles.includes('admin') ?? false;
-
-    if (!isAdmin) {
-      // Middleware can return early to block access
-      return new Response(JSON.stringify({ message: 'Forbidden' }), { status: 403 });
-    }
-
-    // Pass the AdminContext to the next handler/middleware
-    return next({ isAdmin }); // Must match AdminContextSchema
+export const { GET } = createRoute({
+  // Handlers receive the middleware context as the second argument
+  get: async (req, context) => {
+    console.log('User:', context.user?.id);
+    return { status: 200, body: context };
   },
-
-  // Define admin-specific routes here
-  // Handlers receive the combined context (AuthContext & AdminContext)
-  // get: async (req, context) => {
-  //   console.log('Admin GET handler: User:', context.user?.id, 'IsAdmin:', context.isAdmin);
-  //   // ... admin logic ...
-  // }
 });
 ```
 
-**Execution Flow**: Requests flow through middleware from parent directories down to the specific route. Each `middleware` implementation receives context from its parent and passes new context (defined in its own `frourio.ts`) to its children.
+`app/api/admin/route.ts` (Route with combined context):
+
+```typescript
+import { createRoute } from './frourio.server';
+
+export const { GET, POST } = createRoute({
+  // Handlers receive combined context (AuthContext & AdminContext)
+  get: async (req, context) => {
+    return { status: 200, body: context };
+  },
+  post: async ({ body }, context) => {
+    return { status: 201, body: { received: body.data, context } };
+  },
+});
+```
+
+**File Structure Summary**:
+
+- `frourio.ts` — API specification (schemas, middleware definition)
+- `frourio.middleware.ts` — Auto-generated: exports `createMiddleware`
+- `route.middleware.ts` — User-written: middleware implementation using `createMiddleware`
+- `frourio.server.ts` — Auto-generated: exports `createRoute` (middleware is wired internally)
+- `route.ts` — User-written: route handlers using `createRoute`
+
+**Execution Flow**: Requests flow through middleware from parent directories down to the specific route. Each middleware implementation receives context from its parent and passes new context (defined in its own `frourio.ts`) to its children.
 
 ## 📁 Handling FormData (File Uploads)
 
