@@ -56,7 +56,7 @@ type ResHandler = {
 };
 
 export const createRoute = (controller: Controller): ResHandler => {
-  const middleware = (next: (
+  const runMiddleware = (next: (
     args: { req: NextRequest, params: ParamsType },
   ) => Promise<NextResponse>): MethodHandler => async (originalReq, option) => {
     const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);
@@ -64,14 +64,11 @@ export const createRoute = (controller: Controller): ResHandler => {
 
     if (params.error) return createReqErr(params.error);
 
-
-      return await next({ req, params: params.data })
-      
-    
+    return await next({ req, params: params.data })
   };
 
   return {
-    PUT: middleware(async ({ req, params }) => {
+    PUT: runMiddleware(async ({ req, params }) => {
       const body = frourioSpec.put.body.safeParse(await req.json().catch(() => undefined));
 
       if (body.error) return createReqErr(body.error);
@@ -97,7 +94,7 @@ export const createRoute = (controller: Controller): ResHandler => {
           throw new Error(res satisfies never);
       }
     }),
-    DELETE: middleware(async ({ req, params }) => {
+    DELETE: runMiddleware(async ({ req, params }) => {
       const res = await controller.delete({ params });
 
       switch (res.status) {

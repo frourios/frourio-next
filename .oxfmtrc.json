@@ -10,6 +10,7 @@
     "dist",
     "projects/**/frourio.client.ts",
     "projects/**/frourio.server.ts",
+    "projects/**/frourio.middleware.ts",
     "projects/**/setupMswHandlers.ts",
     "*.json",
     "$*.ts"

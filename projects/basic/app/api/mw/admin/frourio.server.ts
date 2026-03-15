@@ -1,28 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { z } from 'zod';
-import { middleware as ancestorMiddleware } from '../route';
-import { contextSchema as ancestorContextSchema, type ContextType as AncestorContextType } from '../frourio.server';
+import { middleware } from './route.middleware';
+import type { ContextType } from './frourio.middleware';
 import { frourioSpec } from './frourio';
-import type { GET, POST, middleware } from './route';
+import type { GET, POST } from './route';
 
-type RouteChecker = [typeof GET, typeof POST, typeof middleware];
+type RouteChecker = [typeof GET, typeof POST];
 
 type SpecType = typeof frourioSpec;
 
-export const contextSchema = frourioSpec.middleware.context.and(ancestorContextSchema);
-
-export type ContextType = z.infer<typeof contextSchema>;
-
-type Middleware = (
-  args: {
-    req: NextRequest,
-    next: (ctx: z.infer<typeof frourioSpec.middleware.context>) => Promise<NextResponse>,
-  },
-  ctx: AncestorContextType,
-) => Promise<NextResponse>;
-
 type Controller = {
-  middleware: Middleware;
   get: (
     req: {
     },
@@ -57,43 +44,15 @@ type Controller = {
 type MethodHandler = (req: NextRequest | Request) => Promise<NextResponse>;
 
 type ResHandler = {
-  middleware: (
-    next: (args: { req: NextRequest }, ctx: ContextType) => Promise<NextResponse>,
-  ) => (req: NextRequest, option?: {}) => Promise<NextResponse>;
   GET: MethodHandler
   POST: MethodHandler
 };
 
 export const createRoute = (controller: Controller): ResHandler => {
-  const middleware = (next: (
-    args: { req: NextRequest },
-    ctx: ContextType,
-  ) => Promise<NextResponse>): MethodHandler => async (originalReq) => {
-    const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);
-    return ancestorMiddleware(async (_, ancestorContext) => {
-      const ancestorCtx = ancestorContextSchema.safeParse(ancestorContext);
-
-      if (ancestorCtx.error) return createReqErr(ancestorCtx.error);
-
-    return await controller.middleware(
-      {
-        req,
-        next: async ( context) => {
-      const ctx = frourioSpec.middleware.context.safeParse(context);
-
-      if (ctx.error) return createReqErr(ctx.error);
-
-      return await next({ req }, { ...ancestorCtx.data,...ctx.data })
-      },
-      },
-      ancestorCtx.data,
-    )
-    })(req)
-  };
+  const runMiddleware = middleware;
 
   return {
-    middleware,
-    GET: middleware(async ({ req }, ctx) => {
+    GET: runMiddleware(async ({ req }, ctx) => {
       const res = await controller.get({  }, ctx);
 
       switch (res.status) {
@@ -115,7 +74,7 @@ export const createRoute = (controller: Controller): ResHandler => {
           throw new Error(res satisfies never);
       }
     }),
-    POST: middleware(async ({ req }, ctx) => {
+    POST: runMiddleware(async ({ req }, ctx) => {
       const body = frourioSpec.post.body.safeParse(await req.json().catch(() => undefined));
 
       if (body.error) return createReqErr(body.error);

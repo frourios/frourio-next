@@ -1,0 +1,53 @@
+import { NextRequest, NextResponse } from 'next/server';
+import type { z } from 'zod';
+import { frourioSpec } from './frourio';
+
+export const contextSchema = frourioSpec.middleware.context;
+
+export type ContextType = z.infer<typeof contextSchema>;
+
+type MiddlewareFn = (
+  args: {
+    req: NextRequest,
+    next: (ctx: z.infer<typeof frourioSpec.middleware.context>) => Promise<NextResponse>,
+  },
+) => Promise<NextResponse>;
+
+type MiddlewareHandler = (
+  next: (args: { req: NextRequest }, ctx: ContextType) => Promise<NextResponse>,
+) => (req: NextRequest | Request, option?: Record<string, unknown>) => Promise<NextResponse>;
+
+export const createMiddleware = (middlewareFn: MiddlewareFn): MiddlewareHandler => {
+  return (
+    next: (args: { req: NextRequest }, ctx: ContextType) => Promise<NextResponse>,
+  ) => async (originalReq: NextRequest | Request, _option?: Record<string, unknown>) => {
+    const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);
+    return await middlewareFn(
+      {
+        req,
+        next: async ( context) => {
+      const ctx = frourioSpec.middleware.context.safeParse(context);
+
+      if (ctx.error) return createReqErr(ctx.error);
+
+      return await next({ req }, { ...ctx.data })
+      },
+      },
+    )
+    
+  };
+};
+
+type FrourioError =
+  | { status: 422; error: string; issues: { path: (string | number)[]; message: string }[] }
+  | { status: 500; error: string; issues?: undefined };
+
+const createReqErr = (err: z.ZodError) =>
+  NextResponse.json<FrourioError>(
+    {
+      status: 422,
+      error: 'Unprocessable Entity',
+      issues: err.issues.map((issue) => ({ path: issue.path.filter(p => typeof p !== 'symbol'), message: issue.message })),
+    },
+    { status: 422 },
+  );

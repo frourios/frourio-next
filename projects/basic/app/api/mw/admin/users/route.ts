@@ -1,21 +1,6 @@
-import { NextResponse } from 'next/server';
 import { createRoute } from './frourio.server';
 
-export const { middleware, GET } = createRoute({
-  middleware: async ({ next }, parentContext) => {
-    console.log('Users Middleware (/api/mw/admin/users): Received parent context:', parentContext);
-
-    if (!parentContext.isAdmin) {
-      console.log('Users Middleware: Forbidden access for non-admin user.');
-
-      return new NextResponse(
-        JSON.stringify({ message: 'Forbidden: Admin access required for users endpoint' }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } },
-      );
-    }
-
-    return next();
-  },
+export const { GET } = createRoute({
   get: async ({ query }, context) => {
     console.log('GET Handler (/api/mw/admin/users): Received full context:', context);
     console.log('GET Handler (/api/mw/admin/users): Received query:', query);

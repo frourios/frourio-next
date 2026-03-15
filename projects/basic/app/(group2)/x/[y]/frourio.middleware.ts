@@ -1,0 +1,62 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { middleware as ancestorMiddleware } from '../../route.middleware';
+
+export const paramsSchema = z.object({ 'y': z.string() });
+
+export type ParamsType = z.infer<typeof paramsSchema>;
+
+type MiddlewareFn = (
+  args: {
+    req: NextRequest,
+    params: ParamsType,
+    next: () => Promise<NextResponse>,
+  },
+) => Promise<NextResponse>;
+
+export type NextParams<T extends Record<string, unknown>> = {
+  [Key in keyof T]: (NonNullable<T[Key]> extends unknown[] ? string[] : string) | T[Key];
+};
+
+type MiddlewareHandler = (
+  next: (args: { req: NextRequest, params: ParamsType }) => Promise<NextResponse>,
+) => (req: NextRequest | Request, option: { params: Promise<NextParams<ParamsType>> }) => Promise<NextResponse>;
+
+export const createMiddleware = (middlewareFn: MiddlewareFn): MiddlewareHandler => {
+  return (
+    next: (args: { req: NextRequest, params: ParamsType }) => Promise<NextResponse>,
+  ) => async (originalReq: NextRequest | Request, option: { params: Promise<NextParams<ParamsType>> }) => {
+    const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);
+    const params = paramsSchema.safeParse(await option.params);
+
+    if (params.error) return createReqErr(params.error);
+
+    return ancestorMiddleware(async () => {
+    return await middlewareFn(
+      {
+        req,
+        params: params.data,
+        next: async () => {
+
+
+      return await next({ req, params: params.data })
+      },
+      },
+    )
+    })(req)
+  };
+};
+
+type FrourioError =
+  | { status: 422; error: string; issues: { path: (string | number)[]; message: string }[] }
+  | { status: 500; error: string; issues?: undefined };
+
+const createReqErr = (err: z.ZodError) =>
+  NextResponse.json<FrourioError>(
+    {
+      status: 422,
+      error: 'Unprocessable Entity',
+      issues: err.issues.map((issue) => ({ path: issue.path.filter(p => typeof p !== 'symbol'), message: issue.message })),
+    },
+    { status: 422 },
+  );

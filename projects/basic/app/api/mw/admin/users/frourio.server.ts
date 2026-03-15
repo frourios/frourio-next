@@ -1,28 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { z } from 'zod';
-import { middleware as ancestorMiddleware } from '../route';
-import { contextSchema as ancestorContextSchema, type ContextType as AncestorContextType } from '../frourio.server';
+import { middleware } from './route.middleware';
+import type { ContextType } from './frourio.middleware';
 import { frourioSpec } from './frourio';
-import type { GET, middleware } from './route';
+import type { GET } from './route';
 
-type RouteChecker = [typeof GET, typeof middleware];
+type RouteChecker = [typeof GET];
 
 type SpecType = typeof frourioSpec;
 
-const contextSchema = ancestorContextSchema;
-
-type ContextType = z.infer<typeof contextSchema>;
-
-type Middleware = (
-  args: {
-    req: NextRequest,
-    next: () => Promise<NextResponse>,
-  },
-  ctx: AncestorContextType,
-) => Promise<NextResponse>;
-
 type Controller = {
-  middleware: Middleware;
   get: (
     req: {
       query: z.infer<SpecType['get']['query']>;
@@ -43,40 +30,14 @@ type Controller = {
 type MethodHandler = (req: NextRequest | Request) => Promise<NextResponse>;
 
 type ResHandler = {
-  middleware: (
-    next: (args: { req: NextRequest }, ctx: ContextType) => Promise<NextResponse>,
-  ) => (req: NextRequest, option?: {}) => Promise<NextResponse>;
   GET: MethodHandler
 };
 
 export const createRoute = (controller: Controller): ResHandler => {
-  const middleware = (next: (
-    args: { req: NextRequest },
-    ctx: ContextType,
-  ) => Promise<NextResponse>): MethodHandler => async (originalReq) => {
-    const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);
-    return ancestorMiddleware(async (_, ancestorContext) => {
-      const ancestorCtx = ancestorContextSchema.safeParse(ancestorContext);
-
-      if (ancestorCtx.error) return createReqErr(ancestorCtx.error);
-
-    return await controller.middleware(
-      {
-        req,
-        next: async () => {
-
-
-      return await next({ req }, { ...ancestorCtx.data, })
-      },
-      },
-      ancestorCtx.data,
-    )
-    })(req)
-  };
+  const runMiddleware = middleware;
 
   return {
-    middleware,
-    GET: middleware(async ({ req }, ctx) => {
+    GET: runMiddleware(async ({ req }, ctx) => {
       const query = frourioSpec.get.query.safeParse({
         'role': req.nextUrl.searchParams.get('role') ?? undefined,
       });

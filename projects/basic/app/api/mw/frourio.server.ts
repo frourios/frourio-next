@@ -1,25 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { z } from 'zod';
+import { middleware } from './route.middleware';
+import type { ContextType } from './frourio.middleware';
 import { frourioSpec } from './frourio';
-import type { GET, middleware } from './route';
+import type { GET } from './route';
 
-type RouteChecker = [typeof GET, typeof middleware];
+type RouteChecker = [typeof GET];
 
 type SpecType = typeof frourioSpec;
 
-export const contextSchema = frourioSpec.middleware.context;
-
-export type ContextType = z.infer<typeof contextSchema>;
-
-type Middleware = (
-  args: {
-    req: NextRequest,
-    next: (ctx: z.infer<typeof frourioSpec.middleware.context>) => Promise<NextResponse>,
-  },
-) => Promise<NextResponse>;
-
 type Controller = {
-  middleware: Middleware;
   get: (
     req: {
     },
@@ -35,36 +25,14 @@ type Controller = {
 type MethodHandler = (req: NextRequest | Request) => Promise<NextResponse>;
 
 type ResHandler = {
-  middleware: (
-    next: (args: { req: NextRequest }, ctx: ContextType) => Promise<NextResponse>,
-  ) => (req: NextRequest, option?: {}) => Promise<NextResponse>;
   GET: MethodHandler
 };
 
 export const createRoute = (controller: Controller): ResHandler => {
-  const middleware = (next: (
-    args: { req: NextRequest },
-    ctx: ContextType,
-  ) => Promise<NextResponse>): MethodHandler => async (originalReq) => {
-    const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);
-    return await controller.middleware(
-      {
-        req,
-        next: async ( context) => {
-      const ctx = frourioSpec.middleware.context.safeParse(context);
-
-      if (ctx.error) return createReqErr(ctx.error);
-
-      return await next({ req }, { ...ctx.data })
-      },
-      },
-    )
-    
-  };
+  const runMiddleware = middleware;
 
   return {
-    middleware,
-    GET: middleware(async ({ req }, ctx) => {
+    GET: runMiddleware(async ({ req }, ctx) => {
       const res = await controller.get({  }, ctx);
 
       switch (res.status) {

@@ -2,10 +2,7 @@ import { openai } from '@ai-sdk/openai';
 import { streamText } from 'ai';
 import { createRoute } from './frourio.server';
 
-export const { GET, middleware } = createRoute({
-  middleware: async ({ next }) => {
-    return next();
-  },
+export const { GET } = createRoute({
   get: async ({ query }) => {
     const result = streamText({
       model: openai('gpt-5.2'),

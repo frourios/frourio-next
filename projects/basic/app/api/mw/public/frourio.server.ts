@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { z } from 'zod';
-import { middleware as ancestorMiddleware } from '../route';
-import { contextSchema as ancestorContextSchema } from '../frourio.server';
+import { middleware as ancestorMiddleware } from '../route.middleware';
+import { contextSchema as ancestorContextSchema } from '../frourio.middleware';
 import { frourioSpec } from './frourio';
 import type { GET } from './route';
 
@@ -33,7 +33,7 @@ type ResHandler = {
 };
 
 export const createRoute = (controller: Controller): ResHandler => {
-  const middleware = (next: (
+  const runMiddleware = (next: (
     args: { req: NextRequest },
     ctx: ContextType,
   ) => Promise<NextResponse>): MethodHandler => async (originalReq) => {
@@ -45,12 +45,12 @@ export const createRoute = (controller: Controller): ResHandler => {
 
 
       return await next({ req }, { ...ancestorCtx.data, })
-      
+
     })(req)
   };
 
   return {
-    GET: middleware(async ({ req }, ctx) => {
+    GET: runMiddleware(async ({ req }, ctx) => {
       const res = await controller.get({  }, ctx);
 
       switch (res.status) {

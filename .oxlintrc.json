@@ -15,6 +15,7 @@
     "coverage",
     "projects/**/frourio.client.ts",
     "projects/**/frourio.server.ts",
+    "projects/**/frourio.middleware.ts",
     "projects/**/setupMswHandlers.ts",
     "$*.ts"
   ],

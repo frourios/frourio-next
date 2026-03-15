@@ -1,0 +1,31 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+type MiddlewareFn = (
+  args: {
+    req: NextRequest,
+    next: () => Promise<NextResponse>,
+  },
+) => Promise<NextResponse>;
+
+type MiddlewareHandler = (
+  next: (args: { req: NextRequest }) => Promise<NextResponse>,
+) => (req: NextRequest | Request, option?: Record<string, unknown>) => Promise<NextResponse>;
+
+export const createMiddleware = (middlewareFn: MiddlewareFn): MiddlewareHandler => {
+  return (
+    next: (args: { req: NextRequest }) => Promise<NextResponse>,
+  ) => async (originalReq: NextRequest | Request, _option?: Record<string, unknown>) => {
+    const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);
+    return await middlewareFn(
+      {
+        req,
+        next: async () => {
+
+
+      return await next({ req })
+      },
+      },
+    )
+    
+  };
+};
