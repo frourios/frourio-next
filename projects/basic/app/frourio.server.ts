@@ -46,7 +46,7 @@ type ResHandler = {
 export const createRoute = (controller: Controller): ResHandler => {
   return {
     GET: async (originalReq) => {
-      const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);
+      const req = 'nextUrl' in originalReq ? originalReq : new NextRequest(originalReq);
       const headers = frourioSpec.get.headers.safeParse(Object.fromEntries(req.headers));
 
       if (headers.error) return createReqErr(headers.error);

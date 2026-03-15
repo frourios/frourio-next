@@ -38,7 +38,7 @@ export const createRoute = (controller: Controller): ResHandler => {
     args: { req: NextRequest, params: ParamsType },
     ctx: ContextType,
   ) => Promise<NextResponse>): MethodHandler => async (originalReq, option) => {
-    const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);
+    const req = 'nextUrl' in originalReq ? originalReq : new NextRequest(originalReq);
     const params = paramsSchema.safeParse(await option.params);
 
     if (params.error) return createReqErr(params.error);

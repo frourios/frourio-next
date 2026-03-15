@@ -35,7 +35,7 @@ export const createRoute = (controller: Controller): ResHandler => {
     args: { req: NextRequest },
     ctx: ContextType,
   ) => Promise<NextResponse>): MethodHandler => async (originalReq) => {
-    const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);
+    const req = 'nextUrl' in originalReq ? originalReq : new NextRequest(originalReq);
     return ancestorMiddleware(async (_, ancestorContext) => {
       const ancestorCtx = ancestorContextSchema.safeParse(ancestorContext);
 

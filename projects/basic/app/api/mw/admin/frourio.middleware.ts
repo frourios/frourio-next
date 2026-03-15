@@ -25,7 +25,7 @@ export const createMiddleware = (middlewareFn: MiddlewareFn): MiddlewareHandler 
   return (
     next: (args: { req: NextRequest }, ctx: ContextType) => Promise<NextResponse>,
   ) => async (originalReq: NextRequest | Request, _option?: Record<string, unknown>) => {
-    const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);
+    const req = 'nextUrl' in originalReq ? originalReq : new NextRequest(originalReq);
     return ancestorMiddleware(async (_, ancestorContext) => {
       const ancestorCtx = ancestorContextSchema.safeParse(ancestorContext);
 

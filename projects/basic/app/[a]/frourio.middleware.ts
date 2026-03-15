@@ -24,7 +24,7 @@ export const createMiddleware = (middlewareFn: MiddlewareFn): MiddlewareHandler 
   return (
     next: (args: { req: NextRequest, params: ParamsType }, ctx: ContextType) => Promise<NextResponse>,
   ) => async (originalReq: NextRequest | Request, option: { params: Promise<NextParams<ParamsType>> }) => {
-    const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);
+    const req = 'nextUrl' in originalReq ? originalReq : new NextRequest(originalReq);
     const params = paramsSchema.safeParse(await option.params);
 
     if (params.error) return createReqErr(params.error);

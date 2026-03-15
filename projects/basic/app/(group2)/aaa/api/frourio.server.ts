@@ -31,7 +31,7 @@ export const createRoute = (controller: Controller): ResHandler => {
   const runMiddleware = (next: (
     args: { req: NextRequest },
   ) => Promise<NextResponse>): MethodHandler => async (originalReq) => {
-    const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);
+    const req = 'nextUrl' in originalReq ? originalReq : new NextRequest(originalReq);
     return ancestorMiddleware(async () => {
 
       return await next({ req })

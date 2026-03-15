@@ -86,6 +86,9 @@ const generateParamsFile = (params: ParamsInfo): string => {
   return `${imports.join(';\n')};\n\n${chunks.join(';\n\n')};\n`;
 };
 
+const originalReqChunk =
+  "const req = 'nextUrl' in originalReq ? originalReq : new NextRequest(originalReq);";
+
 const generateMiddlewareServer = (
   params: ParamsInfo | undefined,
   middleware: {
@@ -144,7 +147,7 @@ const generateMiddlewareServer = (
   return (
     next: (args: { req: NextRequest${params ? ', params: ParamsType' : ''} }${middleware.ancestorCtx || middleware.current?.hasCtx ? ', ctx: ContextType' : ''}) => Promise<NextResponse>,
   ) => async (originalReq: NextRequest | Request${params ? ', option: { params: Promise<NextParams<ParamsType>> }' : ', _option?: Record<string, unknown>'}) => {
-    const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);${
+    ${originalReqChunk}${
       params
         ? `\n    const params = paramsSchema.safeParse(await option.params);
 
@@ -311,7 +314,7 @@ ${
           : `(next: (
     args: { req: NextRequest${params ? ', params: ParamsType' : ''} },${middleware.ancestorCtx ? '\n    ctx: ContextType,' : ''}
   ) => Promise<NextResponse>): MethodHandler => async (originalReq${params ? ', option' : ''}) => {
-    const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);${
+    ${originalReqChunk}${
       params
         ? `\n    const params = paramsSchema.safeParse(await option.params);
 
@@ -408,7 +411,7 @@ ${m.body.data
       params || middleware.ancestor || middleware.current
         ? `runMiddleware(async ({ req${params ? ', params' : ''} }${middleware.ancestorCtx || middleware.current?.hasCtx ? ', ctx' : ''}) => {`
         : m.query
-          ? 'async (originalReq) => {\n      const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);'
+          ? `async (originalReq) => {\n      ${originalReqChunk}`
           : 'async (req) => {'
     }${m.body?.isFormData ? '\n      const formData = await req.formData();' : m.body?.isUrlEncoded ? '\n      const urlSearchParams = new URLSearchParams(await req.text());' : ''}${requests
       .map(

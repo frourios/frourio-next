@@ -83,7 +83,7 @@ type ResHandler = {
 export const createRoute = (controller: Controller): ResHandler => {
   return {
     GET: async (originalReq) => {
-      const req = originalReq instanceof NextRequest ? originalReq : new NextRequest(originalReq);
+      const req = 'nextUrl' in originalReq ? originalReq : new NextRequest(originalReq);
       const query = frourioSpec.get.query.safeParse({
         'search': req.nextUrl.searchParams.get('search') ?? undefined,
         'limit': queryToNum(req.nextUrl.searchParams.get('limit') ?? undefined),
