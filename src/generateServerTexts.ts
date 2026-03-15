@@ -1,5 +1,5 @@
 import path from 'path';
-import { MIDDLEWARE_FILE, MIDDLEWARE_SERVER_FILE, SERVER_FILE } from './constants';
+import { MIDDLEWARE_FILE, MIDDLEWARE_SERVER_FILE, PARAMS_FILE, SERVER_FILE } from './constants';
 import type { DirSpec, MethodInfo, MiddlewareDict } from './generate';
 import type { ParamsInfo } from './paramsUtil';
 import { paramsToText, pathToParams } from './paramsUtil';
@@ -8,8 +8,8 @@ export const generateServerTexts = (
   specs: DirSpec[],
   frourioDirs: string[],
   middlewareDict: MiddlewareDict,
-): { filePath: string; text: string }[] =>
-  specs.flatMap(({ dirPath, spec }) => {
+): { filePath: string; text: string }[] => {
+  return specs.flatMap(({ dirPath, spec }) => {
     const ancestorMiddleware = frourioDirs.findLast(
       (dir) => dir !== dirPath && dirPath.includes(dir) && middlewareDict[dir],
     );
@@ -25,12 +25,21 @@ export const generateServerTexts = (
       current: middlewareDict[dirPath],
     };
 
-    const results: { filePath: string; text: string }[] = [
-      {
+    const results: { filePath: string; text: string }[] = [];
+
+    if (params?.current || (params && !params.current && params.middleNames.length > 0)) {
+      results.push({
+        filePath: path.posix.join(dirPath, PARAMS_FILE),
+        text: generateParamsFile(params),
+      });
+    }
+
+    if (spec.methods.length > 0) {
+      results.push({
         filePath: path.posix.join(dirPath, SERVER_FILE),
         text: generateServer(params, middleware, spec.methods),
-      },
-    ];
+      });
+    }
 
     if (middleware.current) {
       results.push({
@@ -41,11 +50,40 @@ export const generateServerTexts = (
 
     return results;
   });
+};
 
 const ancestorImportPath = (ancestor: string, ancestorHasMiddleware: boolean): string => {
   const serverImportPath = SERVER_FILE.replace('.ts', '');
   const middlewareServerImportPath = MIDDLEWARE_SERVER_FILE.replace('.ts', '');
   return `${ancestor}/${ancestorHasMiddleware ? middlewareServerImportPath : serverImportPath}`;
+};
+
+const generateParamsFile = (params: ParamsInfo): string => {
+  const imports: string[] = [
+    "import { z } from 'zod'",
+    params.ancestorFrourio
+      ? `import { paramsSchema as ancestorParamsSchema } from '${params.ancestorFrourio}'`
+      : undefined,
+    params.current?.param ? "import { frourioSpec } from './frourio'" : undefined,
+  ].filter((txt): txt is string => txt !== undefined);
+
+  const chunks: string[] = [
+    params.current
+      ? `${
+          params.current.param?.typeName !== 'number'
+            ? ''
+            : params.current.param.isArray
+              ? paramToNumArrText
+              : paramToNumText
+        }export const paramsSchema = ${paramsToText(params)}`
+      : `export const paramsSchema = ${paramsToText(params)}`,
+    `export type ParamsType = z.infer<typeof paramsSchema>`,
+    `export type NextParams<T extends Record<string, unknown>> = {
+  [Key in keyof T]: (NonNullable<T[Key]> extends unknown[] ? string[] : string) | T[Key];
+}`,
+  ];
+
+  return `${imports.join(';\n')};\n\n${chunks.join(';\n\n')};\n`;
 };
 
 const generateMiddlewareServer = (
@@ -57,13 +95,28 @@ const generateMiddlewareServer = (
   },
 ): string => {
   const middlewareImportPath = MIDDLEWARE_FILE.replace('.ts', '');
+  const paramsImportPath = PARAMS_FILE.replace('.ts', '');
   const ancestorHasMiddleware = middleware.ancestor !== undefined;
+  const paramsFromLocal = params?.current;
+  const paramsFromAncestor = params && !params.current;
+  const hasLocalParamsFile = !!(
+    paramsFromLocal ||
+    (paramsFromAncestor && params.middleNames.length > 0)
+  );
   const imports: string[] = [
     "import { NextRequest, NextResponse } from 'next/server'",
     (params || middleware.current?.hasCtx || middleware.ancestorCtx) &&
-      `import ${params ? '' : 'type '}{ z } from 'zod'`,
-    params?.ancestorFrourio &&
-      `import { paramsSchema as ancestorParamsSchema } from '${params.ancestorFrourio}'`,
+      "import type { z } from 'zod'",
+    hasLocalParamsFile &&
+      `import { paramsSchema, type ParamsType, type NextParams } from './${paramsImportPath}'`,
+    paramsFromAncestor &&
+      params.middleNames.length === 0 &&
+      params.ancestorFrourio &&
+      `import { paramsSchema } from '${params.ancestorFrourio}'`,
+    paramsFromAncestor &&
+      params.middleNames.length === 0 &&
+      params.ancestorFrourio &&
+      `import type { ParamsType, NextParams } from '${params.ancestorFrourio}'`,
     middleware.ancestor &&
       `import { middleware as ancestorMiddleware } from '${middleware.ancestor}/${middlewareImportPath}'`,
     middleware.ancestorCtx &&
@@ -72,33 +125,18 @@ const generateMiddlewareServer = (
   ].filter((txt) => txt !== undefined && txt !== false);
 
   const needsReqErr = !!params || !!middleware.ancestorCtx || !!middleware.current?.hasCtx;
-  const chunks: string[] = [
-    params &&
-      `${
-        params.current
-          ? `${
-              params.current.param?.typeName !== 'number'
-                ? ''
-                : params.current.param.isArray
-                  ? paramToNumArrText
-                  : paramToNumText
-            }`
-          : ''
-      }export const paramsSchema = ${paramsToText(params)};\n\nexport type ParamsType = z.infer<typeof paramsSchema>`,
+  const chunks: (string | undefined)[] = [
     middleware.current?.hasCtx
       ? `export const contextSchema = frourioSpec.middleware.context${middleware.ancestorCtx ? '.and(ancestorContextSchema)' : ''};\n\nexport type ContextType = z.infer<typeof contextSchema>`
-      : middleware.ancestorCtx &&
-        'export const contextSchema = ancestorContextSchema;\n\nexport type ContextType = z.infer<typeof contextSchema>',
+      : middleware.ancestorCtx
+        ? 'export const contextSchema = ancestorContextSchema;\n\nexport type ContextType = z.infer<typeof contextSchema>'
+        : undefined,
     `type MiddlewareFn = (
   args: {
     req: NextRequest,${params ? '\n    params: ParamsType,' : ''}
     next: (${middleware.current?.hasCtx ? 'ctx: z.infer<typeof frourioSpec.middleware.context>' : ''}) => Promise<NextResponse>,
   },${middleware.ancestorCtx ? '\n  ctx: AncestorContextType,' : ''}
 ) => Promise<NextResponse>`,
-    params &&
-      `export type NextParams<T extends Record<string, unknown>> = {
-  [Key in keyof T]: (NonNullable<T[Key]> extends unknown[] ? string[] : string) | T[Key];
-}`,
     `type MiddlewareHandler = (
   next: (args: { req: NextRequest${params ? ', params: ParamsType' : ''} }${middleware.ancestorCtx || middleware.current?.hasCtx ? ', ctx: ContextType' : ''}) => Promise<NextResponse>,
 ) => (req: NextRequest | Request, option${params ? ': { params: Promise<NextParams<ParamsType>> }' : '?: Record<string, unknown>'}) => Promise<NextResponse>`,
@@ -185,60 +223,53 @@ const generateServer = (
 ): string => {
   const middlewareImportPath = MIDDLEWARE_FILE.replace('.ts', '');
   const middlewareServerImportPath = MIDDLEWARE_SERVER_FILE.replace('.ts', '');
+  const paramsImportPath = PARAMS_FILE.replace('.ts', '');
   const ancestorHasMiddleware = middleware.ancestor !== undefined;
+  const paramsFromLocal = params?.current;
+  const paramsFromAncestor = params && !params.current;
+  const hasLocalParamsFile = !!(
+    paramsFromLocal ||
+    (paramsFromAncestor && params.middleNames.length > 0)
+  );
   const imports: string[] = [
     "import { NextRequest, NextResponse } from 'next/server'",
-    `import ${params && !middleware.current ? '' : 'type '}{ z } from 'zod'`,
-    params?.ancestorFrourio &&
+    "import type { z } from 'zod'",
+    hasLocalParamsFile &&
       !middleware.current &&
-      `import { paramsSchema as ancestorParamsSchema } from '${params.ancestorFrourio}'`,
+      `import { paramsSchema } from './${paramsImportPath}'`,
+    hasLocalParamsFile && `import type { ParamsType, NextParams } from './${paramsImportPath}'`,
+    paramsFromAncestor &&
+      params.middleNames.length === 0 &&
+      !middleware.current &&
+      params.ancestorFrourio &&
+      `import { paramsSchema } from '${params.ancestorFrourio}'`,
+    paramsFromAncestor &&
+      params.middleNames.length === 0 &&
+      params.ancestorFrourio &&
+      `import type { ParamsType, NextParams } from '${params.ancestorFrourio}'`,
     !middleware.current &&
       middleware.ancestor &&
       `import { middleware as ancestorMiddleware } from '${middleware.ancestor}/${middlewareImportPath}'`,
     !middleware.current &&
       middleware.ancestorCtx &&
       `import { contextSchema as ancestorContextSchema } from '${ancestorImportPath(middleware.ancestorCtx, ancestorHasMiddleware)}'`,
+    !middleware.current &&
+      middleware.ancestorCtx &&
+      `import type { ContextType } from '${ancestorImportPath(middleware.ancestorCtx, ancestorHasMiddleware)}'`,
     middleware.current && `import { middleware } from './${middlewareImportPath}'`,
     middleware.current &&
-      (middleware.current.hasCtx || middleware.ancestorCtx || params
-        ? `import type { ${[
-            params && 'ParamsType, NextParams',
-            (middleware.current.hasCtx || middleware.ancestorCtx) && 'ContextType',
-          ]
-            .filter(Boolean)
-            .join(', ')} } from './${middlewareServerImportPath}'`
+      (middleware.current.hasCtx || middleware.ancestorCtx
+        ? `import type { ContextType } from './${middlewareServerImportPath}'`
         : undefined),
     "import { frourioSpec } from './frourio'",
     methods.length > 0 &&
       `import type { ${methods.map((m) => m.name.toUpperCase()).join(', ')} } from './route'`,
   ].filter((txt) => txt !== undefined && txt !== false);
 
-  const reExports: string[] = [];
-
-  if (middleware.current && params) {
-    reExports.push(`export { paramsSchema } from './${middlewareServerImportPath}'`);
-  }
-
   const chunks: string[] = [
     methods.length > 0 &&
       `type RouteChecker = [${methods.map((m) => `typeof ${m.name.toUpperCase()}`).join(', ')}]`,
-    params &&
-      !middleware.current &&
-      `${
-        params.current
-          ? `${
-              params.current.param?.typeName !== 'number'
-                ? ''
-                : params.current.param.isArray
-                  ? paramToNumArrText
-                  : paramToNumText
-            }`
-          : ''
-      }export const paramsSchema = ${paramsToText(params)};\n\ntype ParamsType = z.infer<typeof paramsSchema>`,
     'type SpecType = typeof frourioSpec',
-    !middleware.current &&
-      middleware.ancestorCtx &&
-      'const contextSchema = ancestorContextSchema;\n\ntype ContextType = z.infer<typeof contextSchema>',
     `type Controller = {${methods
       .map(
         (m) =>
@@ -267,11 +298,6 @@ const generateServer = (
   }>;`,
       )
       .join('')}
-}`,
-    params &&
-      !middleware.current &&
-      `type NextParams<T extends Record<string, unknown>> = {
-  [Key in keyof T]: (NonNullable<T[Key]> extends unknown[] ? string[] : string) | T[Key];
 }`,
     `type MethodHandler = (req: NextRequest | Request${params ? ', option: { params: Promise<NextParams<ParamsType>> }' : ''}) => Promise<NextResponse>`,
     `type ResHandler = {${methods.map((m) => `\n  ${m.name.toUpperCase()}: MethodHandler`).join('')}
@@ -482,7 +508,7 @@ ${m.res
   ].filter((txt) => txt !== undefined && txt !== false);
 
   return `${imports.join(';\n')};
-${reExports.length > 0 ? `\n${reExports.join(';\n')};\n` : ''}
+
 ${chunks.join(';\n\n')};
 
 type FrourioError =

@@ -4,7 +4,7 @@ import path from 'path';
 import type { OpenAPIV3_1 } from 'openapi-types';
 import ts from 'typescript';
 import * as TJS from 'typescript-json-schema';
-import { FROURIO_FILE, PACKAGE_NAME, SERVER_FILE } from '../constants';
+import { FROURIO_FILE, PACKAGE_NAME, PARAMS_FILE } from '../constants';
 import { createHash } from '../createHash';
 import { listFrourioDirs } from '../listFrourioDirs';
 import type { OpenapiConfig } from './getOpenapiConfig';
@@ -50,10 +50,26 @@ ${frourioDirs
   )
   .join('\n')}
 ${hasParamsDirs
-  .map(
-    (d, i) =>
-      `import type { paramsSchema as paramsSchema${i} } from '${path.posix.join(d, SERVER_FILE)}'`,
-  )
+  .map((d, i) => {
+    const segments = d.split('/');
+    const lastSegment = segments.at(-1) ?? '';
+    if (lastSegment.startsWith('[')) {
+      return `import type { paramsSchema as paramsSchema${i} } from '${path.posix.join(d, PARAMS_FILE)}'`;
+    }
+    const heads = segments.slice(0, -1);
+    for (let j = heads.length - 1; j >= 0; j--) {
+      if (heads[j].startsWith('[')) {
+        const ancestorDir = segments.slice(0, j + 1).join('/');
+        if (frourioDirs.includes(ancestorDir)) {
+          const hasMiddles = heads.slice(j + 1).some((h) => h.startsWith('['));
+          if (!hasMiddles) {
+            return `import type { paramsSchema as paramsSchema${i} } from '${path.posix.join(ancestorDir, PARAMS_FILE)}'`;
+          }
+        }
+      }
+    }
+    return `import type { paramsSchema as paramsSchema${i} } from '${path.posix.join(d, PARAMS_FILE)}'`;
+  })
   .join('\n')}
 
 type InferType<T extends z.ZodTypeAny | undefined> = T extends z.ZodTypeAny ? z.infer<T> : undefined;

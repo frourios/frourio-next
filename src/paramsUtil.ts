@@ -1,4 +1,4 @@
-import { FROURIO_FILE, SERVER_FILE } from './constants';
+import { FROURIO_FILE, PARAMS_FILE } from './constants';
 import { createDirPathHash } from './createDirPathHash';
 import type { PropOption } from './getPropOptions';
 
@@ -28,7 +28,7 @@ export const pathToParams = (
   return {
     ancestorFrourio:
       ancestorIndex !== -1
-        ? `${[...Array(ancestorIndex + 2)].join('../')}${SERVER_FILE.replace('.ts', '')}`
+        ? `${[...Array(ancestorIndex + 2)].join('../')}${PARAMS_FILE.replace('.ts', '')}`
         : undefined,
     middleNames: heads
       .slice(0, ancestorIndex)

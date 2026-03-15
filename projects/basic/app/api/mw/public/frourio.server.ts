@@ -3,16 +3,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { z } from 'zod';
 import { middleware as ancestorMiddleware } from '../route.middleware';
 import { contextSchema as ancestorContextSchema } from '../frourio.middleware';
+import type { ContextType } from '../frourio.middleware';
 import { frourioSpec } from './frourio';
 import type { GET } from './route';
 
 type RouteChecker = [typeof GET];
 
 type SpecType = typeof frourioSpec;
-
-const contextSchema = ancestorContextSchema;
-
-type ContextType = z.infer<typeof contextSchema>;
 
 type Controller = {
   get: (

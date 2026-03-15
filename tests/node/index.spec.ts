@@ -19,7 +19,7 @@ import * as paramsRoute from '../../projects/basic/app/[a]/[b]/[...c]/route';
 import * as baseRoute from '../../projects/basic/app/route';
 import type { frourioSpec as formSpec } from '../../projects/src-dir/src/app/api/frourio';
 import * as formReqRoute from '../../projects/src-dir/src/app/api/route';
-import { CLIENT_FILE, MIDDLEWARE_SERVER_FILE, SERVER_FILE } from '../../src/constants';
+import { CLIENT_FILE, MIDDLEWARE_SERVER_FILE, PARAMS_FILE, SERVER_FILE } from '../../src/constants';
 import { generate } from '../../src/generate';
 import { listFrourioDirs } from '../../src/listFrourioDirs';
 import { generateMsw } from '../../src/msw/generateMsw';
@@ -42,7 +42,9 @@ test('generate', async () => {
       const frourioDirs = listFrourioDirs(openapiConfig.appDir);
 
       await Promise.all([
-        ...frourioDirs.map((dir) => unlink(path.join(dir, SERVER_FILE))),
+        ...frourioDirs.map(
+          (dir) => existsSync(path.join(dir, SERVER_FILE)) && unlink(path.join(dir, SERVER_FILE)),
+        ),
         ...frourioDirs.map(
           (dir) => existsSync(path.join(dir, CLIENT_FILE)) && unlink(path.join(dir, CLIENT_FILE)),
         ),
@@ -50,6 +52,9 @@ test('generate', async () => {
           (dir) =>
             existsSync(path.join(dir, MIDDLEWARE_SERVER_FILE)) &&
             unlink(path.join(dir, MIDDLEWARE_SERVER_FILE)),
+        ),
+        ...frourioDirs.map(
+          (dir) => existsSync(path.join(dir, PARAMS_FILE)) && unlink(path.join(dir, PARAMS_FILE)),
         ),
       ]);
       await generate(openapiConfig);
