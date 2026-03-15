@@ -1,5 +1,5 @@
 import path from 'path';
-import { CLIENT_FILE, CLIENT_NAME } from './constants';
+import { CLIENT_FILE, CLIENT_NAME, PACKAGE_NAME } from './constants';
 import { createDirPathHash, generateRelativePath } from './createDirPathHash';
 import type { DirSpec, HasParamsDict, MethodInfo } from './generate';
 import type { ClientParamsInfo } from './paramsUtil';
@@ -65,7 +65,7 @@ const generateClient = (
   const relativePath = generateRelativePath({ appDir, dirPath });
   const currentHash = createDirPathHash({ appDir, dirPath });
   const imports: string[] = [
-    "import type { FrourioClientOption } from '@frourio/next'",
+    `import type { FrourioClientOption } from '${PACKAGE_NAME}'`,
     "import { z } from 'zod'",
     ...(params?.ancestors.map(
       ({ importPath, hash }) =>

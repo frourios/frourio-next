@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
-import { FROURIO_FILE, SERVER_FILE } from './constants';
+import { FROURIO_FILE, PACKAGE_NAME, SERVER_FILE } from './constants';
 
 export const writeDefaults = async (frourioDirs: string[]) => {
   await Promise.all(
@@ -20,7 +20,7 @@ export const writeDefaults = async (frourioDirs: string[]) => {
   );
 };
 
-const defaultData = `import type { FrourioSpec } from '@frourio/next';
+const defaultData = `import type { FrourioSpec } from '${PACKAGE_NAME}';
 import { z } from 'zod';
 
 export const frourioSpec = {

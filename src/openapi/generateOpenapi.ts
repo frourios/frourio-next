@@ -4,7 +4,7 @@ import path from 'path';
 import type { OpenAPIV3_1 } from 'openapi-types';
 import ts from 'typescript';
 import * as TJS from 'typescript-json-schema';
-import { FROURIO_FILE, SERVER_FILE } from '../constants';
+import { FROURIO_FILE, PACKAGE_NAME, SERVER_FILE } from '../constants';
 import { createHash } from '../createHash';
 import { listFrourioDirs } from '../listFrourioDirs';
 import type { OpenapiConfig } from './getOpenapiConfig';
@@ -41,7 +41,7 @@ const toOpenAPI = (params: {
 }): string => {
   const frourioDirs = listFrourioDirs(path.resolve(params.root));
   const hasParamsDirs = frourioDirs.filter((f) => f.includes('['));
-  const typeFile = `import type { FrourioSpec } from '@frourio/next'
+  const typeFile = `import type { FrourioSpec } from '${PACKAGE_NAME}'
 import type { z } from 'zod'
 ${frourioDirs
   .map(
