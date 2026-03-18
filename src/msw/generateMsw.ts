@@ -40,6 +40,7 @@ export const generateMsw = ({ appDir, output }: MswConfig) => {
 
   const posixAppDir = appDir.replaceAll('\\', '/');
   const mswText = `import { http, type RequestHandler } from 'msw';
+import { NextRequest } from 'next/server';
 ${specs.map(({ posixDirPath }) => `import * as route_${createHash(posixDirPath.replace(posixAppDir, ''))} from '${path.posix.relative(path.posix.resolve(output.replaceAll('\\', '/')).split('/').slice(0, -1).join('/'), `${posixDirPath}/route`)}';\n`).join('')}
 export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[] {
   const baseURL = option?.baseURL.replace(/\\/$/, '') ?? '';
@@ -64,7 +65,7 @@ ${specs
 
     return methods.map((method) => {
       return `    http.${method}(\`\${baseURL}${methodPath.replace(/\[+\.\.\..+?]+/, '*').replace(/\[(.+?)]/g, ':$1')}\`, ({ request }) => {${paramsChunk}
-      return route_${createHash(posixDirPath.replace(posixAppDir, ''))}.${method.toUpperCase()}(request${
+      return route_${createHash(posixDirPath.replace(posixAppDir, ''))}.${method.toUpperCase()}(new NextRequest(request)${
         hasParams ? `, { params: Promise.resolve(params) }` : ''
       });
     }),\n`;

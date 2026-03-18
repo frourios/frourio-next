@@ -1,4 +1,5 @@
 import { http, type RequestHandler } from 'msw';
+import { NextRequest } from 'next/server';
 import * as route_ztntfp from '../app/route';
 import * as route_rket09 from '../app/(group1)/[pid]/route';
 import * as route_1pkrnw3 from '../app/(group1)/[pid]/bar/route';
@@ -18,6 +19,7 @@ import * as route_gye2fo from '../app/api/mw/admin/users/route';
 import * as route_76vmqd from '../app/api/mw/public/route';
 import * as route_17yqnk1 from '../app/api/test-client/route';
 import * as route_1rqfh40 from '../app/api/test-client/[userId]/route';
+import * as route_wkn1x4 from '../app/api/test-client/cookie/route';
 import * as route_1tp1ur6 from '../app/api/test-client/stream/route';
 import * as route_1dt6t80 from '../app/header-only/route';
 import * as route_fkgw0p from '../app/xxx/[id]/zzz/route';
@@ -27,130 +29,136 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
 
   return [
     http.get(`${baseURL}`, ({ request }) => {
-      return route_ztntfp.GET(request);
+      return route_ztntfp.GET(new NextRequest(request));
     }),
     http.post(`${baseURL}`, ({ request }) => {
-      return route_ztntfp.POST(request);
+      return route_ztntfp.POST(new NextRequest(request));
     }),
     http.get(`${baseURL}/:pid`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'pid': `${pathChunks[1]}` };
 
-      return route_rket09.GET(request, { params: Promise.resolve(params) });
+      return route_rket09.GET(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/:pid/bar`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'pid': `${pathChunks[1]}` };
 
-      return route_1pkrnw3.GET(request, { params: Promise.resolve(params) });
+      return route_1pkrnw3.GET(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/:pid/foo`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'pid': `${pathChunks[1]}` };
 
-      return route_1c6qmxu.GET(request, { params: Promise.resolve(params) });
+      return route_1c6qmxu.GET(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/blog/*`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'slug': pathChunks.slice(2) };
 
-      return route_er79ce.GET(request, { params: Promise.resolve(params) });
+      return route_er79ce.GET(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/blog/hoge/*`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'fuga': pathChunks.slice(3) };
 
-      return route_14jcy50.GET(request, { params: Promise.resolve(params) });
+      return route_14jcy50.GET(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/aaa/api`, ({ request }) => {
-      return route_1x69jyx.GET(request);
+      return route_1x69jyx.GET(new NextRequest(request));
     }),
     http.get(`${baseURL}/x/:y`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'y': `${pathChunks[2]}` };
 
-      return route_13e9lnf.GET(request, { params: Promise.resolve(params) });
+      return route_13e9lnf.GET(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/:a`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
-      return route_knqmrp.GET(request, { params: Promise.resolve(params) });
+      return route_knqmrp.GET(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.post(`${baseURL}/:a/:b/*`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}`, 'b': `${pathChunks[2]}`, 'c': pathChunks.slice(3) };
 
-      return route_2ijh4e.POST(request, { params: Promise.resolve(params) });
+      return route_2ijh4e.POST(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/:a/:b/d`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}`, 'b': `${pathChunks[2]}` };
 
-      return route_1yzfjrp.GET(request, { params: Promise.resolve(params) });
+      return route_1yzfjrp.GET(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/api/key-collision-test`, ({ request }) => {
-      return route_1f8i0zm.GET(request);
+      return route_1f8i0zm.GET(new NextRequest(request));
     }),
     http.get(`${baseURL}/api/key-collision-test-another`, ({ request }) => {
-      return route_195l5vw.GET(request);
+      return route_195l5vw.GET(new NextRequest(request));
     }),
     http.get(`${baseURL}/api/mw`, ({ request }) => {
-      return route_sqrir7.GET(request);
+      return route_sqrir7.GET(new NextRequest(request));
     }),
     http.get(`${baseURL}/api/mw/admin`, ({ request }) => {
-      return route_n3it2j.GET(request);
+      return route_n3it2j.GET(new NextRequest(request));
     }),
     http.post(`${baseURL}/api/mw/admin`, ({ request }) => {
-      return route_n3it2j.POST(request);
+      return route_n3it2j.POST(new NextRequest(request));
     }),
     http.get(`${baseURL}/api/mw/admin/users`, ({ request }) => {
-      return route_gye2fo.GET(request);
+      return route_gye2fo.GET(new NextRequest(request));
     }),
     http.get(`${baseURL}/api/mw/public`, ({ request }) => {
-      return route_76vmqd.GET(request);
+      return route_76vmqd.GET(new NextRequest(request));
     }),
     http.get(`${baseURL}/api/test-client`, ({ request }) => {
-      return route_17yqnk1.GET(request);
+      return route_17yqnk1.GET(new NextRequest(request));
     }),
     http.post(`${baseURL}/api/test-client`, ({ request }) => {
-      return route_17yqnk1.POST(request);
+      return route_17yqnk1.POST(new NextRequest(request));
     }),
     http.patch(`${baseURL}/api/test-client`, ({ request }) => {
-      return route_17yqnk1.PATCH(request);
+      return route_17yqnk1.PATCH(new NextRequest(request));
     }),
     http.delete(`${baseURL}/api/test-client`, ({ request }) => {
-      return route_17yqnk1.DELETE(request);
+      return route_17yqnk1.DELETE(new NextRequest(request));
     }),
     http.put(`${baseURL}/api/test-client/:userId`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'userId': `${pathChunks[3]}` };
 
-      return route_1rqfh40.PUT(request, { params: Promise.resolve(params) });
+      return route_1rqfh40.PUT(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.delete(`${baseURL}/api/test-client/:userId`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'userId': `${pathChunks[3]}` };
 
-      return route_1rqfh40.DELETE(request, { params: Promise.resolve(params) });
+      return route_1rqfh40.DELETE(new NextRequest(request), { params: Promise.resolve(params) });
+    }),
+    http.get(`${baseURL}/api/test-client/cookie`, ({ request }) => {
+      return route_wkn1x4.GET(new NextRequest(request));
+    }),
+    http.post(`${baseURL}/api/test-client/cookie`, ({ request }) => {
+      return route_wkn1x4.POST(new NextRequest(request));
     }),
     http.post(`${baseURL}/api/test-client/stream`, ({ request }) => {
-      return route_1tp1ur6.POST(request);
+      return route_1tp1ur6.POST(new NextRequest(request));
     }),
     http.get(`${baseURL}/header-only`, ({ request }) => {
-      return route_1dt6t80.GET(request);
+      return route_1dt6t80.GET(new NextRequest(request));
     }),
     http.post(`${baseURL}/header-only`, ({ request }) => {
-      return route_1dt6t80.POST(request);
+      return route_1dt6t80.POST(new NextRequest(request));
     }),
     http.delete(`${baseURL}/header-only`, ({ request }) => {
-      return route_1dt6t80.DELETE(request);
+      return route_1dt6t80.DELETE(new NextRequest(request));
     }),
     http.get(`${baseURL}/xxx/:id/zzz`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'id': `${pathChunks[2]}` };
 
-      return route_fkgw0p.GET(request, { params: Promise.resolve(params) });
+      return route_fkgw0p.GET(new NextRequest(request), { params: Promise.resolve(params) });
     }),
   ];
 }

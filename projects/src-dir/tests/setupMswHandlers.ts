@@ -1,4 +1,5 @@
 import { http, type RequestHandler } from 'msw';
+import { NextRequest } from 'next/server';
 import * as route_ztntfp from '../src/app/route';
 import * as route_dn9cqh from '../src/app/[...all]/route';
 import * as route_1rzyav8 from '../src/app/[[...optAll]]/route';
@@ -13,46 +14,46 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
 
   return [
     http.get(`${baseURL}`, ({ request }) => {
-      return route_ztntfp.GET(request);
+      return route_ztntfp.GET(new NextRequest(request));
     }),
     http.get(`${baseURL}/*`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'all': pathChunks.slice(1) };
 
-      return route_dn9cqh.GET(request, { params: Promise.resolve(params) });
+      return route_dn9cqh.GET(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/*`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'optAll': pathChunks.slice(1) };
 
-      return route_1rzyav8.GET(request, { params: Promise.resolve(params) });
+      return route_1rzyav8.GET(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.post(`${baseURL}/:a/arrayBuffer`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
-      return route_og4f3x.POST(request, { params: Promise.resolve(params) });
+      return route_og4f3x.POST(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.post(`${baseURL}/:a/blob`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
-      return route_uq501x.POST(request, { params: Promise.resolve(params) });
+      return route_uq501x.POST(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.post(`${baseURL}/:a/text`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
-      return route_bfn325.POST(request, { params: Promise.resolve(params) });
+      return route_bfn325.POST(new NextRequest(request), { params: Promise.resolve(params) });
     }),
     http.post(`${baseURL}/api`, ({ request }) => {
-      return route_36xt6y.POST(request);
+      return route_36xt6y.POST(new NextRequest(request));
     }),
     http.put(`${baseURL}/api`, ({ request }) => {
-      return route_36xt6y.PUT(request);
+      return route_36xt6y.PUT(new NextRequest(request));
     }),
     http.post(`${baseURL}/api/%E6%97%A5%E6%9C%AC%E8%AA%9E`, ({ request }) => {
-      return route_15e5upz.POST(request);
+      return route_15e5upz.POST(new NextRequest(request));
     }),
   ];
 }

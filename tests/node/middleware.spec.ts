@@ -25,10 +25,7 @@ describe('Root Middleware (/api/mw)', () => {
     const userId = 'user-123';
     const traceId = randomUUID();
     const req = new NextRequest(`${baseUrl}/api/mw`, {
-      headers: {
-        Authorization: `Bearer ${userId}`,
-        'X-Trace-Id': traceId,
-      },
+      headers: { Authorization: `Bearer ${userId}`, 'X-Trace-Id': traceId },
     });
     const res = await rootMwRoute.GET(req);
 
@@ -42,10 +39,7 @@ describe('Root Middleware (/api/mw)', () => {
     const userId = 'user-admin';
     const traceId = randomUUID();
     const req = new Request(`${baseUrl}/api/mw`, {
-      headers: {
-        Authorization: `Bearer ${userId}`,
-        'X-Trace-Id': traceId,
-      },
+      headers: { Authorization: `Bearer ${userId}`, 'X-Trace-Id': traceId },
     });
     const res = await rootMwRoute.GET(req);
 
@@ -63,10 +57,7 @@ describe('Nested Middleware (/api/mw/admin)', () => {
 
   test('GET /api/mw/admin - Admin User', async () => {
     const req = new NextRequest(`${baseUrl}/api/mw/admin`, {
-      headers: {
-        Authorization: `Bearer ${adminUserId}`,
-        'X-Trace-Id': traceId,
-      },
+      headers: { Authorization: `Bearer ${adminUserId}`, 'X-Trace-Id': traceId },
     });
     const res = await adminMwRoute.GET(req);
 
@@ -100,10 +91,7 @@ describe('Nested Middleware (/api/mw/admin)', () => {
 
   test('GET /api/mw/admin - Normal User', async () => {
     const req = new Request(`${baseUrl}/api/mw/admin`, {
-      headers: {
-        Authorization: `Bearer ${normalUserId}`,
-        'X-Trace-Id': traceId,
-      },
+      headers: { Authorization: `Bearer ${normalUserId}`, 'X-Trace-Id': traceId },
     });
     const res = await adminMwRoute.GET(req);
 
@@ -136,10 +124,7 @@ describe('Nested Middleware (/api/mw/admin)', () => {
     const postData = { data: 'no auth data' };
     const req = new Request(`${baseUrl}/api/mw/admin`, {
       method: 'POST',
-      headers: {
-        'X-Trace-Id': traceId,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'X-Trace-Id': traceId, 'Content-Type': 'application/json' },
       body: JSON.stringify(postData),
     });
     const res = await adminMwRoute.POST(req);
@@ -156,10 +141,7 @@ describe('Middleware Inheritance (/api/mw/admin/users)', () => {
 
   test('GET /api/mw/admin/users - Admin User', async () => {
     const req = new Request(`${baseUrl}/api/mw/admin/users?role=admin`, {
-      headers: {
-        Authorization: `Bearer ${adminUserId}`,
-        'X-Trace-Id': traceId,
-      },
+      headers: { Authorization: `Bearer ${adminUserId}`, 'X-Trace-Id': traceId },
     });
     const res = await usersMwRoute.GET(req);
 
@@ -174,10 +156,7 @@ describe('Middleware Inheritance (/api/mw/admin/users)', () => {
 
   test('GET /api/mw/admin/users - Normal User (Forbidden by parent middleware)', async () => {
     const req = new Request(`${baseUrl}/api/mw/admin/users`, {
-      headers: {
-        Authorization: `Bearer ${normalUserId}`,
-        'X-Trace-Id': traceId,
-      },
+      headers: { Authorization: `Bearer ${normalUserId}`, 'X-Trace-Id': traceId },
     });
     const res = await usersMwRoute.GET(req);
 
@@ -187,9 +166,7 @@ describe('Middleware Inheritance (/api/mw/admin/users)', () => {
 
   test('GET /api/mw/admin/users - No Auth (Forbidden by parent middleware)', async () => {
     const req = new Request(`${baseUrl}/api/mw/admin/users`, {
-      headers: {
-        'X-Trace-Id': traceId,
-      },
+      headers: { 'X-Trace-Id': traceId },
     });
     const res = await usersMwRoute.GET(req);
 
@@ -209,9 +186,7 @@ describe('No Middleware (/api/mw/public)', () => {
 
   test('GET /api/mw/public - With Authorization header (should be ignored)', async () => {
     const req = new Request(`${baseUrl}/api/mw/public`, {
-      headers: {
-        Authorization: 'Bearer some-token',
-      },
+      headers: { Authorization: 'Bearer some-token' },
     });
     const res = await publicRoute.GET(req);
 

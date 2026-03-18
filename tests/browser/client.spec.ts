@@ -3,6 +3,7 @@ import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 import type { z } from 'zod';
 import { ZodError } from 'zod';
+import * as cookieRoot from '../../projects/basic/app/api/test-client/cookie/route';
 import type {
   frourioSpec as testClientSpec,
   User,
@@ -156,6 +157,16 @@ const handlers = [
     }
   }),
 
+  http.get('http://localhost/api/test-client/cookie', ({ request }) => {
+    request.headers.set('cookie', document.cookie);
+
+    return cookieRoot.GET(request);
+  }),
+
+  http.post('http://localhost/api/test-client/cookie', ({ request }) => {
+    return cookieRoot.POST(request);
+  }),
+
   http.post('http://localhost/api/test-client/stream', async ({ request }) => {
     try {
       const body = (await request.json()) as { prompt?: string };
@@ -191,15 +202,21 @@ const handlers = [
 
 const server = setupServer(...handlers);
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
-afterEach(() => server.resetHandlers());
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterEach(() => {
+  server.resetHandlers();
+
+  document.cookie.split(';').forEach((cookie) => {
+    document.cookie = `${cookie.split('=')[0]!.trim()}=; Max-Age=0; path=/`;
+  });
+});
 afterAll(() => server.close());
 
 const baseURL = 'http://localhost';
 
 const apiClient = base$Fc({ baseURL });
 
-const lowLevelApiClient = baseFc({ baseURL });
+const lowLevelApiClient = baseFc({ baseURL, init: { credentials: 'include' } });
 
 describe('$fc (High-Level Client)', () => {
   test('GET /api/test-client - Success', async () => {
@@ -519,6 +536,28 @@ describe('fc (Low-Level Client)', () => {
     expect(result.ok).toBeUndefined();
     expect(result.isValid).toBe(false);
     expect(result.reason!).toBeInstanceOf(ZodError);
+  });
+
+  test('POST /api/test-client/cookie', async () => {
+    const res1 = await lowLevelApiClient['api/test-client/cookie'].$get();
+
+    expect(res1.data?.body.val).toBeUndefined();
+
+    const testVal = 'abc';
+    const res2 = await lowLevelApiClient['api/test-client/cookie'].$post({
+      body: { val: testVal },
+    });
+    const cookieText = res2.raw?.headers.get('Set-Cookie') ?? '';
+
+    expect(cookieText).toBe(`val=${testVal}; Path=/`);
+
+    document.cookie = cookieText;
+
+    const res3 = await lowLevelApiClient['api/test-client/cookie'].$get({
+      init: { headers: { cookie: cookieText } },
+    });
+
+    expect(res3.data?.body.val).toBe(testVal);
   });
 
   test('POST /api/test-client/stream - Success', async () => {

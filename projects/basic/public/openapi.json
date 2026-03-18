@@ -942,6 +942,41 @@
         }
       }
     },
+    "/api/test-client/cookie": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/2v7kz9"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/19l6z74"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
     "/api/test-client/stream": {
       "post": {
         "requestBody": {
@@ -1990,6 +2025,39 @@
         "required": [
           "body"
         ]
+      },
+      "18svjw": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/2v7kz9"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "2v7kz9": {
+        "type": "object",
+        "properties": {
+          "val": {
+            "type": "string"
+          }
+        }
+      },
+      "19l6z74": {
+        "type": "object",
+        "properties": {
+          "val": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "val"
+        ]
+      },
+      "1mfiyk4": {
+        "type": "object"
       },
       "s6aaa3": {
         "type": "object",

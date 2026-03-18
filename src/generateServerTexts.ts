@@ -86,9 +86,6 @@ const generateParamsFile = (params: ParamsInfo): string => {
   return `${imports.join(';\n')};\n\n${chunks.join(';\n\n')};\n`;
 };
 
-const originalReqChunk =
-  "const req = 'nextUrl' in originalReq ? originalReq : new NextRequest(originalReq);";
-
 const generateMiddlewareServer = (
   params: ParamsInfo | undefined,
   middleware: {
@@ -107,7 +104,7 @@ const generateMiddlewareServer = (
     (paramsFromAncestor && params.middleNames.length > 0)
   );
   const imports: string[] = [
-    "import { NextRequest, NextResponse } from 'next/server'",
+    "import { type NextRequest, NextResponse } from 'next/server'",
     (params || middleware.current?.hasCtx || middleware.ancestorCtx) &&
       "import type { z } from 'zod'",
     hasLocalParamsFile &&
@@ -136,34 +133,33 @@ const generateMiddlewareServer = (
         : undefined,
     `type MiddlewareFn = (
   args: {
-    req: NextRequest,${params ? '\n    params: ParamsType,' : ''}
+    req: NextRequest | Request,${params ? '\n    params: ParamsType,' : ''}
     next: (${middleware.current?.hasCtx ? 'ctx: z.infer<typeof frourioSpec.middleware.context>' : ''}) => Promise<NextResponse>,
   },${middleware.ancestorCtx ? '\n  ctx: AncestorContextType,' : ''}
 ) => Promise<NextResponse>`,
     `type MiddlewareHandler = (
-  next: (args: { req: NextRequest${params ? ', params: ParamsType' : ''} }${middleware.ancestorCtx || middleware.current?.hasCtx ? ', ctx: ContextType' : ''}) => Promise<NextResponse>,
+  next: (args: { req: NextRequest | Request${params ? ', params: ParamsType' : ''} }${middleware.ancestorCtx || middleware.current?.hasCtx ? ', ctx: ContextType' : ''}) => Promise<NextResponse>,
 ) => (req: NextRequest | Request, option${params ? ': { params: Promise<NextParams<ParamsType>> }' : '?: Record<string, unknown>'}) => Promise<NextResponse>`,
     `export const createMiddleware = (middlewareFn: MiddlewareFn): MiddlewareHandler => {
   return (
-    next: (args: { req: NextRequest${params ? ', params: ParamsType' : ''} }${middleware.ancestorCtx || middleware.current?.hasCtx ? ', ctx: ContextType' : ''}) => Promise<NextResponse>,
-  ) => async (originalReq: NextRequest | Request${params ? ', option: { params: Promise<NextParams<ParamsType>> }' : ', _option?: Record<string, unknown>'}) => {
-    ${originalReqChunk}${
-      params
-        ? `\n    const params = paramsSchema.safeParse(await option.params);
+    next: (args: { req: NextRequest | Request${params ? ', params: ParamsType' : ''} }${middleware.ancestorCtx || middleware.current?.hasCtx ? ', ctx: ContextType' : ''}) => Promise<NextResponse>,
+  ) => async (req: NextRequest | Request${params ? ', option: { params: Promise<NextParams<ParamsType>> }' : ', _option?: Record<string, unknown>'}) => {${
+    params
+      ? `\n    const params = paramsSchema.safeParse(await option.params);
 
     if (params.error) return createReqErr(params.error);\n`
-        : ''
-    }${
-      middleware.ancestor
-        ? `\n    return ancestorMiddleware(async (${middleware.ancestorCtx ? '_, ancestorContext' : ''}) => {${
-            middleware.ancestorCtx
-              ? `\n      const ancestorCtx = ancestorContextSchema.safeParse(ancestorContext);
+      : ''
+  }${
+    middleware.ancestor
+      ? `\n    return ancestorMiddleware(async (${middleware.ancestorCtx ? '_, ancestorContext' : ''}) => {${
+          middleware.ancestorCtx
+            ? `\n      const ancestorCtx = ancestorContextSchema.safeParse(ancestorContext);
 
       if (ancestorCtx.error) return createReqErr(ancestorCtx.error);\n`
-              : ''
-          }`
-        : ''
-    }
+            : ''
+        }`
+      : ''
+  }
     return await middlewareFn(
       {
         req,${params ? '\n        params: params.data,' : ''}
@@ -235,7 +231,7 @@ const generateServer = (
     (paramsFromAncestor && params.middleNames.length > 0)
   );
   const imports: string[] = [
-    "import { NextRequest, NextResponse } from 'next/server'",
+    "import { type NextRequest, NextResponse } from 'next/server'",
     "import type { z } from 'zod'",
     hasLocalParamsFile &&
       !middleware.current &&
@@ -312,31 +308,30 @@ ${
         middleware.current
           ? 'middleware'
           : `(next: (
-    args: { req: NextRequest${params ? ', params: ParamsType' : ''} },${middleware.ancestorCtx ? '\n    ctx: ContextType,' : ''}
-  ) => Promise<NextResponse>): MethodHandler => async (originalReq${params ? ', option' : ''}) => {
-    ${originalReqChunk}${
-      params
-        ? `\n    const params = paramsSchema.safeParse(await option.params);
+    args: { req: NextRequest | Request${params ? ', params: ParamsType' : ''} },${middleware.ancestorCtx ? '\n    ctx: ContextType,' : ''}
+  ) => Promise<NextResponse>): MethodHandler => async (req${params ? ', option' : ''}) => {${
+    params
+      ? `\n    const params = paramsSchema.safeParse(await option.params);
 
     if (params.error) return createReqErr(params.error);\n`
-        : ''
-    }${
-      middleware.ancestor
-        ? `\n    return ancestorMiddleware(async (${middleware.ancestorCtx ? '_, ancestorContext' : ''}) => {${
-            middleware.ancestorCtx
-              ? `\n      const ancestorCtx = ancestorContextSchema.safeParse(ancestorContext);
+      : ''
+  }${
+    middleware.ancestor
+      ? `\n    return ancestorMiddleware(async (${middleware.ancestorCtx ? '_, ancestorContext' : ''}) => {${
+          middleware.ancestorCtx
+            ? `\n      const ancestorCtx = ancestorContextSchema.safeParse(ancestorContext);
 
       if (ancestorCtx.error) return createReqErr(ancestorCtx.error);\n`
-              : ''
-          }
+            : ''
+        }
 
       return await next({ req${params ? ', params: params.data' : ''} }${
         middleware.ancestorCtx ? `, { ...ancestorCtx.data, }` : ''
       })
 
     })(req${params?.ancestorFrourio ? ', option' : ''})`
-        : `\n    return await next({ req${params ? ', params: params.data' : ''} })`
-    }
+      : `\n    return await next({ req${params ? ', params: params.data' : ''} })`
+  }
   }`
       };
 
@@ -355,7 +350,7 @@ ${methods
         `frourioSpec.${m.name}.query.safeParse({
 ${m.query.props
   .map((p) => {
-    const fn = `req.nextUrl.searchParams.get${p.isArray ? 'All' : ''}('${p.name}')${p.isArray ? '' : ' ?? undefined'}`;
+    const fn = `url.searchParams.get${p.isArray ? 'All' : ''}('${p.name}')${p.isArray ? '' : ' ?? undefined'}`;
     const wrapped = `${p.typeName === 'string' ? '' : `queryTo${p.typeName === 'number' ? 'Num' : 'Bool'}${p.isArray ? 'Arr' : ''}(`}${fn}${p.typeName === 'string' ? '' : ')'}`;
 
     return `        '${p.name}': ${p.isArray && p.isOptional ? `${fn}.length > 0 ? ${wrapped} : undefined` : wrapped},`;
@@ -410,13 +405,11 @@ ${m.body.data
     return `    ${m.name.toUpperCase()}: ${
       params || middleware.ancestor || middleware.current
         ? `runMiddleware(async ({ req${params ? ', params' : ''} }${middleware.ancestorCtx || middleware.current?.hasCtx ? ', ctx' : ''}) => {`
-        : m.query
-          ? `async (originalReq) => {\n      ${originalReqChunk}`
-          : 'async (req) => {'
+        : 'async (req) => {'
     }${m.body?.isFormData ? '\n      const formData = await req.formData();' : m.body?.isUrlEncoded ? '\n      const urlSearchParams = new URLSearchParams(await req.text());' : ''}${requests
       .map(
         (r) =>
-          `\n      const ${r[0]} = ${r[1]};\n\n      if (${r[0]}.error) return createReqErr(${r[0]}.error);\n`,
+          `${r[0] === 'query' ? '\n      const url = new URL(req.url);' : ''}\n      const ${r[0]} = ${r[1]};\n\n      if (${r[0]}.error) return createReqErr(${r[0]}.error);\n`,
       )
       .join('')}
       const res = await controller.${m.name}({ ${[
