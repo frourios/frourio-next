@@ -41,6 +41,17 @@ export const generateMsw = ({ appDir, output }: MswConfig) => {
   const posixAppDir = appDir.replaceAll('\\', '/');
   const mswText = `import { http, type RequestHandler } from 'msw';
 ${specs.map(({ posixDirPath }) => `import * as route_${createHash(posixDirPath.replace(posixAppDir, ''))} from '${path.posix.relative(path.posix.resolve(output.replaceAll('\\', '/')).split('/').slice(0, -1).join('/'), `${posixDirPath}/route`)}';\n`).join('')}
+export const patchDuplicateCookie = (req: Request): Request => {
+  const cookie = req.headers.get('cookie');
+
+  if (cookie) {
+    const unique = [...new Set(cookie.split(/,\\s*/).flatMap((s) => s.split('; ')))];
+    req.headers.set('cookie', unique.join('; '));
+  }
+
+  return req;
+};
+
 export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[] {
   const baseURL = option?.baseURL.replace(/\\/$/, '') ?? '';
 
@@ -64,7 +75,7 @@ ${specs
 
     return methods.map((method) => {
       return `    http.${method}(\`\${baseURL}${methodPath.replace(/\[+\.\.\..+?]+/, '*').replace(/\[(.+?)]/g, ':$1')}\`, ({ request }) => {${paramsChunk}
-      return route_${createHash(posixDirPath.replace(posixAppDir, ''))}.${method.toUpperCase()}(request${
+      return route_${createHash(posixDirPath.replace(posixAppDir, ''))}.${method.toUpperCase()}(patchDuplicateCookie(request)${
         hasParams ? `, { params: Promise.resolve(params) }` : ''
       });
     }),\n`;

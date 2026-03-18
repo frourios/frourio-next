@@ -8,51 +8,62 @@ import * as route_bfn325 from '../src/app/[a]/text/route';
 import * as route_36xt6y from '../src/app/api/route';
 import * as route_15e5upz from '../src/app/api/%E6%97%A5%E6%9C%AC%E8%AA%9E/route';
 
+export const patchDuplicateCookie = (req: Request): Request => {
+  const cookie = req.headers.get('cookie');
+
+  if (cookie) {
+    const unique = [...new Set(cookie.split(/,\s*/).flatMap((s) => s.split('; ')))];
+    req.headers.set('cookie', unique.join('; '));
+  }
+
+  return req;
+};
+
 export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[] {
   const baseURL = option?.baseURL.replace(/\/$/, '') ?? '';
 
   return [
     http.get(`${baseURL}`, ({ request }) => {
-      return route_ztntfp.GET(request);
+      return route_ztntfp.GET(patchDuplicateCookie(request));
     }),
     http.get(`${baseURL}/*`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'all': pathChunks.slice(1) };
 
-      return route_dn9cqh.GET(request, { params: Promise.resolve(params) });
+      return route_dn9cqh.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/*`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'optAll': pathChunks.slice(1) };
 
-      return route_1rzyav8.GET(request, { params: Promise.resolve(params) });
+      return route_1rzyav8.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.post(`${baseURL}/:a/arrayBuffer`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
-      return route_og4f3x.POST(request, { params: Promise.resolve(params) });
+      return route_og4f3x.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.post(`${baseURL}/:a/blob`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
-      return route_uq501x.POST(request, { params: Promise.resolve(params) });
+      return route_uq501x.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.post(`${baseURL}/:a/text`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
-      return route_bfn325.POST(request, { params: Promise.resolve(params) });
+      return route_bfn325.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.post(`${baseURL}/api`, ({ request }) => {
-      return route_36xt6y.POST(request);
+      return route_36xt6y.POST(patchDuplicateCookie(request));
     }),
     http.put(`${baseURL}/api`, ({ request }) => {
-      return route_36xt6y.PUT(request);
+      return route_36xt6y.PUT(patchDuplicateCookie(request));
     }),
     http.post(`${baseURL}/api/%E6%97%A5%E6%9C%AC%E8%AA%9E`, ({ request }) => {
-      return route_15e5upz.POST(request);
+      return route_15e5upz.POST(patchDuplicateCookie(request));
     }),
   ];
 }
