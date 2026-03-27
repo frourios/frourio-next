@@ -1129,13 +1129,7 @@ const $url_ztntfp = (option?: FrourioClientOption) => ({
     const searchParams = new URLSearchParams();
 
     Object.entries(parsedQuery.data).forEach(([key, value]) => {
-      if (value === undefined) return;
-
-      if (Array.isArray(value)) {
-        value.forEach(item => searchParams.append(key, item.toString()));
-      } else {
-        searchParams.append(key, value.toString());
-      }
+      searchParams.append(key, value);
     });
 
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/?${searchParams.toString()}` };
@@ -1146,7 +1140,7 @@ const $url_ztntfp = (option?: FrourioClientOption) => ({
 });
 
 const $url_rket09 = (option?: FrourioClientOption) => ({
-  get(req: { params: z.infer<typeof paramsSchema_rket09>,query: z.infer<typeof frourioSpec_rket09.get.query> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+  get(req: { params: z.infer<typeof paramsSchema_rket09>, query: z.infer<typeof frourioSpec_rket09.get.query> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
     const parsedParams = paramsSchema_rket09.safeParse(req.params);
 
     if (!parsedParams.success) return { isValid: false, reason: parsedParams.error };
@@ -1160,11 +1154,9 @@ const $url_rket09 = (option?: FrourioClientOption) => ({
     Object.entries(parsedQuery.data).forEach(([key, value]) => {
       if (value === undefined) return;
 
-      if (Array.isArray(value)) {
-        value.forEach(item => searchParams.append(key, item.toString()));
-      } else {
-        searchParams.append(key, value.toString());
-      }
+      if (Array.isArray(value)) return value.forEach(item => searchParams.append(key, item.toString()));
+
+      searchParams.append(key, value.toString());
     });
 
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/${parsedParams.data.pid}?${searchParams.toString()}` };
@@ -1218,7 +1210,7 @@ const $url_1x69jyx = (option?: FrourioClientOption) => ({
 });
 
 const $url_13e9lnf = (option?: FrourioClientOption) => ({
-  get(req: { params: z.infer<typeof paramsSchema_13e9lnf>,query: z.infer<typeof frourioSpec_13e9lnf.get.query> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+  get(req: { params: z.infer<typeof paramsSchema_13e9lnf>, query: z.infer<typeof frourioSpec_13e9lnf.get.query> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
     const parsedParams = paramsSchema_13e9lnf.safeParse(req.params);
 
     if (!parsedParams.success) return { isValid: false, reason: parsedParams.error };
@@ -1230,13 +1222,7 @@ const $url_13e9lnf = (option?: FrourioClientOption) => ({
     const searchParams = new URLSearchParams();
 
     Object.entries(parsedQuery.data).forEach(([key, value]) => {
-      if (value === undefined) return;
-
-      if (Array.isArray(value)) {
-        value.forEach(item => searchParams.append(key, item.toString()));
-      } else {
-        searchParams.append(key, value.toString());
-      }
+      searchParams.append(key, value);
     });
 
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/x/${parsedParams.data.y}?${searchParams.toString()}` };
@@ -1282,13 +1268,7 @@ const $url_1f8i0zm = (option?: FrourioClientOption) => ({
     const searchParams = new URLSearchParams();
 
     Object.entries(parsedQuery.data).forEach(([key, value]) => {
-      if (value === undefined) return;
-
-      if (Array.isArray(value)) {
-        value.forEach(item => searchParams.append(key, item.toString()));
-      } else {
-        searchParams.append(key, value.toString());
-      }
+      searchParams.append(key, value);
     });
 
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/key-collision-test?${searchParams.toString()}` };
@@ -1304,13 +1284,7 @@ const $url_195l5vw = (option?: FrourioClientOption) => ({
     const searchParams = new URLSearchParams();
 
     Object.entries(parsedQuery.data).forEach(([key, value]) => {
-      if (value === undefined) return;
-
-      if (Array.isArray(value)) {
-        value.forEach(item => searchParams.append(key, item.toString()));
-      } else {
-        searchParams.append(key, value.toString());
-      }
+      searchParams.append(key, value);
     });
 
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/key-collision-test-another?${searchParams.toString()}` };
@@ -1338,25 +1312,17 @@ const $url_gye2fo = (option?: FrourioClientOption) => ({
 
     if (!parsedQuery.success) return { isValid: false, reason: parsedQuery.error };
 
-    let searchParams: URLSearchParams | undefined = undefined;
+    if (parsedQuery.data === undefined) return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/mw/admin/users` };
 
-    if (parsedQuery.data !== undefined) {
-      const sp = new URLSearchParams();
+    const searchParams = new URLSearchParams();
 
-      Object.entries(parsedQuery.data).forEach(([key, value]) => {
-        if (value === undefined) return;
+    Object.entries(parsedQuery.data).forEach(([key, value]) => {
+      if (value === undefined) return;
 
-        if (Array.isArray(value)) {
-          value.forEach(item => sp.append(key, item.toString()));
-        } else {
-          sp.append(key, value.toString());
-        }
-      });
+      searchParams.append(key, value);
+    });
 
-      searchParams = sp;
-    }
-
-    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/mw/admin/users${searchParams ? `?${searchParams.toString()}`: ''}` };
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/mw/admin/users?${searchParams.toString()}` };
   },
 });
 
@@ -1377,11 +1343,7 @@ const $url_17yqnk1 = (option?: FrourioClientOption) => ({
     Object.entries(parsedQuery.data).forEach(([key, value]) => {
       if (value === undefined) return;
 
-      if (Array.isArray(value)) {
-        value.forEach(item => searchParams.append(key, item.toString()));
-      } else {
-        searchParams.append(key, value.toString());
-      }
+      searchParams.append(key, value.toString());
     });
 
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/test-client?${searchParams.toString()}` };
@@ -1442,12 +1404,22 @@ const $url_1dt6t80 = (option?: FrourioClientOption) => ({
 });
 
 const $url_11w4uys = (option?: FrourioClientOption) => ({
-  get(req: { params: z.infer<typeof paramsSchema_11w4uys> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+  get(req: { params: z.infer<typeof paramsSchema_11w4uys>, query: z.infer<typeof frourioSpec_11w4uys.get.query> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
     const parsedParams = paramsSchema_11w4uys.safeParse(req.params);
 
     if (!parsedParams.success) return { isValid: false, reason: parsedParams.error };
 
-    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/param-only/${parsedParams.data.pageNum}/content` };
+    const parsedQuery = frourioSpec_11w4uys.get.query.safeParse(req.query);
+
+    if (!parsedQuery.success) return { isValid: false, reason: parsedQuery.error };
+
+    const searchParams = new URLSearchParams();
+
+    Object.entries(parsedQuery.data).forEach(([key, value]) => {
+      value.forEach(item => searchParams.append(key, item.toString()));
+    });
+
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/param-only/${parsedParams.data.pageNum}/content?${searchParams.toString()}` };
   },
 });
 
@@ -3107,7 +3079,7 @@ const methods_1dt6t80 = (option?: FrourioClientOption) => ({
 });
 
 const methods_11w4uys = (option?: FrourioClientOption) => ({
-  async $get(req: { params: z.infer<typeof paramsSchema_11w4uys>, init?: RequestInit }): Promise<
+  async $get(req: { params: z.infer<typeof paramsSchema_11w4uys>, query: z.infer<typeof frourioSpec_11w4uys.get.query>, init?: RequestInit }): Promise<
     | { ok: true; isValid: true; data: { status: 200; headers?: undefined; body: z.infer<typeof frourioSpec_11w4uys.get.res[200]['body']> }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
     | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
     | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }

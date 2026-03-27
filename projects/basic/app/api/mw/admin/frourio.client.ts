@@ -121,25 +121,17 @@ const $url_gye2fo = (option?: FrourioClientOption) => ({
 
     if (!parsedQuery.success) return { isValid: false, reason: parsedQuery.error };
 
-    let searchParams: URLSearchParams | undefined = undefined;
+    if (parsedQuery.data === undefined) return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/mw/admin/users` };
 
-    if (parsedQuery.data !== undefined) {
-      const sp = new URLSearchParams();
+    const searchParams = new URLSearchParams();
 
-      Object.entries(parsedQuery.data).forEach(([key, value]) => {
-        if (value === undefined) return;
+    Object.entries(parsedQuery.data).forEach(([key, value]) => {
+      if (value === undefined) return;
 
-        if (Array.isArray(value)) {
-          value.forEach(item => sp.append(key, item.toString()));
-        } else {
-          sp.append(key, value.toString());
-        }
-      });
+      searchParams.append(key, value);
+    });
 
-      searchParams = sp;
-    }
-
-    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/mw/admin/users${searchParams ? `?${searchParams.toString()}`: ''}` };
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/mw/admin/users?${searchParams.toString()}` };
   },
 });
 

@@ -56,7 +56,7 @@ export const $fc_13e9lnf = $fc;
 const paramsSchema_13e9lnf = z.object({ 'y': z.string() });
 
 const $url_13e9lnf = (option?: FrourioClientOption) => ({
-  get(req: { params: z.infer<typeof paramsSchema_13e9lnf>,query: z.infer<typeof frourioSpec_13e9lnf.get.query> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+  get(req: { params: z.infer<typeof paramsSchema_13e9lnf>, query: z.infer<typeof frourioSpec_13e9lnf.get.query> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
     const parsedParams = paramsSchema_13e9lnf.safeParse(req.params);
 
     if (!parsedParams.success) return { isValid: false, reason: parsedParams.error };
@@ -68,13 +68,7 @@ const $url_13e9lnf = (option?: FrourioClientOption) => ({
     const searchParams = new URLSearchParams();
 
     Object.entries(parsedQuery.data).forEach(([key, value]) => {
-      if (value === undefined) return;
-
-      if (Array.isArray(value)) {
-        value.forEach(item => searchParams.append(key, item.toString()));
-      } else {
-        searchParams.append(key, value.toString());
-      }
+      searchParams.append(key, value);
     });
 
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/x/${parsedParams.data.y}?${searchParams.toString()}` };

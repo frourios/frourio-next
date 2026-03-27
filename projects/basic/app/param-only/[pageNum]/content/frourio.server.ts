@@ -14,6 +14,7 @@ type Controller = {
   get: (
     req: {
       params: ParamsType;
+      query: z.infer<SpecType['get']['query']>;
     },
   ) => Promise<
     | {
@@ -42,7 +43,15 @@ export const createRoute = (controller: Controller): ResHandler => {
 
   return {
     GET: runMiddleware(async ({ req, params }) => {
-      const res = await controller.get({ params });
+      const url = new URL(req.url);
+      const query = frourioSpec.get.query.safeParse({
+        'arrKey1': queryToNumArr(url.searchParams.getAll('arrKey1')),
+        'arrKey2': url.searchParams.getAll('arrKey2'),
+      });
+
+      if (query.error) return createReqErr(query.error);
+
+      const res = await controller.get({ query: query.data, params });
 
       switch (res.status) {
         case 200: {
@@ -96,3 +105,11 @@ const createResErr = () =>
     { status: 500, error: 'Internal Server Error' },
     { status: 500 },
   );
+
+const queryToNum = (val: string | undefined) => {
+  const num = Number(val);
+
+  return isNaN(num) ? val : num;
+};
+
+const queryToNumArr = (val: string[]) => val.map(queryToNum);

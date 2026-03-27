@@ -55,17 +55,27 @@ export const $fc_11w4uys = $fc;
 const paramsSchema_11w4uys = z.object({ 'pageNum': frourioSpec_pa8d3y.param });
 
 const $url_11w4uys = (option?: FrourioClientOption) => ({
-  get(req: { params: z.infer<typeof paramsSchema_11w4uys> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+  get(req: { params: z.infer<typeof paramsSchema_11w4uys>, query: z.infer<typeof frourioSpec_11w4uys.get.query> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
     const parsedParams = paramsSchema_11w4uys.safeParse(req.params);
 
     if (!parsedParams.success) return { isValid: false, reason: parsedParams.error };
 
-    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/param-only/${parsedParams.data.pageNum}/content` };
+    const parsedQuery = frourioSpec_11w4uys.get.query.safeParse(req.query);
+
+    if (!parsedQuery.success) return { isValid: false, reason: parsedQuery.error };
+
+    const searchParams = new URLSearchParams();
+
+    Object.entries(parsedQuery.data).forEach(([key, value]) => {
+      value.forEach(item => searchParams.append(key, item.toString()));
+    });
+
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/param-only/${parsedParams.data.pageNum}/content?${searchParams.toString()}` };
   },
 });
 
 const methods_11w4uys = (option?: FrourioClientOption) => ({
-  async $get(req: { params: z.infer<typeof paramsSchema_11w4uys>, init?: RequestInit }): Promise<
+  async $get(req: { params: z.infer<typeof paramsSchema_11w4uys>, query: z.infer<typeof frourioSpec_11w4uys.get.query>, init?: RequestInit }): Promise<
     | { ok: true; isValid: true; data: { status: 200; headers?: undefined; body: z.infer<typeof frourioSpec_11w4uys.get.res[200]['body']> }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
     | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
     | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }

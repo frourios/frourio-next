@@ -288,65 +288,15 @@ const generateUrlFn = (
   methods: MethodInfo[],
   params: ClientParamsInfo | undefined,
   apiPath: string,
-): string => `(option?: FrourioClientOption) => ({${methods
-  .map(
-    (method) => `\n  ${method.name}(${
-      hasUrlValues(method, params)
-        ? `req${params || method.query?.isOptional === false ? '' : '?'}: { ${[
-            ...(params ? [`params: z.infer<typeof paramsSchema_${hash}>`] : []),
-            ...(method.query
-              ? [
-                  `query${method.query.isOptional ? '?' : ''}: z.infer<typeof frourioSpec_${hash}.${method.name}.query>`,
-                ]
-              : []),
-          ].join(',')} }`
-        : ''
-    }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
-${
-  params
+): string => {
+  const parsedParamsChunk = params
     ? `    const parsedParams = paramsSchema_${hash}.safeParse(req.params);
 
     if (!parsedParams.success) return { isValid: false, reason: parsedParams.error };\n\n`
-    : ''
-}${
-      method.query
-        ? `    const parsedQuery = frourioSpec_${hash}.${method.name}.query.safeParse(req${method.query.isOptional ? '?' : ''}.query);
+    : '';
 
-    if (!parsedQuery.success) return { isValid: false, reason: parsedQuery.error };
-
-    ${
-      method.query.isOptional
-        ? `let searchParams: URLSearchParams | undefined = undefined;
-
-    if (parsedQuery.data !== undefined) {
-      const sp = new URLSearchParams();
-
-      Object.entries(parsedQuery.data).forEach(([key, value]) => {
-        if (value === undefined) return;
-
-        if (Array.isArray(value)) {
-          value.forEach(item => sp.append(key, item.toString()));
-        } else {
-          sp.append(key, value.toString());
-        }
-      });
-
-      searchParams = sp;
-    }`
-        : `const searchParams = new URLSearchParams();
-
-    Object.entries(parsedQuery.data).forEach(([key, value]) => {
-      if (value === undefined) return;
-
-      if (Array.isArray(value)) {
-        value.forEach(item => searchParams.append(key, item.toString()));
-      } else {
-        searchParams.append(key, value.toString());
-      }
-    });`
-    }\n\n`
-        : ''
-    }    return { isValid: true, data: \`\${option?.baseURL?.replace(/\\/$/, '') ?? ''}${
+  const returnChunk = (searchParamsChunk: string): string =>
+    `return { isValid: true, data: \`\${option?.baseURL?.replace(/\\/$/, '') ?? ''}${
       params
         ? apiPath
             .replace(
@@ -356,17 +306,61 @@ ${
             .replace(/\[\.\.\.(.+?)\]/, "${parsedParams.data.$1.join('/')}")
             .replace(/\[(.+?)\]/g, '${parsedParams.data.$1}')
         : apiPath
-    }${
-      method.query === null
-        ? ''
-        : method.query.isOptional
-          ? `\${searchParams ? \`?\${searchParams.toString()}\`: ''}`
-          : `?\${searchParams.toString()}`
-    }\` };
-  },`,
-  )
-  .join('')}
+    }${searchParamsChunk}\` };`;
+
+  return `(option?: FrourioClientOption) => ({${methods
+    .map((method) => {
+      return `\n  ${method.name}(${
+        hasUrlValues(method, params)
+          ? `req${params || method.query?.isOptional === false ? '' : '?'}: { ${[
+              ...(params ? [`params: z.infer<typeof paramsSchema_${hash}>`] : []),
+              ...(method.query
+                ? [
+                    `query${method.query.isOptional ? '?' : ''}: z.infer<typeof frourioSpec_${hash}.${method.name}.query>`,
+                  ]
+                : []),
+            ].join(', ')} }`
+          : ''
+      }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+${parsedParamsChunk}${
+        method.query
+          ? `    const parsedQuery = frourioSpec_${hash}.${method.name}.query.safeParse(req${method.query.isOptional ? '?' : ''}.query);
+
+    if (!parsedQuery.success) return { isValid: false, reason: parsedQuery.error };
+
+    ${
+      method.query.isOptional
+        ? `if (parsedQuery.data === undefined) ${returnChunk('')}\n\n    `
+        : ''
+    }const searchParams = new URLSearchParams();
+
+    Object.entries(parsedQuery.data).forEach(([key, value]) => {
+      ${
+        method.query.props.some((prop) => prop.isOptional)
+          ? 'if (value === undefined) return;\n\n      '
+          : ''
+      }${
+        method.query.props.some((prop) => prop.isArray)
+          ? `${method.query.props.some((prop) => !prop.isArray) ? 'if (Array.isArray(value)) return ' : ''}value.forEach(item => searchParams.append(key, item${method.query.props.some((prop) => prop.isArray && prop.typeName !== 'string') ? '.toString()' : ''}));`
+          : ''
+      }${
+        method.query.props.some((prop) => prop.isArray) &&
+        method.query.props.some((prop) => !prop.isArray)
+          ? '\n\n      '
+          : ''
+      }${
+        method.query.props.some((prop) => !prop.isArray)
+          ? `searchParams.append(key, value${method.query.props.some((prop) => !prop.isArray && prop.typeName !== 'string') ? '.toString()' : ''});`
+          : ''
+      }
+    });\n\n`
+          : ''
+      }    ${returnChunk(method.query === null ? '' : `?\${searchParams.toString()}`)}
+  },`;
+    })
+    .join('')}
 })`;
+};
 
 const generateMethodsFn = (
   hash: string,

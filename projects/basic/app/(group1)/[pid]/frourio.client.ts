@@ -144,7 +144,7 @@ const paramsSchema_1pkrnw3 = z.object({ 'pid': z.string() });
 const paramsSchema_1c6qmxu = z.object({ 'pid': z.string() });
 
 const $url_rket09 = (option?: FrourioClientOption) => ({
-  get(req: { params: z.infer<typeof paramsSchema_rket09>,query: z.infer<typeof frourioSpec_rket09.get.query> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+  get(req: { params: z.infer<typeof paramsSchema_rket09>, query: z.infer<typeof frourioSpec_rket09.get.query> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
     const parsedParams = paramsSchema_rket09.safeParse(req.params);
 
     if (!parsedParams.success) return { isValid: false, reason: parsedParams.error };
@@ -158,11 +158,9 @@ const $url_rket09 = (option?: FrourioClientOption) => ({
     Object.entries(parsedQuery.data).forEach(([key, value]) => {
       if (value === undefined) return;
 
-      if (Array.isArray(value)) {
-        value.forEach(item => searchParams.append(key, item.toString()));
-      } else {
-        searchParams.append(key, value.toString());
-      }
+      if (Array.isArray(value)) return value.forEach(item => searchParams.append(key, item.toString()));
+
+      searchParams.append(key, value.toString());
     });
 
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/${parsedParams.data.pid}?${searchParams.toString()}` };

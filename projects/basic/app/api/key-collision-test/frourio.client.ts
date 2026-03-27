@@ -60,13 +60,7 @@ const $url_1f8i0zm = (option?: FrourioClientOption) => ({
     const searchParams = new URLSearchParams();
 
     Object.entries(parsedQuery.data).forEach(([key, value]) => {
-      if (value === undefined) return;
-
-      if (Array.isArray(value)) {
-        value.forEach(item => searchParams.append(key, item.toString()));
-      } else {
-        searchParams.append(key, value.toString());
-      }
+      searchParams.append(key, value);
     });
 
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/key-collision-test?${searchParams.toString()}` };

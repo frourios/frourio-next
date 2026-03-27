@@ -229,11 +229,7 @@ const $url_17yqnk1 = (option?: FrourioClientOption) => ({
     Object.entries(parsedQuery.data).forEach(([key, value]) => {
       if (value === undefined) return;
 
-      if (Array.isArray(value)) {
-        value.forEach(item => searchParams.append(key, item.toString()));
-      } else {
-        searchParams.append(key, value.toString());
-      }
+      searchParams.append(key, value.toString());
     });
 
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/test-client?${searchParams.toString()}` };
