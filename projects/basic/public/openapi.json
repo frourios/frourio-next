@@ -1038,6 +1038,32 @@
         }
       }
     },
+    "/param-only/{pageNum}/content": {
+      "get": {
+        "parameters": [
+          {
+            "name": "pageNum",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/zxpauw"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/xxx/{id}/zzz": {
       "get": {
         "parameters": [
@@ -2105,6 +2131,28 @@
         },
         "required": [
           "error"
+        ]
+      },
+      "1qtf7yd": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/zxpauw"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "zxpauw": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "page"
         ]
       },
       "1ftcnr9": {

@@ -22,7 +22,9 @@ import { frourioSpec as frourioSpec_1rqfh40 } from './api/test-client/[userId]/f
 import { frourioSpec as frourioSpec_wkn1x4 } from './api/test-client/cookie/frourio';
 import { frourioSpec as frourioSpec_1tp1ur6 } from './api/test-client/stream/frourio';
 import { frourioSpec as frourioSpec_1dt6t80 } from './header-only/frourio';
+import { frourioSpec as frourioSpec_11w4uys } from './param-only/[pageNum]/content/frourio';
 import { frourioSpec as frourioSpec_fkgw0p } from './xxx/[id]/zzz/frourio';
+import { frourioSpec as frourioSpec_pa8d3y } from './param-only/[pageNum]/frourio';
 import { frourioSpec as frourioSpec_8uo3t8 } from './xxx/[id]/frourio';
 import { frourioSpec as frourioSpec_ztntfp } from './frourio'
 
@@ -270,6 +272,20 @@ export const fc = (option?: FrourioClientOption) => ({
       return [{ lowLevel: true, baseURL: option?.baseURL, dir: '/header-only', ...rest }, () => methods_1dt6t80(option).$get(req)];
     },
     ...methods_1dt6t80(option),
+  },
+  'param-only/[pageNum]/content': {
+    $url: $url_11w4uys(option),
+    $build(req: Parameters<ReturnType<typeof methods_11w4uys>['$get']>[0] | null): [
+      key: { lowLevel: true; baseURL: FrourioClientOption['baseURL']; dir: string } & Omit<Parameters<ReturnType<typeof methods_11w4uys>['$get']>[0], 'init'> | null,
+      fetcher: () => Promise<NonNullable<Awaited<ReturnType<ReturnType<typeof methods_11w4uys>['$get']>>>>,
+    ] {
+      if (req === null) return [null, () => Promise.reject(new Error('Fetcher is disabled.'))];
+
+      const { init, ...rest } = req;
+
+      return [{ lowLevel: true, baseURL: option?.baseURL, dir: '/param-only/[pageNum]/content', ...rest }, () => methods_11w4uys(option).$get(req)];
+    },
+    ...methods_11w4uys(option),
   },
   'xxx/[id]/zzz': {
     $url: $url_fkgw0p(option),
@@ -976,6 +992,34 @@ export const $fc = (option?: FrourioClientOption) => ({
       throw new Error(`HTTP Error: ${result.failure.status}`);
     },
   },
+  'param-only/[pageNum]/content': {
+    $url: {
+      get(req: Parameters<ReturnType<typeof $url_11w4uys>['get']>[0]): string {
+        const result = $url_11w4uys(option).get(req);
+
+        if (!result.isValid) throw result.reason;
+
+        return result.data;
+      },
+    },
+    $build(req: Parameters<ReturnType<typeof methods_11w4uys>['$get']>[0] | null): [
+      key: { lowLevel: false; baseURL: FrourioClientOption['baseURL']; dir: string } & Omit<Parameters<ReturnType<typeof methods_11w4uys>['$get']>[0], 'init'> | null,
+      fetcher: () => Promise<z.infer<typeof frourioSpec_11w4uys.get.res[200]['body']>>,
+    ] {
+      if (req === null) return [null, () => Promise.reject(new Error('Fetcher is disabled.'))];
+
+      const { init, ...rest } = req;
+
+      return [{ lowLevel: false, baseURL: option?.baseURL, dir: '/param-only/[pageNum]/content', ...rest }, () => $fc(option)['param-only/[pageNum]/content'].$get(req)];
+    },
+    async $get(req: Parameters<ReturnType<typeof methods_11w4uys>['$get']>[0]): Promise<z.infer<typeof frourioSpec_11w4uys.get.res[200]['body']>> {
+      const result = await methods_11w4uys(option).$get(req);
+
+      if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+      return result.data.body;
+    },
+  },
   'xxx/[id]/zzz': {
     $url: {
       get(req: Parameters<ReturnType<typeof $url_fkgw0p>['get']>[0]): string {
@@ -1071,6 +1115,8 @@ const paramsSchema_2ijh4e = z.object({ 'a': frourioSpec_knqmrp.param, 'b': z.str
 const paramsSchema_1yzfjrp = z.object({ 'a': frourioSpec_knqmrp.param, 'b': z.string() });
 
 const paramsSchema_1rqfh40 = z.object({ 'userId': frourioSpec_1rqfh40.param });
+
+const paramsSchema_11w4uys = z.object({ 'pageNum': frourioSpec_pa8d3y.param });
 
 const paramsSchema_fkgw0p = z.object({ 'id': frourioSpec_8uo3t8.param });
 
@@ -1392,6 +1438,16 @@ const $url_1dt6t80 = (option?: FrourioClientOption) => ({
   },
   delete(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/header-only` };
+  },
+});
+
+const $url_11w4uys = (option?: FrourioClientOption) => ({
+  get(req: { params: z.infer<typeof paramsSchema_11w4uys> }): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+    const parsedParams = paramsSchema_11w4uys.safeParse(req.params);
+
+    if (!parsedParams.success) return { isValid: false, reason: parsedParams.error };
+
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/param-only/${parsedParams.data.pageNum}/content` };
   },
 });
 
@@ -3041,6 +3097,54 @@ const methods_1dt6t80 = (option?: FrourioClientOption) => ({
           ok: false,
           isValid: true,
           failure: { status: 400, headers: headers.data, body: body.data },
+          raw: result.res,
+        };
+      }
+      default:
+        return { ok: result.res.ok, raw: result.res, error: new Error(`Unknown status: ${result.res.status}`) };
+    }
+  },
+});
+
+const methods_11w4uys = (option?: FrourioClientOption) => ({
+  async $get(req: { params: z.infer<typeof paramsSchema_11w4uys>, init?: RequestInit }): Promise<
+    | { ok: true; isValid: true; data: { status: 200; headers?: undefined; body: z.infer<typeof frourioSpec_11w4uys.get.res[200]['body']> }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
+    | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
+    | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
+    | { ok?: undefined; isValid?: undefined; data?: undefined; failure?: undefined; raw?: undefined; reason?: undefined; error: unknown }
+  > {
+    const url = $url_11w4uys(option).get(req);
+
+    if (url.reason) return url;
+
+    const fetchFn = option?.fetch ?? fetch;
+    const result: { success: true; res: Response } | { success: false; error: unknown } = await fetchFn(
+      url.data,
+      {
+        method: 'GET',
+        ...option?.init,
+        ...req.init,
+        headers: { ...option?.init?.headers, ...req.init?.headers },
+      }
+    ).then(res => ({ success: true, res } as const)).catch(error => ({ success: false, error }));
+
+    if (!result.success) return { error: result.error };
+
+    switch (result.res.status) {
+      case 200: {
+        const resBody: { success: true; data: unknown } | { success: false; error: unknown } = await result.res.json().then(data => ({ success: true, data } as const)).catch(error => ({ success: false, error }));
+
+        if (!resBody.success) return { ok: true, raw: result.res, error: resBody.error };
+
+        const body = frourioSpec_11w4uys.get.res[200].body.safeParse(resBody.data);
+
+        if (!body.success) return { ok: true, isValid: false, raw: result.res, reason: body.error };
+
+        return {
+          ok: true,
+          isValid: true,
+          data: { status: 200, body: body.data },
           raw: result.res,
         };
       }

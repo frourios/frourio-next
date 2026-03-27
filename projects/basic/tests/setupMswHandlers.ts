@@ -21,6 +21,7 @@ import * as route_1rqfh40 from '../app/api/test-client/[userId]/route';
 import * as route_wkn1x4 from '../app/api/test-client/cookie/route';
 import * as route_1tp1ur6 from '../app/api/test-client/stream/route';
 import * as route_1dt6t80 from '../app/header-only/route';
+import * as route_11w4uys from '../app/param-only/[pageNum]/content/route';
 import * as route_fkgw0p from '../app/xxx/[id]/zzz/route';
 
 export const patchDuplicateCookie = (req: Request): Request => {
@@ -163,6 +164,12 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
     }),
     http.delete(`${baseURL}/header-only`, ({ request }) => {
       return route_1dt6t80.DELETE(patchDuplicateCookie(request));
+    }),
+    http.get(`${baseURL}/param-only/:pageNum/content`, ({ request }) => {
+      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const params = { 'pageNum': `${pathChunks[2]}` };
+
+      return route_11w4uys.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/xxx/:id/zzz`, ({ request }) => {
       const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
