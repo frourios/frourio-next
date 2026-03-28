@@ -15,6 +15,7 @@ import * as route_195l5vw from '../app/api/key-collision-test-another/route';
 import * as route_sqrir7 from '../app/api/mw/route';
 import * as route_n3it2j from '../app/api/mw/admin/route';
 import * as route_gye2fo from '../app/api/mw/admin/users/route';
+import * as route_1xw72ki from '../app/api/mw/admin/users-copy/route';
 import * as route_76vmqd from '../app/api/mw/public/route';
 import * as route_17yqnk1 from '../app/api/test-client/route';
 import * as route_1rqfh40 from '../app/api/test-client/[userId]/route';
@@ -119,6 +120,9 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
     }),
     http.get(`${baseURL}/api/mw/admin/users`, ({ request }) => {
       return route_gye2fo.GET(patchDuplicateCookie(request));
+    }),
+    http.get(`${baseURL}/api/mw/admin/users-copy`, ({ request }) => {
+      return route_1xw72ki.GET(patchDuplicateCookie(request));
     }),
     http.get(`${baseURL}/api/mw/public`, ({ request }) => {
       return route_76vmqd.GET(patchDuplicateCookie(request));

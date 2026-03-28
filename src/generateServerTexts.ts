@@ -11,10 +11,10 @@ export const generateServerTexts = (
 ): { filePath: string; text: string }[] => {
   return specs.flatMap(({ dirPath, spec }) => {
     const ancestorMiddleware = frourioDirs.findLast(
-      (dir) => dir !== dirPath && dirPath.includes(dir) && middlewareDict[dir],
+      (dir) => dirPath.startsWith(`${dir}/`) && middlewareDict[dir],
     );
     const ancestorMiddlewareCtx = frourioDirs.findLast(
-      (dir) => dir !== dirPath && dirPath.includes(dir) && middlewareDict[dir]?.hasCtx,
+      (dir) => dirPath.startsWith(`${dir}/`) && middlewareDict[dir]?.hasCtx,
     );
     const params = pathToParams(frourioDirs, dirPath, spec.param);
     const middleware = {

@@ -695,6 +695,42 @@
         }
       }
     },
+    "/api/mw/admin/users-copy": {
+      "get": {
+        "parameters": [
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/1nga0qx"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/scyknn"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/mw/public": {
       "get": {
         "responses": {
@@ -703,7 +739,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/scyknn"
+                  "$ref": "#/components/schemas/s2yyyo"
                 }
               }
             }
@@ -750,7 +786,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/s2yyyo"
+                  "$ref": "#/components/schemas/swxs1l"
                 }
               }
             }
@@ -783,7 +819,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/s2yyyo"
+                  "$ref": "#/components/schemas/swxs1l"
                 }
               }
             }
@@ -826,7 +862,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/s2yyyo"
+                  "$ref": "#/components/schemas/swxs1l"
                 }
               }
             }
@@ -849,7 +885,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/swxs1l"
+                  "$ref": "#/components/schemas/smy6cm"
                 }
               }
             }
@@ -859,7 +895,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/s2yyyo"
+                  "$ref": "#/components/schemas/swxs1l"
                 }
               }
             }
@@ -904,7 +940,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/smy6cm"
+                  "$ref": "#/components/schemas/votszb"
                 }
               }
             }
@@ -934,7 +970,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/smy6cm"
+                  "$ref": "#/components/schemas/votszb"
                 }
               }
             }
@@ -1751,6 +1787,33 @@
           "message"
         ]
       },
+      "rg8ehy": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/1nga0qx"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "1nga0qx": {
+        "type": "object",
+        "properties": {
+          "context": {},
+          "users": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "context",
+          "users"
+        ]
+      },
       "wa26tx": {
         "type": "object",
         "properties": {
@@ -1763,6 +1826,28 @@
         ]
       },
       "scyknn": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "uc4yz4": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/s2yyyo"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "s2yyyo": {
         "type": "object",
         "properties": {
           "message": {
@@ -1805,18 +1890,18 @@
           "name"
         ]
       },
-      "uc4yz4": {
+      "um4ko3": {
         "type": "object",
         "properties": {
           "body": {
-            "$ref": "#/components/schemas/s2yyyo"
+            "$ref": "#/components/schemas/swxs1l"
           }
         },
         "required": [
           "body"
         ]
       },
-      "s2yyyo": {
+      "swxs1l": {
         "type": "object",
         "properties": {
           "message": {
@@ -1852,11 +1937,11 @@
           "body"
         ]
       },
-      "um4ko3": {
+      "uw46d2": {
         "type": "object",
         "properties": {
           "body": {
-            "$ref": "#/components/schemas/s2yyyo"
+            "$ref": "#/components/schemas/swxs1l"
           }
         },
         "required": [
@@ -1939,11 +2024,11 @@
           "size"
         ]
       },
-      "uw46d2": {
+      "v63s21": {
         "type": "object",
         "properties": {
           "body": {
-            "$ref": "#/components/schemas/s2yyyo"
+            "$ref": "#/components/schemas/swxs1l"
           }
         },
         "required": [
@@ -1965,18 +2050,18 @@
           "reason"
         ]
       },
-      "v63s21": {
+      "xo07as": {
         "type": "object",
         "properties": {
           "body": {
-            "$ref": "#/components/schemas/swxs1l"
+            "$ref": "#/components/schemas/smy6cm"
           }
         },
         "required": [
           "body"
         ]
       },
-      "swxs1l": {
+      "smy6cm": {
         "type": "object",
         "properties": {
           "message": {
@@ -1987,11 +2072,11 @@
           "message"
         ]
       },
-      "xo07as": {
+      "xxzszr": {
         "type": "object",
         "properties": {
           "body": {
-            "$ref": "#/components/schemas/s2yyyo"
+            "$ref": "#/components/schemas/swxs1l"
           }
         },
         "required": [
@@ -2038,18 +2123,18 @@
           "name"
         ]
       },
-      "xxzszr": {
+      "1pam7m5": {
         "type": "object",
         "properties": {
           "body": {
-            "$ref": "#/components/schemas/smy6cm"
+            "$ref": "#/components/schemas/votszb"
           }
         },
         "required": [
           "body"
         ]
       },
-      "smy6cm": {
+      "votszb": {
         "type": "object",
         "properties": {
           "message": {
@@ -2063,11 +2148,11 @@
       "1n9hrn1": {
         "type": "object"
       },
-      "1pam7m5": {
+      "1p0mlx6": {
         "type": "object",
         "properties": {
           "body": {
-            "$ref": "#/components/schemas/smy6cm"
+            "$ref": "#/components/schemas/votszb"
           }
         },
         "required": [
