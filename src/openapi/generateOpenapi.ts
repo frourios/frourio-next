@@ -358,13 +358,11 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
       }
 
       const hash = createHash(key);
+      const encodedKey = encodeURIComponent(key);
 
       docText = docText
         .replaceAll(`"${key.replaceAll('"', '\\"')}"`, `"${hash}"`)
-        .replaceAll(
-          `"#/components/schemas/${key.replaceAll('"', '\\"')}"`,
-          `"#/components/schemas/${hash}"`,
-        );
+        .replaceAll(`"#/components/schemas/${encodedKey}"`, `"#/components/schemas/${hash}"`);
 
       if (!docText.includes(`"#/components/schemas/${hash}"`)) noRefKeys.push(hash);
     });
