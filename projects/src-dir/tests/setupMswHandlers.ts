@@ -27,31 +27,31 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
       return route_ztntfp.GET(patchDuplicateCookie(request));
     }),
     http.get(`${baseURL}/*`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'all': pathChunks.slice(1) };
 
       return route_dn9cqh.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/*`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'optAll': pathChunks.slice(1) };
 
       return route_1rzyav8.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.post(`${baseURL}/:a/arrayBuffer`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
       return route_og4f3x.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.post(`${baseURL}/:a/blob`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
       return route_uq501x.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.post(`${baseURL}/:a/text`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
       return route_bfn325.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) });

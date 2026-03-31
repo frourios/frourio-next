@@ -231,14 +231,14 @@ describe('$fc (High-Level Client)', () => {
     expect(users[0]).toEqual({ id: 1, name: 'Alice', isAdmin: true });
   });
   test('GET /api/test-client - API Error (400)', async () => {
-    await expect(
-      apiClient['api/test-client'].$get({ query: { search: 'error' } }),
-    ).rejects.toThrowError(/HTTP Error: 400/);
+    await expect(apiClient['api/test-client'].$get({ query: { search: 'error' } })).rejects.toThrow(
+      /HTTP Error: 400/,
+    );
   });
   test('GET /api/test-client - Response Validation Error', async () => {
     await expect(
       apiClient['api/test-client'].$get({ query: { search: 'invalid-response' } }),
-    ).rejects.toThrowError(ZodError);
+    ).rejects.toThrow(ZodError);
   });
 
   test('POST /api/test-client - Success', async () => {
@@ -256,12 +256,12 @@ describe('$fc (High-Level Client)', () => {
     expect(newUser.isAdmin).toBe(true);
   });
   test('POST /api/test-client - API Error (400)', async () => {
-    await expect(
-      apiClient['api/test-client'].$post({ body: { name: 'error' } }),
-    ).rejects.toThrowError(/HTTP Error: 400/);
+    await expect(apiClient['api/test-client'].$post({ body: { name: 'error' } })).rejects.toThrow(
+      /HTTP Error: 400/,
+    );
   });
   test('POST /api/test-client - Validation Error (422)', async () => {
-    await expect(apiClient['api/test-client'].$post({ body: { name: '' } })).rejects.toThrowError(
+    await expect(apiClient['api/test-client'].$post({ body: { name: '' } })).rejects.toThrow(
       /HTTP Error: 422/,
     );
   });

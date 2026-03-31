@@ -47,31 +47,31 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
       return route_ztntfp.POST(patchDuplicateCookie(request));
     }),
     http.get(`${baseURL}/:pid`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'pid': `${pathChunks[1]}` };
 
       return route_rket09.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/:pid/bar`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'pid': `${pathChunks[1]}` };
 
       return route_1pkrnw3.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/:pid/foo`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'pid': `${pathChunks[1]}` };
 
       return route_1c6qmxu.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/blog/*`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'slug': pathChunks.slice(2) };
 
       return route_er79ce.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/blog/hoge/*`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'fuga': pathChunks.slice(3) };
 
       return route_14jcy50.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
@@ -80,25 +80,25 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
       return route_1x69jyx.GET(patchDuplicateCookie(request));
     }),
     http.get(`${baseURL}/x/:y`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'y': `${pathChunks[2]}` };
 
       return route_13e9lnf.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/:a`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
       return route_knqmrp.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.post(`${baseURL}/:a/:b/*`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}`, 'b': `${pathChunks[2]}`, 'c': pathChunks.slice(3) };
 
       return route_2ijh4e.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/:a/:b/d`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}`, 'b': `${pathChunks[2]}` };
 
       return route_1yzfjrp.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
@@ -140,13 +140,13 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
       return route_17yqnk1.DELETE(patchDuplicateCookie(request));
     }),
     http.put(`${baseURL}/api/test-client/:userId`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'userId': `${pathChunks[3]}` };
 
       return route_1rqfh40.PUT(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.delete(`${baseURL}/api/test-client/:userId`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'userId': `${pathChunks[3]}` };
 
       return route_1rqfh40.DELETE(patchDuplicateCookie(request), { params: Promise.resolve(params) });
@@ -170,13 +170,13 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
       return route_1dt6t80.DELETE(patchDuplicateCookie(request));
     }),
     http.get(`${baseURL}/param-only/:pageNum/content`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'pageNum': `${pathChunks[2]}` };
 
       return route_11w4uys.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
     }),
     http.get(`${baseURL}/xxx/:id/zzz`, ({ request }) => {
-      const pathChunks = request.url.replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
+      const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'id': `${pathChunks[2]}` };
 
       return route_fkgw0p.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
