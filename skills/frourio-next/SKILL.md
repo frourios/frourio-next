@@ -12,3 +12,4 @@ This skill set provides guidance for working with frourio-next, a type-safe API 
 - [add-endpoint.md](add-endpoint.md) — Add a new API endpoint with `frourio.ts` and `route.ts`
 - [add-middleware.md](add-middleware.md) — Add middleware for authentication, authorization, logging, etc.
 - [client-usage.md](client-usage.md) — Use the auto-generated type-safe client (`fc`/`$fc`) with SWR and TanStack Query
+- [testing.md](testing.md) — Write tests for API routes using MSW and Vitest

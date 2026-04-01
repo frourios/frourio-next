@@ -55,17 +55,7 @@ npm install -D openapi-types
 npm install -D msw
 ```
 
-Create `frourio-next.config.ts` at the project root:
-
-```typescript
-export default {
-  msw: {
-    output: './tests/setupMswHandlers.ts',
-  },
-};
-```
-
-Or in `package.json`:
+Add to `package.json`:
 
 ```json
 {
@@ -115,8 +105,8 @@ import { fc } from './app/api/hello/frourio.client';
 const client = fc({ baseURL: 'http://localhost:3000' });
 const result = await client.$get();
 
-if (result.status === 200) {
-  console.log(result.body.message); // Type-safe
+if (result.isValid && result.data) {
+  console.log(result.data.body.message); // Type-safe
 }
 ```
 
