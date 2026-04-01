@@ -6,12 +6,13 @@
     "esModuleInterop": true,
     "lib": ["dom", "dom.iterable", "esnext"],
     "moduleResolution": "bundler",
+    "module": "esnext",
     "sourceMap": true,
     "strict": true,
     "strictPropertyInitialization": false,
     "skipLibCheck": true,
     "exactOptionalPropertyTypes": true,
-    "target": "es2020",
+    "target": "es2023",
     "jsx": "preserve"
   },
   "exclude": ["node_modules", "projects/**/*.tsx"]
