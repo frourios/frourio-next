@@ -13,7 +13,8 @@ Skill to integrate frourio-next into an existing Next.js project.
 ### 1. Install packages
 
 ```bash
-npm install @frourio/next zod
+npm install zod
+npm install -D @frourio/next
 ```
 
 ### 2. Configure package.json scripts
@@ -36,10 +37,6 @@ npm install -D npm-run-all2
 ```
 
 ### 3. If OpenAPI generation is needed (optional)
-
-```bash
-npm install -D openapi-types
-```
 
 ```json
 {

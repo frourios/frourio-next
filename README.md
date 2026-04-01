@@ -25,7 +25,7 @@ FrourioNext streamlines API development in Next.js App Router by providing:
 - **OpenAPI Generation**: Optionally generate OpenAPI 3.1 specification files from your route definitions.
 - **MSW Handlers Generation**: Automatically generate MSW (Mock Service Worker) request handlers from your `frourio.ts` definitions for mocking API calls in tests or during frontend development.
 
-## ✨ Key Features
+## Key Features
 
 - **🚀 Define Once, Use Everywhere**: Zod schemas in `frourio.ts` act as the single source of truth for request/response shapes.
 - **🔒 Automatic Validation**: `createRoute` helper automatically validates requests and responses, reducing boilerplate and potential errors.
@@ -34,23 +34,29 @@ FrourioNext streamlines API development in Next.js App Router by providing:
 - **🧩 Flexible Middleware**: Implement route-specific or inherited middleware with type-safe context passing.
 - **📄 Standards Compliant**: Generate OpenAPI 3.1 documentation effortlessly.
 
-## 📦 Installation
+## Quick start
+
+```bash
+npx skills add frourios/frourio-next
+```
+
+## Installation
 
 ```bash
 # Using npm
 npm install next zod
-npm install @frourio/next npm-run-all --save-dev
+npm install @frourio/next npm-run-all2 --save-dev
 
 # Using yarn
 yarn add next zod
-yarn add @frourio/next npm-run-all --dev
+yarn add @frourio/next npm-run-all2 --dev
 
 # Using pnpm
 pnpm add next zod
-pnpm add @frourio/next npm-run-all --save-dev
+pnpm add @frourio/next npm-run-all2 --save-dev
 ```
 
-## 🛠️ Setup
+## Setup
 
 Add the FrourioNext CLI commands to the `scripts` section of your `package.json`:
 
@@ -72,7 +78,7 @@ Add the FrourioNext CLI commands to the `scripts` section of your `package.json`
 - `frourio-next-openapi`: (Optional) Generates an OpenAPI 3.1 JSON file based on your `frourio.ts` definitions.
 - `frourio-next-msw`: (Optional) Generates MSW (Mock Service Worker) request handlers from your `frourio.ts` definitions.
 
-## 🚀 Core Concepts & Usage
+## Core Concepts & Usage
 
 FrourioNext revolves around defining your API structure in `frourio.ts` files and using the auto-generated helpers.
 
@@ -438,7 +444,7 @@ export function TaskDetails({ taskId }: TaskDetailsProps) {
 - HTTP methods are called with `$`: `.$get()`, `.$post()`, `.$patch()`, `.$delete()`. Path parameters for dynamic segments are passed within the `params` property of the options object for these methods (e.g., `.$get({ params: { taskId: 'abc' } })`).
 - Request data (`query`, `body`, `headers`, `params`) is passed in an object, fully typed according to `frourio.ts`.
 
-## 🧱 Middleware
+## Middleware
 
 > **Breaking Change (v0.22.0)**: Middleware implementation has moved from `route.ts` to a separate `route.middleware.ts` file. `createMiddleware` is now imported from the auto-generated `./frourio.middleware` instead of `./frourio.server`. `createRoute` no longer accepts a `middleware` property — middleware is wired automatically by the generated code.
 >
@@ -587,7 +593,7 @@ export const { GET, POST } = createRoute({
 
 **Execution Flow**: Requests flow through middleware from parent directories down to the specific route. Each middleware implementation receives context from its parent and passes new context (defined in its own `frourio.ts`) to its children.
 
-## 📁 Handling FormData (File Uploads)
+## Handling FormData (File Uploads)
 
 Use `format: 'formData'` and `z.instanceof(File)` in `frourio.ts`.
 
@@ -671,7 +677,7 @@ if (imageFile) {
 }
 ```
 
-## 📝 Handling URL-Encoded Form Data
+## Handling URL-Encoded Form Data
 
 Use `format: 'urlencoded'` for `application/x-www-form-urlencoded` requests. This is useful for simple form submissions without file uploads.
 
@@ -739,7 +745,7 @@ try {
 
 **Supported Types**: `string`, `number`, `boolean`, and their optional/array variants. File uploads are **not** supported — use `format: 'formData'` instead.
 
-## 🌊 LLM Streaming & Raw Response Handling
+## LLM Streaming & Raw Response Handling
 
 If you omit the `res` property in `frourio.ts` for a specific method, `createRoute` allows the handler to return _any_ standard `Response` object directly. This is useful for streaming responses (e.g., from LLMs) or when you need full control over the response.
 
@@ -820,7 +826,7 @@ if (result.ok && result.raw) {
 }
 ```
 
-## 🎣 Integrating with Data Fetching Libraries (useSWR, TanStack Query)
+## Integrating with Data Fetching Libraries (useSWR, TanStack Query)
 
 The generated clients integrate smoothly with popular data fetching libraries. The `$build()` method is particularly useful here.
 
@@ -922,7 +928,7 @@ function UserProfile({ userId }: { userId: string | null }) {
 
 See `tests/useQuery.spec.tsx` for more detailed examples.
 
-## 🧪 MSW Handlers Generation
+## MSW Handlers Generation
 
 FrourioNext can automatically generate MSW (Mock Service Worker) request handlers based on your `frourio.ts` definitions. This is particularly useful for mocking API calls in tests or during frontend development without a running backend.
 
@@ -997,13 +1003,13 @@ patchFilePrototype();
 // ... rest of your test setup
 ```
 
-## 🧪 Testing
+## Testing
 
 Test your FrourioNext handlers like standard Next.js Route Handlers, typically by mocking `NextRequest` and calling the exported handler functions directly. Use libraries like `msw` to mock the `fetch` calls when testing client-side logic or components using the generated Frourio clients (`fc`, `$fc`).
 
 See `tests/client.spec.ts`, `tests/useSWR.spec.tsx`, and `tests/useQuery.spec.tsx` for detailed examples using `msw` and `vitest`.
 
-## 📜 OpenAPI 3.1 Generation
+## OpenAPI 3.1 Generation
 
 Generate OpenAPI documentation from your `frourio.ts` files using the `frourio-next-openapi` command.
 
@@ -1028,7 +1034,7 @@ Generate OpenAPI documentation from your `frourio.ts` files using the `frourio-n
 
 _(Based on `src/openapi/cli.ts`)_
 
-## ⚙️ CLI Options (`frourio-next`)
+## CLI Options (`frourio-next`)
 
 | Option    | Alias | Type | Description                                                              |
 | :-------- | :---- | :--- | :----------------------------------------------------------------------- |
