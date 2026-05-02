@@ -35,7 +35,12 @@ test('generate', async () => {
 
   await Promise.all(
     projectDirs.map(async (dir) => {
-      const openapiConfig = await getOpenapiConfig({ output: undefined, root: undefined, dir });
+      const openapiConfig = await getOpenapiConfig({
+        output: undefined,
+        template: undefined,
+        root: undefined,
+        dir,
+      });
 
       assert(openapiConfig.appDir);
 
@@ -64,6 +69,7 @@ test('generate', async () => {
 
       if (existsSync(mswConfig.output)) fs.unlinkSync(mswConfig.output);
       if (existsSync(openapiConfig.output)) fs.unlinkSync(openapiConfig.output);
+      if (existsSync(openapiConfig.template)) fs.unlinkSync(openapiConfig.template);
 
       generateMsw(mswConfig);
       generateOpenapi(openapiConfig);

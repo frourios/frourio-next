@@ -132,13 +132,22 @@ npm run dev
 
 ## CLI commands
 
-| Command                              | Description                    |
-| ------------------------------------ | ------------------------------ |
-| `frourio-next`                       | Generate server/client code    |
-| `frourio-next --watch`               | Generate in watch mode         |
-| `frourio-next-openapi --output=PATH` | Generate OpenAPI 3.1 spec      |
-| `frourio-next-openapi --watch`       | Generate OpenAPI in watch mode |
-| `frourio-next-msw --output=PATH`     | Generate MSW handlers          |
+| Command                                | Description                                                                     |
+| -------------------------------------- | ------------------------------------------------------------------------------- |
+| `frourio-next`                         | Generate server/client code                                                     |
+| `frourio-next --watch`                 | Generate in watch mode                                                          |
+| `frourio-next-openapi --output=PATH`   | Generate OpenAPI 3.1 spec                                                       |
+| `frourio-next-openapi --template=PATH` | Use a custom OpenAPI template (default: `openapi_template.json` next to output) |
+| `frourio-next-openapi --watch`         | Generate OpenAPI in watch mode                                                  |
+| `frourio-next-msw --output=PATH`       | Generate MSW handlers                                                           |
+
+### OpenAPI template file
+
+`frourio-next-openapi` reads a template file as the base document and overwrites only `paths` and `components`. Settings outside FrourioNext's responsibility (`info`, `servers`, `security`, `tags`, etc.) are preserved across regenerations.
+
+- Default path: `openapi_template.json` next to `--output`.
+- If the template doesn't exist, a minimal skeleton is auto-generated on first run. Commit it and edit freely.
+- Override the path with `--template` / `-t`.
 
 ## Example directory structure
 

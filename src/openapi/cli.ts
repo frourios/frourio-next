@@ -5,10 +5,14 @@ import { getOpenapiConfig } from './getOpenapiConfig';
 
 export const run = async (args: string[]) => {
   const argv = minimist(args, {
-    string: ['output', 'watch', 'root'],
-    alias: { o: 'output', w: 'watch', r: 'root' },
+    string: ['output', 'template', 'watch', 'root'],
+    alias: { o: 'output', t: 'template', w: 'watch', r: 'root' },
   });
-  const config = await getOpenapiConfig({ output: argv.output, root: argv.root });
+  const config = await getOpenapiConfig({
+    output: argv.output,
+    template: argv.template,
+    root: argv.root,
+  });
 
   generateOpenapi(config);
 

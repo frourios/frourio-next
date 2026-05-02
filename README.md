@@ -1024,13 +1024,22 @@ Generate OpenAPI documentation from your `frourio.ts` files using the `frourio-n
     ```
 3.  This generates the OpenAPI JSON file specified by the `--output` option.
 
+### Template File
+
+Settings outside of FrourioNext's responsibility (e.g., `info`, `servers`, `security`, `tags`) are managed via a template file (`openapi_template.json` by default, located alongside `--output`).
+
+- If the template file does not exist, FrourioNext auto-generates a minimal skeleton (`openapi`, `info`, and `servers` if `basePath` is configured) on first run. Commit this file and edit it freely — your changes are preserved across regenerations.
+- FrourioNext reads the template as the base document and overwrites only `paths` and `components`. Everything else in the template is passed through to the generated `openapi.json` as-is.
+- Use `--template` / `-t` to point at a different template path.
+
 ### CLI Options (`frourio-next-openapi`)
 
-| Option     | Alias | Type     | Description                                                                                              |
-| :--------- | :---- | :------- | :------------------------------------------------------------------------------------------------------- |
-| `--output` | `-o`  | `string` | Output path for the OpenAPI JSON file (e.g., `./public/openapi.json`).                                   |
-| `--watch`  | `-w`  |          | Enable watch mode.                                                                                       |
-| `--root`   | `-r`  | `string` | Generate OpenAPI for endpoints only within the specified appDir subdirectory (e.g., `./src/app/api/v1`). |
+| Option       | Alias | Type     | Description                                                                                              |
+| :----------- | :---- | :------- | :------------------------------------------------------------------------------------------------------- |
+| `--output`   | `-o`  | `string` | Output path for the OpenAPI JSON file (e.g., `./public/openapi.json`).                                   |
+| `--template` | `-t`  | `string` | Path to the OpenAPI template file. Defaults to `openapi_template.json` next to `--output`.               |
+| `--watch`    | `-w`  |          | Enable watch mode.                                                                                       |
+| `--root`     | `-r`  | `string` | Generate OpenAPI for endpoints only within the specified appDir subdirectory (e.g., `./src/app/api/v1`). |
 
 _(Based on `src/openapi/cli.ts`)_
 

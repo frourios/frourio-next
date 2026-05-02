@@ -9,21 +9,30 @@ import { createHash } from '../createHash';
 import { listFrourioDirs } from '../listFrourioDirs';
 import type { OpenapiConfig } from './getOpenapiConfig';
 
-export const generateOpenapi = ({ appDir, basePath, output, root }: OpenapiConfig) => {
+export const generateOpenapi = ({ appDir, basePath, output, template, root }: OpenapiConfig) => {
   if (!appDir) return;
 
-  const existingDoc: OpenAPIV3_1.Document | undefined = existsSync(output)
-    ? JSON.parse(readFileSync(output, 'utf8'))
-    : undefined;
-  const template: OpenAPIV3_1.Document = {
-    openapi: '3.1.0',
-    info: { title: `${output.split('/').at(-1)?.replace('.json', '')} api`, version: 'v0.0' },
-    ...(basePath ? { servers: [{ url: basePath }] } : {}),
-    ...existingDoc,
+  if (!existsSync(template)) {
+    const skeleton = {
+      openapi: '3.1.0',
+      info: {
+        title: `${output.split('/').at(-1)?.replace('.json', '')} api`,
+        version: 'v0.0',
+      },
+      ...(basePath ? { servers: [{ url: basePath }] } : {}),
+    };
+
+    writeFileSync(template, `${JSON.stringify(skeleton, null, 2)}\n`);
+    console.log(`${template} was generated successfully.`);
+  }
+
+  const templateDoc: OpenAPIV3_1.Document = JSON.parse(readFileSync(template, 'utf8'));
+  const baseDoc: OpenAPIV3_1.Document = {
+    ...templateDoc,
     paths: {},
     components: {},
   };
-  const text = toOpenAPI({ appDir, template, root: root ?? appDir });
+  const text = toOpenAPI({ appDir, template: baseDoc, root: root ?? appDir });
 
   if (existsSync(output) && readFileSync(output, 'utf8') === text) return;
 
