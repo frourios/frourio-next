@@ -549,9 +549,9 @@ describe('fc (Low-Level Client)', () => {
     await lowLevelApiClient['api/test-client/cookie'].$post({ body: { val: testVal } });
     expect(document.cookie).toBe(`val=${testVal}`);
 
-    const res3 = await lowLevelApiClient['api/test-client/cookie'].$get();
+    const res2 = await lowLevelApiClient['api/test-client/cookie'].$get();
 
-    expect(res3.data?.body.val).toBe(testVal);
+    expect(res2.data?.body.val).toBe(testVal);
   });
 
   test('POST /api/test-client/stream - Success', async () => {
