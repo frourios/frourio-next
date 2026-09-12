@@ -39,7 +39,8 @@ export const generateMsw = ({ appDir, output }: MswConfig) => {
     .filter((d) => d.methods.length > 0);
 
   const posixAppDir = appDir.replaceAll('\\', '/');
-  const mswText = `import { http, type RequestHandler } from 'msw';
+  const mswText = `import { DefaultBodyType, http, HttpResponse, type RequestHandler } from 'msw';
+import type { NextResponse } from 'next/server';
 ${specs.map(({ posixDirPath }) => `import * as route_${createHash(posixDirPath.replace(posixAppDir, ''))} from '${path.posix.relative(path.posix.resolve(output.replaceAll('\\', '/')).split('/').slice(0, -1).join('/'), `${posixDirPath}/route`)}';\n`).join('')}
 export const patchDuplicateCookie = (req: Request): Request => {
   const cookie = req.headers.get('cookie');
@@ -51,6 +52,9 @@ export const patchDuplicateCookie = (req: Request): Request => {
 
   return req;
 };
+
+export const toMswResponseForCookie = (res: NextResponse): HttpResponse<DefaultBodyType> =>
+   new HttpResponse(res.body, { status: res.status, headers: res.headers });
 
 export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[] {
   const baseURL = option?.baseURL.replace(/\\/$/, '') ?? '';
@@ -77,7 +81,7 @@ ${specs
       return `    http.${method}(\`\${baseURL}${methodPath.replace(/\[+\.\.\..+?]+/, '*').replace(/\[(.+?)]/g, ':$1')}\`, ({ request }) => {${paramsChunk}
       return route_${createHash(posixDirPath.replace(posixAppDir, ''))}.${method.toUpperCase()}(patchDuplicateCookie(request)${
         hasParams ? `, { params: Promise.resolve(params) }` : ''
-      });
+      }).then(toMswResponseForCookie);
     }),\n`;
     });
   })

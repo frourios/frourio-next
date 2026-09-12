@@ -1,4 +1,5 @@
-import { http, type RequestHandler } from 'msw';
+import { DefaultBodyType, http, HttpResponse, type RequestHandler } from 'msw';
+import type { NextResponse } from 'next/server';
 import * as route_ztntfp from '../src/app/route';
 import * as route_dn9cqh from '../src/app/[...all]/route';
 import * as route_1rzyav8 from '../src/app/[[...optAll]]/route';
@@ -19,51 +20,54 @@ export const patchDuplicateCookie = (req: Request): Request => {
   return req;
 };
 
+export const toMswResponseForCookie = (res: NextResponse): HttpResponse<DefaultBodyType> =>
+   new HttpResponse(res.body, { status: res.status, headers: res.headers });
+
 export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[] {
   const baseURL = option?.baseURL.replace(/\/$/, '') ?? '';
 
   return [
     http.get(`${baseURL}`, ({ request }) => {
-      return route_ztntfp.GET(patchDuplicateCookie(request));
+      return route_ztntfp.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/*`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'all': pathChunks.slice(1) };
 
-      return route_dn9cqh.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_dn9cqh.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/*`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'optAll': pathChunks.slice(1) };
 
-      return route_1rzyav8.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_1rzyav8.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.post(`${baseURL}/:a/arrayBuffer`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
-      return route_og4f3x.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_og4f3x.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.post(`${baseURL}/:a/blob`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
-      return route_uq501x.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_uq501x.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.post(`${baseURL}/:a/text`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
-      return route_bfn325.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_bfn325.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.post(`${baseURL}/api`, ({ request }) => {
-      return route_36xt6y.POST(patchDuplicateCookie(request));
+      return route_36xt6y.POST(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.put(`${baseURL}/api`, ({ request }) => {
-      return route_36xt6y.PUT(patchDuplicateCookie(request));
+      return route_36xt6y.PUT(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.post(`${baseURL}/api/%E6%97%A5%E6%9C%AC%E8%AA%9E`, ({ request }) => {
-      return route_15e5upz.POST(patchDuplicateCookie(request));
+      return route_15e5upz.POST(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
   ];
 }

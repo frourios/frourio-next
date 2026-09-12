@@ -9,6 +9,7 @@ import type {
   User,
 } from '../../projects/basic/app/api/test-client/frourio';
 import { $fc as base$Fc, fc as baseFc } from '../../projects/basic/app/frourio.client';
+import { toMswResponseForCookie } from '../../projects/basic/tests/setupMswHandlers';
 
 const usersDb = new Map<number, User>([
   [1, { id: 1, name: 'Alice', isAdmin: true }],
@@ -164,7 +165,7 @@ const handlers = [
   }),
 
   http.post('http://localhost/api/test-client/cookie', ({ request }) => {
-    return cookieRoot.POST(request);
+    return cookieRoot.POST(request).then(toMswResponseForCookie);
   }),
 
   http.post('http://localhost/api/test-client/stream', async ({ request }) => {
@@ -544,18 +545,11 @@ describe('fc (Low-Level Client)', () => {
     expect(res1.data?.body.val).toBeUndefined();
 
     const testVal = 'abc';
-    const res2 = await lowLevelApiClient['api/test-client/cookie'].$post({
-      body: { val: testVal },
-    });
-    const cookieText = res2.raw?.headers.get('Set-Cookie') ?? '';
 
-    expect(cookieText).toBe(`val=${testVal}; Path=/`);
+    await lowLevelApiClient['api/test-client/cookie'].$post({ body: { val: testVal } });
+    expect(document.cookie).toBe(`val=${testVal}`);
 
-    document.cookie = cookieText;
-
-    const res3 = await lowLevelApiClient['api/test-client/cookie'].$get({
-      init: { headers: { cookie: cookieText } },
-    });
+    const res3 = await lowLevelApiClient['api/test-client/cookie'].$get();
 
     expect(res3.data?.body.val).toBe(testVal);
   });

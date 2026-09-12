@@ -1,4 +1,5 @@
-import { http, type RequestHandler } from 'msw';
+import { DefaultBodyType, http, HttpResponse, type RequestHandler } from 'msw';
+import type { NextResponse } from 'next/server';
 import * as route_ztntfp from '../app/route';
 import * as route_rket09 from '../app/(group1)/[pid]/route';
 import * as route_1pkrnw3 from '../app/(group1)/[pid]/bar/route';
@@ -36,150 +37,153 @@ export const patchDuplicateCookie = (req: Request): Request => {
   return req;
 };
 
+export const toMswResponseForCookie = (res: NextResponse): HttpResponse<DefaultBodyType> =>
+   new HttpResponse(res.body, { status: res.status, headers: res.headers });
+
 export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[] {
   const baseURL = option?.baseURL.replace(/\/$/, '') ?? '';
 
   return [
     http.get(`${baseURL}`, ({ request }) => {
-      return route_ztntfp.GET(patchDuplicateCookie(request));
+      return route_ztntfp.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.post(`${baseURL}`, ({ request }) => {
-      return route_ztntfp.POST(patchDuplicateCookie(request));
+      return route_ztntfp.POST(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/:pid`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'pid': `${pathChunks[1]}` };
 
-      return route_rket09.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_rket09.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/:pid/bar`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'pid': `${pathChunks[1]}` };
 
-      return route_1pkrnw3.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_1pkrnw3.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/:pid/foo`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'pid': `${pathChunks[1]}` };
 
-      return route_1c6qmxu.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_1c6qmxu.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/blog/*`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'slug': pathChunks.slice(2) };
 
-      return route_er79ce.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_er79ce.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/blog/hoge/*`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'fuga': pathChunks.slice(3) };
 
-      return route_14jcy50.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_14jcy50.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/aaa/api`, ({ request }) => {
-      return route_1x69jyx.GET(patchDuplicateCookie(request));
+      return route_1x69jyx.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/x/:y`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'y': `${pathChunks[2]}` };
 
-      return route_13e9lnf.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_13e9lnf.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/:a`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}` };
 
-      return route_knqmrp.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_knqmrp.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.post(`${baseURL}/:a/:b/*`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}`, 'b': `${pathChunks[2]}`, 'c': pathChunks.slice(3) };
 
-      return route_2ijh4e.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_2ijh4e.POST(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/:a/:b/d`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'a': `${pathChunks[1]}`, 'b': `${pathChunks[2]}` };
 
-      return route_1yzfjrp.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_1yzfjrp.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/api/key-collision-test`, ({ request }) => {
-      return route_1f8i0zm.GET(patchDuplicateCookie(request));
+      return route_1f8i0zm.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/api/key-collision-test-another`, ({ request }) => {
-      return route_195l5vw.GET(patchDuplicateCookie(request));
+      return route_195l5vw.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/api/mw`, ({ request }) => {
-      return route_sqrir7.GET(patchDuplicateCookie(request));
+      return route_sqrir7.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/api/mw/admin`, ({ request }) => {
-      return route_n3it2j.GET(patchDuplicateCookie(request));
+      return route_n3it2j.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.post(`${baseURL}/api/mw/admin`, ({ request }) => {
-      return route_n3it2j.POST(patchDuplicateCookie(request));
+      return route_n3it2j.POST(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/api/mw/admin/users`, ({ request }) => {
-      return route_gye2fo.GET(patchDuplicateCookie(request));
+      return route_gye2fo.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/api/mw/admin/users-copy`, ({ request }) => {
-      return route_1xw72ki.GET(patchDuplicateCookie(request));
+      return route_1xw72ki.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/api/mw/public`, ({ request }) => {
-      return route_76vmqd.GET(patchDuplicateCookie(request));
+      return route_76vmqd.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/api/test-client`, ({ request }) => {
-      return route_17yqnk1.GET(patchDuplicateCookie(request));
+      return route_17yqnk1.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.post(`${baseURL}/api/test-client`, ({ request }) => {
-      return route_17yqnk1.POST(patchDuplicateCookie(request));
+      return route_17yqnk1.POST(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.patch(`${baseURL}/api/test-client`, ({ request }) => {
-      return route_17yqnk1.PATCH(patchDuplicateCookie(request));
+      return route_17yqnk1.PATCH(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.delete(`${baseURL}/api/test-client`, ({ request }) => {
-      return route_17yqnk1.DELETE(patchDuplicateCookie(request));
+      return route_17yqnk1.DELETE(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.put(`${baseURL}/api/test-client/:userId`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'userId': `${pathChunks[3]}` };
 
-      return route_1rqfh40.PUT(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_1rqfh40.PUT(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.delete(`${baseURL}/api/test-client/:userId`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'userId': `${pathChunks[3]}` };
 
-      return route_1rqfh40.DELETE(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_1rqfh40.DELETE(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/api/test-client/cookie`, ({ request }) => {
-      return route_wkn1x4.GET(patchDuplicateCookie(request));
+      return route_wkn1x4.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.post(`${baseURL}/api/test-client/cookie`, ({ request }) => {
-      return route_wkn1x4.POST(patchDuplicateCookie(request));
+      return route_wkn1x4.POST(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.post(`${baseURL}/api/test-client/stream`, ({ request }) => {
-      return route_1tp1ur6.POST(patchDuplicateCookie(request));
+      return route_1tp1ur6.POST(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/header-only`, ({ request }) => {
-      return route_1dt6t80.GET(patchDuplicateCookie(request));
+      return route_1dt6t80.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.post(`${baseURL}/header-only`, ({ request }) => {
-      return route_1dt6t80.POST(patchDuplicateCookie(request));
+      return route_1dt6t80.POST(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.delete(`${baseURL}/header-only`, ({ request }) => {
-      return route_1dt6t80.DELETE(patchDuplicateCookie(request));
+      return route_1dt6t80.DELETE(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/param-only/:pageNum/content`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'pageNum': `${pathChunks[2]}` };
 
-      return route_11w4uys.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_11w4uys.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/xxx/:id/zzz`, ({ request }) => {
       const pathChunks = request.url.replace(/\?.*/, '').replace(baseURL || /https?:\/\/[^/]+/, '').split('/');
       const params = { 'id': `${pathChunks[2]}` };
 
-      return route_fkgw0p.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) });
+      return route_fkgw0p.GET(patchDuplicateCookie(request), { params: Promise.resolve(params) }).then(toMswResponseForCookie);
     }),
   ];
 }
