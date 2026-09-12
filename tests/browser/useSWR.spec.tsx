@@ -216,10 +216,6 @@ describe('useSWR with $fc.$build key collision', () => {
   });
 
   describe('useSWR with apiClient vs lowLevelApiClient', () => {
-    beforeAll(() => server.listen());
-    afterEach(() => server.resetHandlers());
-    afterAll(() => server.close());
-
     test('should fetch different data for the same endpoint with different clients', async () => {
       const commonQuery = { common: 'value3' };
 

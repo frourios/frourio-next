@@ -165,9 +165,7 @@ export const middleware = createMiddleware(async ({ req, next }) => {
   if (!req.headers.get('Authorization')) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
-  return next({
-    /* ... */
-  });
+  return next({/* ... */});
 });
 ```
 

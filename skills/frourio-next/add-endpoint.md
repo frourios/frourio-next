@@ -38,27 +38,19 @@ export const frourioSpec = {
   // param: z.object({ id: z.string().uuid() }),  // as needed
 
   get: {
-    query: z.object({
-      /* query parameters */
-    }),
+    query: z.object({/* query parameters */}),
     res: {
       200: {
-        body: z.object({
-          /* response body */
-        }),
+        body: z.object({/* response body */}),
       },
     },
   },
 
   post: {
-    body: z.object({
-      /* request body */
-    }),
+    body: z.object({/* request body */}),
     res: {
       201: {
-        body: z.object({
-          /* response body */
-        }),
+        body: z.object({/* response body */}),
       },
       400: { body: z.object({ message: z.string() }) },
     },
@@ -159,18 +151,14 @@ export const { GET, POST } = createRoute({
     // Business logic
     return {
       status: 200,
-      body: {
-        /* ... */
-      },
+      body: {/* ... */},
     };
   },
   post: async ({ body }) => {
     // Business logic
     return {
       status: 201,
-      body: {
-        /* ... */
-      },
+      body: {/* ... */},
     };
   },
 });
