@@ -1,8 +1,8 @@
 import path from 'path';
-import { MIDDLEWARE_FILE, MIDDLEWARE_SERVER_FILE, PARAMS_FILE, SERVER_FILE } from './constants';
-import type { DirSpec, MethodInfo, MiddlewareDict } from './generate';
-import type { ParamsInfo } from './paramsUtil';
-import { paramsToText, pathToParams } from './paramsUtil';
+import { MIDDLEWARE_FILE, MIDDLEWARE_SERVER_FILE, PARAMS_FILE, SERVER_FILE } from './constants.js';
+import type { DirSpec, MethodInfo, MiddlewareDict } from './generate.js';
+import type { ParamsInfo } from './paramsUtil.js';
+import { paramsToText, pathToParams } from './paramsUtil.js';
 
 export const generateServerTexts = (
   specs: DirSpec[],

@@ -1,6 +1,9 @@
 import fs from 'fs';
+import { createRequire } from 'node:module';
 import path from 'path';
 import type { NextConfig } from 'next';
+
+const require = createRequire(import.meta.url);
 
 export type Config = { appDir: string | undefined; basePath: string | undefined };
 

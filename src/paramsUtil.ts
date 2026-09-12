@@ -1,6 +1,6 @@
-import { FROURIO_FILE, PARAMS_FILE } from './constants';
-import { createDirPathHash } from './createDirPathHash';
-import type { PropOption } from './getPropOptions';
+import { FROURIO_FILE, PARAMS_FILE } from './constants.js';
+import { createDirPathHash } from './createDirPathHash.js';
+import type { PropOption } from './getPropOptions.js';
 
 export type ParamsInfo = {
   ancestorFrourio: string | undefined;

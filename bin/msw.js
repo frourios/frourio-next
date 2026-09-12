@@ -1,2 +1,4 @@
 #!/usr/bin/env node
-require('../dist/msw/cli').run(process.argv.slice(2));
+import { run } from '../dist/msw/cli.js';
+
+await run(process.argv.slice(2));

@@ -1,6 +1,6 @@
 import { readdirSync } from 'fs';
 import path from 'path';
-import { FROURIO_FILE } from './constants';
+import { FROURIO_FILE } from './constants.js';
 
 const listDirNames = (dir: string): string[] =>
   readdirSync(dir, { withFileTypes: true }).reduce<string[]>(

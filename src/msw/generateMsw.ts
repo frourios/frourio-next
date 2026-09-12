@@ -1,11 +1,11 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import ts from 'typescript';
-import { FROURIO_FILE } from '../constants';
-import { createHash } from '../createHash';
-import { initTSC } from '../initTSC';
-import { listFrourioDirs } from '../listFrourioDirs';
-import type { MswConfig } from './getMswConfig';
+import { FROURIO_FILE } from '../constants.js';
+import { createHash } from '../createHash.js';
+import { initTSC } from '../initTSC.js';
+import { listFrourioDirs } from '../listFrourioDirs.js';
+import type { MswConfig } from './getMswConfig.js';
 
 export const generateMsw = ({ appDir, output }: MswConfig) => {
   if (!appDir) return;

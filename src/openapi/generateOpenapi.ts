@@ -4,10 +4,10 @@ import path from 'path';
 import type { OpenAPIV3_1 } from 'openapi-types';
 import ts from 'typescript';
 import * as TJS from 'typescript-json-schema';
-import { FROURIO_FILE, PACKAGE_NAME, PARAMS_FILE } from '../constants';
-import { createHash } from '../createHash';
-import { listFrourioDirs } from '../listFrourioDirs';
-import type { OpenapiConfig } from './getOpenapiConfig';
+import { FROURIO_FILE, PACKAGE_NAME, PARAMS_FILE } from '../constants.js';
+import { createHash } from '../createHash.js';
+import { listFrourioDirs } from '../listFrourioDirs.js';
+import type { OpenapiConfig } from './getOpenapiConfig.js';
 
 export const generateOpenapi = ({ appDir, basePath, output, template, root }: OpenapiConfig) => {
   if (!appDir) return;

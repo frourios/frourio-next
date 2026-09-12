@@ -1,4 +1,4 @@
-import { createHash } from './createHash';
+import { createHash } from './createHash.js';
 
 export const generateRelativePath = ({
   appDir,

@@ -1,7 +1,7 @@
 import minimist from 'minimist';
-import watch from '../watchInputDir';
-import { generateOpenapi } from './generateOpenapi';
-import { getOpenapiConfig } from './getOpenapiConfig';
+import watch from '../watchInputDir.js';
+import { generateOpenapi } from './generateOpenapi.js';
+import { getOpenapiConfig } from './getOpenapiConfig.js';
 
 export const run = async (args: string[]) => {
   const argv = minimist(args, {

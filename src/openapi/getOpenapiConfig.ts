@@ -1,5 +1,5 @@
 import path from 'path';
-import { getConfig } from '../getConfig';
+import { getConfig } from '../getConfig.js';
 
 export type OpenapiConfig = {
   appDir: string | undefined;

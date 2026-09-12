@@ -1,6 +1,6 @@
 import path from 'path';
 import ts from 'typescript';
-import { FROURIO_FILE } from './constants';
+import { FROURIO_FILE } from './constants.js';
 
 export const initTSC = (frourioDirs: string[]) => {
   const configDir = process.cwd();

@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import { getGlobalType } from './getGlobalType';
+import { getGlobalType } from './getGlobalType.js';
 
 const TYPE_NAMES = ['string', 'boolean', 'number', 'File'] as const;
 

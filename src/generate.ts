@@ -9,15 +9,20 @@ import {
   PACKAGE_NAME,
   PARAMS_FILE,
   SERVER_FILE,
-} from './constants';
-import { generateClientTexts } from './generateClient';
-import { generateServerTexts } from './generateServerTexts';
-import type { Config } from './getConfig';
-import { getGlobalType } from './getGlobalType';
-import { getPropOptions, getSchemaOption, inferZodType, type PropOption } from './getPropOptions';
-import { initTSC } from './initTSC';
-import { listFrourioDirs } from './listFrourioDirs';
-import { writeDefaults } from './writeDefaults';
+} from './constants.js';
+import { generateClientTexts } from './generateClient.js';
+import { generateServerTexts } from './generateServerTexts.js';
+import type { Config } from './getConfig.js';
+import { getGlobalType } from './getGlobalType.js';
+import {
+  getPropOptions,
+  getSchemaOption,
+  inferZodType,
+  type PropOption,
+} from './getPropOptions.js';
+import { initTSC } from './initTSC.js';
+import { listFrourioDirs } from './listFrourioDirs.js';
+import { writeDefaults } from './writeDefaults.js';
 
 export type HasParamsDict = Record<string, boolean>;
 

@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
-import { FROURIO_FILE, PACKAGE_NAME, SERVER_FILE } from './constants';
+import { FROURIO_FILE, PACKAGE_NAME, SERVER_FILE } from './constants.js';
 
 export const writeDefaults = async (frourioDirs: string[]) => {
   await Promise.all(

@@ -1,9 +1,9 @@
 import path from 'path';
-import { CLIENT_FILE, CLIENT_NAME, PACKAGE_NAME } from './constants';
-import { createDirPathHash, generateRelativePath } from './createDirPathHash';
-import type { DirSpec, HasParamsDict, MethodInfo } from './generate';
-import type { ClientParamsInfo } from './paramsUtil';
-import { clientParamsToText, pathToClientParams } from './paramsUtil';
+import { CLIENT_FILE, CLIENT_NAME, PACKAGE_NAME } from './constants.js';
+import { createDirPathHash, generateRelativePath } from './createDirPathHash.js';
+import type { DirSpec, HasParamsDict, MethodInfo } from './generate.js';
+import type { ClientParamsInfo } from './paramsUtil.js';
+import { clientParamsToText, pathToClientParams } from './paramsUtil.js';
 
 export const generateClientTexts = (
   appDir: string,

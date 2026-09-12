@@ -1,7 +1,7 @@
 import minimist from 'minimist';
-import { generate } from './generate';
-import { getConfig } from './getConfig';
-import watch from './watchInputDir';
+import { generate } from './generate.js';
+import { getConfig } from './getConfig.js';
+import watch from './watchInputDir.js';
 
 export const run = async (args: string[]) => {
   const argv = minimist(args, {

@@ -4,6 +4,8 @@
   "description": "Next.js Route Handlers helper with runtime validation and type-safe clients",
   "author": "Solufa",
   "license": "MIT",
+  "type": "module",
+  "types": "dist/index.d.ts",
   "main": "dist/index.js",
   "bin": {
     "frourio-next": "bin/index.js",

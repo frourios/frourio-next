@@ -1,2 +1,4 @@
 #!/usr/bin/env node
-require('../dist/openapi/cli').run(process.argv.slice(2));
+import { run } from '../dist/openapi/cli.js';
+
+await run(process.argv.slice(2));
