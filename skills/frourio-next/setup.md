@@ -143,7 +143,7 @@ npm run dev
 
 ### OpenAPI template file
 
-`frourio-next-openapi` reads a template file as the base document and overwrites only `paths` and `components`. Settings outside FrourioNext's responsibility (`info`, `servers`, `security`, `tags`, etc.) are preserved across regenerations.
+`frourio-next-openapi` reads a template file as the base document and overwrites only `paths` and `components.schemas`. Other entries in `components`, such as `securitySchemes`, and settings outside FrourioVinext's responsibility (`info`, `servers`, `security`, `tags`, etc.) are preserved across regenerations.
 
 - Default path: `openapi_template.json` next to `--output`.
 - If the template doesn't exist, a minimal skeleton is auto-generated on first run. Commit it and edit freely.

@@ -27,11 +27,7 @@ export const generateOpenapi = ({ appDir, basePath, output, template, root }: Op
   }
 
   const templateDoc: OpenAPIV3_1.Document = JSON.parse(readFileSync(template, 'utf8'));
-  const baseDoc: OpenAPIV3_1.Document = {
-    ...templateDoc,
-    paths: {},
-    components: {},
-  };
+  const baseDoc: OpenAPIV3_1.Document = { ...templateDoc, paths: {} };
   const text = toOpenAPI({ appDir, template: baseDoc, root: root ?? appDir });
 
   if (existsSync(output) && readFileSync(output, 'utf8') === text) return;
@@ -176,7 +172,7 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
   const doc: OpenAPIV3_1.Document = {
     ...params.template,
     paths: {},
-    components: { schemas: methodsSchema?.definitions as any },
+    components: { ...params.template.components, schemas: methodsSchema?.definitions as any },
   };
 
   unlinkSync(typeFilePath);
