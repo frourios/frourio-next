@@ -56,7 +56,7 @@ export const createRoute = (controller: Controller): ResHandler => {
 
     if (params.error) return createReqErr(params.error);
 
-    return await next({ req, params: params.data })
+    return await next({ req, params: params.data });
   };
 
   return {

@@ -48,9 +48,9 @@ export const createRoute = (controller: Controller): ResHandler => {
       if (ancestorCtx.error) return createReqErr(ancestorCtx.error);
 
 
-      return await next({ req, params: params.data }, { ...ancestorCtx.data, })
+      return await next({ req, params: params.data }, ancestorCtx.data);
 
-    })(req)
+    })(req);
   };
 
   return {

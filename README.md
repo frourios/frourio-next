@@ -595,7 +595,7 @@ export const { GET, POST } = createRoute({
 
 ## Handling FormData (File Uploads)
 
-Use `format: 'formData'` and `z.instanceof(File)` in `frourio.ts`.
+Use `format: 'formData'` and `z.file()` in `frourio.ts`.
 
 `app/api/upload/frourio.ts`:
 
@@ -608,8 +608,8 @@ export const frourioSpec = {
     format: 'formData', // Indicate FormData request
     body: z.object({
       userId: z.string(),
-      profileImage: z.instanceof(File),
-      documents: z.array(z.instanceof(File)).optional(),
+      profileImage: z.file(),
+      documents: z.array(z.file()).optional(),
     }),
     res: {
       201: { body: z.object({ message: z.string(), fileUrl: z.string() }) },
@@ -987,7 +987,7 @@ export const server = setupServer(...handlers);
 
 ### Patching `File.prototype` for Testing Environments
 
-Environments like jsdom (commonly used in testing) may not fully implement the `File` API, specifically methods like `arrayBuffer()`, `bytes()`, `stream()`, and `text()`. This can cause issues when using `FormData` with `z.instanceof(File)` in tests.
+Environments like jsdom (commonly used in testing) may not fully implement the `File` API, specifically methods like `arrayBuffer()`, `bytes()`, `stream()`, and `text()`. This can cause issues when using `FormData` with `z.file()` in tests.
 
 The generated MSW handlers file (e.g., `./tests/setupMswHandlers.ts`) exports a `patchFilePrototype()` function. This function patches `File.prototype` to add basic implementations for these methods if they are missing, allowing `FormData` to work correctly in these environments.
 

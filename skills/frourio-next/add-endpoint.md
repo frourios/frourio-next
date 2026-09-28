@@ -62,31 +62,31 @@ export const frourioSpec = {
 
 ```typescript
 type FrourioSpec = {
-  param?: z.ZodTypeAny; // Path parameter validation
-  middleware?: true | { context: z.ZodTypeAny }; // Middleware definition
+  param?: z.ZodType; // Path parameter validation
+  middleware?: true | { context: z.ZodType }; // Middleware definition
 } & {
   // Methods without body
   [method in 'get' | 'head' | 'options']?: {
-    headers?: z.ZodTypeAny;
-    query?: z.ZodTypeAny;
+    headers?: z.ZodType;
+    query?: z.ZodType;
     res?: {
       [status: `${2 | 4 | 5}${Digit}${Digit}`]: {
-        headers?: z.ZodTypeAny;
-        body?: z.ZodTypeAny;
+        headers?: z.ZodType;
+        body?: z.ZodType;
       };
     };
   };
 } & {
   // Methods with body
   [method in 'post' | 'put' | 'patch' | 'delete']?: {
-    headers?: z.ZodTypeAny;
-    query?: z.ZodTypeAny;
+    headers?: z.ZodType;
+    query?: z.ZodType;
     format?: 'formData' | 'urlencoded'; // Defaults to JSON
-    body?: z.ZodTypeAny;
+    body?: z.ZodType;
     res?: {
       [status: `${2 | 4 | 5}${Digit}${Digit}`]: {
-        headers?: z.ZodTypeAny;
-        body?: z.ZodTypeAny;
+        headers?: z.ZodType;
+        body?: z.ZodType;
       };
     };
   };
@@ -103,7 +103,7 @@ type FrourioSpec = {
 
 #### Using format
 
-- `format: 'formData'`: For file uploads, etc. Allows `z.instanceof(File)`
+- `format: 'formData'`: For file uploads, etc. Allows `z.file()`
 - `format: 'urlencoded'`: For form submissions
 - Omitted: Processed as `application/json`
 

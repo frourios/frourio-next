@@ -33,9 +33,9 @@ export const createRoute = (controller: Controller): ResHandler => {
   ) => Promise<NextResponse>): MethodHandler => async (req) => {
     return ancestorMiddleware(async () => {
 
-      return await next({ req })
+      return await next({ req });
 
-    })(req)
+    })(req);
   };
 
   return {

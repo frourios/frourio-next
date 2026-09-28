@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { frourioSpec } from './frourio';
 
-const paramToNumArr = <T extends z.ZodTypeAny>(schema: T) =>
+const paramToNumArr = <T extends z.ZodType>(schema: T) =>
   z.preprocess((val) => Array.isArray(val) ? val.map(Number) : val, schema);
 
 export const paramsSchema = z.object({ 'slug': paramToNumArr(frourioSpec.param) });

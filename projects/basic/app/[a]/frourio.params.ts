@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { frourioSpec } from './frourio';
 
-const paramToNum = <T extends z.ZodTypeAny>(schema: T) => z.preprocess(Number, schema);
+const paramToNum = <T extends z.ZodType>(schema: T) => z.preprocess(Number, schema);
 
 export const paramsSchema = z.object({ 'a': paramToNum(frourioSpec.param) });
 

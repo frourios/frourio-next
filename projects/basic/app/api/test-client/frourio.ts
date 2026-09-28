@@ -31,7 +31,7 @@ export const frourioSpec = {
     format: 'formData',
     body: z.object({
       userId: z.string(),
-      avatar: z.instanceof(File),
+      avatar: z.file(),
       metadata: z.string().optional(),
     }),
     res: {

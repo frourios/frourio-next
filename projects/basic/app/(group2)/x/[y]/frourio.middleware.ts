@@ -32,11 +32,11 @@ export const createMiddleware = (middlewareFn: MiddlewareFn): MiddlewareHandler 
         next: async () => {
 
 
-      return await next({ req, params: params.data })
+          return await next({ req, params: params.data });
+        },
       },
-      },
-    )
-    })(req)
+    );
+    })(req);
   };
 };
 

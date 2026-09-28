@@ -35,12 +35,12 @@ export const createMiddleware = (middlewareFn: MiddlewareFn): MiddlewareHandler 
         next: async () => {
 
 
-      return await next({ req }, { ...ancestorCtx.data, })
-      },
+          return await next({ req }, ancestorCtx.data);
+        },
       },
       ancestorCtx.data,
-    )
-    })(req)
+    );
+    })(req);
   };
 };
 

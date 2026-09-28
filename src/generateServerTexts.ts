@@ -166,23 +166,25 @@ const generateMiddlewareServer = (
         next: async (${middleware.current?.hasCtx ? ' context' : ''}) => {
 ${
   middleware.current?.hasCtx
-    ? `      const ctx = frourioSpec.middleware.context.safeParse(context);
+    ? `          const ctx = frourioSpec.middleware.context.safeParse(context);
 
-      if (ctx.error) return createReqErr(ctx.error);`
+          if (ctx.error) return createReqErr(ctx.error);`
     : ''
 }
 
-      return await next({ req${params ? ', params: params.data' : ''} }${
-        middleware.ancestorCtx || middleware.current?.hasCtx
-          ? `, { ${middleware.ancestorCtx ? '...ancestorCtx.data,' : ''}${
-              middleware.current?.hasCtx ? '...ctx.data' : ''
-            } }`
-          : ''
-      })
-      },
+          return await next({ req${params ? ', params: params.data' : ''} }${
+            middleware.ancestorCtx && middleware.current?.hasCtx
+              ? ', { ...ancestorCtx.data, ...ctx.data }'
+              : middleware.ancestorCtx
+                ? ', ancestorCtx.data'
+                : middleware.current?.hasCtx
+                  ? ', ctx.data'
+                  : ''
+          });
+        },
       },${middleware.ancestorCtx ? '\n      ancestorCtx.data,' : ''}
-    )
-    ${middleware.ancestor ? `})(req${params?.ancestorFrourio ? ', option' : ''})` : ''}
+    );
+    ${middleware.ancestor ? `})(req${params?.ancestorFrourio ? ', option' : ''});` : ''}
   };
 }`,
   ].filter((txt) => txt !== undefined);
@@ -326,11 +328,11 @@ ${
         }
 
       return await next({ req${params ? ', params: params.data' : ''} }${
-        middleware.ancestorCtx ? `, { ...ancestorCtx.data, }` : ''
-      })
+        middleware.ancestorCtx ? ', ancestorCtx.data' : ''
+      });
 
-    })(req${params?.ancestorFrourio ? ', option' : ''})`
-      : `\n    return await next({ req${params ? ', params: params.data' : ''} })`
+    })(req${params?.ancestorFrourio ? ', option' : ''});`
+      : `\n    return await next({ req${params ? ', params: params.data' : ''} });`
   }
   }`
       };
@@ -529,11 +531,11 @@ const createResErr = () =>
 ${suffixes.length > 0 ? `\n${suffixes.join(';\n\n')};\n` : ''}`;
 };
 
-const paramToNumText = `const paramToNum = <T extends z.ZodTypeAny>(schema: T) => z.preprocess(Number, schema);
+const paramToNumText = `const paramToNum = <T extends z.ZodType>(schema: T) => z.preprocess(Number, schema);
 
 `;
 
-const paramToNumArrText = `const paramToNumArr = <T extends z.ZodTypeAny>(schema: T) =>
+const paramToNumArrText = `const paramToNumArr = <T extends z.ZodType>(schema: T) =>
   z.preprocess((val) => Array.isArray(val) ? val.map(Number) : val, schema);
 
 `;

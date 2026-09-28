@@ -97,20 +97,20 @@ ${hasParamsDirs
   })
   .join('\n')}
 
-type InferType<T extends z.ZodTypeAny | undefined> = T extends z.ZodTypeAny ? z.infer<T> : undefined;
+type InferType<T extends z.ZodType | undefined> = T extends z.ZodType ? z.infer<T> : undefined;
 
 type Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 type FrourioResponse = {
   [Status in \`\${2 | 4 | 5}\${Digit}\${Digit}\`]?: {
-    headers?: z.ZodTypeAny;
+    headers?: z.ZodType;
     format?: 'formData' | 'urlencoded';
-    body?: z.ZodTypeAny;
+    body?: z.ZodType;
   };
 };
 
 type ToRes<T extends FrourioResponse | undefined> = {[S in keyof T]: T[S] extends {} ? {
-  [Key in keyof T[S]]: T[S][Key] extends z.ZodTypeAny ? InferType<T[S][Key]> : T[S][Key]
+  [Key in keyof T[S]]: T[S][Key] extends z.ZodType ? InferType<T[S][Key]> : T[S][Key]
 }: undefined }
 
 type ToSpecType<T extends FrourioSpec> = {

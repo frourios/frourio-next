@@ -41,16 +41,16 @@ export const createMiddleware = (middlewareFn: MiddlewareFn): MiddlewareHandler 
         req,
         params: params.data,
         next: async ( context) => {
-      const ctx = frourioSpec.middleware.context.safeParse(context);
+          const ctx = frourioSpec.middleware.context.safeParse(context);
 
-      if (ctx.error) return createReqErr(ctx.error);
+          if (ctx.error) return createReqErr(ctx.error);
 
-      return await next({ req, params: params.data }, { ...ancestorCtx.data,...ctx.data })
-      },
+          return await next({ req, params: params.data }, { ...ancestorCtx.data, ...ctx.data });
+        },
       },
       ancestorCtx.data,
-    )
-    })(req, option)
+    );
+    })(req, option);
   };
 };
 
