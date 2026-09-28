@@ -32,7 +32,7 @@ export default defineConfig({
         'src/openapi/cli.ts',
         'src/msw/cli.ts',
       ],
-      thresholds: { statements: 96, branches: 95, functions: 99, lines: 98 },
+      thresholds: { statements: 97, branches: 96, functions: 99, lines: 99 },
     },
   },
 });

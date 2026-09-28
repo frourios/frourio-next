@@ -1,18 +1,21 @@
-import minimist from 'minimist';
+import { parseArgs } from 'node:util';
 import { watchInputDir } from '../watchInputDir.js';
 import { generateMsw } from './generateMsw.js';
 import { getMswConfig } from './getMswConfig.js';
 
 export const run = async (args: string[]) => {
-  const argv = minimist(args, {
-    string: ['output', 'watch'],
-    alias: { o: 'output', w: 'watch' },
+  const { values } = parseArgs({
+    args,
+    options: {
+      output: { type: 'string', short: 'o' },
+      watch: { type: 'boolean', short: 'w' },
+    },
   });
-  const config = await getMswConfig({ output: argv.output });
+  const config = await getMswConfig({ output: values.output });
 
   generateMsw(config);
 
-  if (argv.watch !== undefined && config.appDir) {
+  if (values.watch && config.appDir) {
     watchInputDir(config.appDir, () => generateMsw(config));
   }
 };
