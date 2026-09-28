@@ -40,6 +40,25 @@ export const generateOpenapi = ({ appDir, basePath, output, template, root }: Op
 const getRefText = (def: TJS.Definition) =>
   !def.$ref ? '' : decodeURIComponent(def.$ref.replace('#/definitions/', ''));
 
+const convertTupleSchemas = (value: unknown): void => {
+  if (!value || typeof value !== 'object') return;
+
+  if (Array.isArray(value)) {
+    value.forEach(convertTupleSchemas);
+    return;
+  }
+
+  const schema = value as Record<string, unknown>;
+
+  if (schema.type === 'array' && Array.isArray(schema.items)) {
+    schema.prefixItems = schema.items;
+    schema.items = schema.additionalItems ?? true;
+    delete schema.additionalItems;
+  }
+
+  Object.values(schema).forEach(convertTupleSchemas);
+};
+
 const toOpenAPI = (params: {
   appDir: string;
   template: OpenAPIV3_1Document;
@@ -382,6 +401,8 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
       required: ['byteLength'],
     };
   }
+
+  convertTupleSchemas(newDoc);
 
   return JSON.stringify(newDoc, null, 2);
 };

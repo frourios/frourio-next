@@ -3,6 +3,7 @@ import { execSync } from 'child_process';
 import fs, { existsSync } from 'fs';
 import { unlink } from 'fs/promises';
 import path from 'path';
+import Ajv2020 from 'ajv/dist/2020.js';
 import { NextRequest } from 'next/server';
 import { expect, test } from 'vitest';
 import type { z } from 'zod';
@@ -83,6 +84,61 @@ test('generate', async () => {
 
   expect(out).toMatch('nothing to commit, working tree clean');
 }, 100000);
+
+test('validate openapi.json', async () => {
+  const documentSchema = JSON.parse(
+    fs.readFileSync('./tests/node/openapi_v3.1/schema.2026-08-03.json', 'utf8'),
+  );
+  const baseDialect = 'https://spec.openapis.org/oas/3.1/dialect/2024-11-10';
+  // schema-base fixes the dialect, so resolve its dynamic references explicitly for Ajv.
+  const resolveBaseDialect = (value: unknown): void => {
+    if (!value || typeof value !== 'object') return;
+    if (Array.isArray(value)) {
+      value.forEach(resolveBaseDialect);
+      return;
+    }
+    const schema = value as Record<string, unknown>;
+    if (schema.$dynamicRef === '#meta') {
+      delete schema.$dynamicRef;
+      schema.$ref = baseDialect;
+    }
+    Object.values(schema).forEach(resolveBaseDialect);
+  };
+  resolveBaseDialect(documentSchema);
+
+  const ajv = new Ajv2020({
+    strictTypes: false,
+    allowMatchingProperties: true,
+    validateFormats: false,
+    schemas: [
+      documentSchema,
+      JSON.parse(fs.readFileSync('./tests/node/openapi_v3.1/dialect.2024-11-10.json', 'utf8')),
+      JSON.parse(fs.readFileSync('./tests/node/openapi_v3.1/meta.2024-11-10.json', 'utf8')),
+    ],
+  });
+  const validate = ajv.compile(
+    JSON.parse(fs.readFileSync('./tests/node/openapi_v3.1/schema-base.2026-08-03.json', 'utf8')),
+  );
+  const projectDirs = fs
+    .readdirSync('./projects', { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => path.posix.join(process.cwd(), './projects', d.name));
+
+  await Promise.all(
+    projectDirs.map(async (dir) => {
+      const openapiConfig = await getOpenapiConfig({
+        output: undefined,
+        template: undefined,
+        root: undefined,
+        dir,
+      });
+
+      const isValid = validate(JSON.parse(fs.readFileSync(openapiConfig.output, 'utf8')));
+      expect(validate.errors, openapiConfig.output).toBeNull();
+      expect(isValid).toBeTruthy();
+    }),
+  );
+});
 
 test('base handler', async () => {
   const res1 = await baseRoute.GET(new Request('http://example.com/'));

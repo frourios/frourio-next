@@ -456,15 +456,15 @@
             "required": true,
             "schema": {
               "type": "array",
-              "items": [
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "prefixItems": [
                 {
                   "type": "string"
                 }
-              ],
-              "minItems": 1,
-              "additionalItems": {
-                "type": "string"
-              }
+              ]
             }
           },
           {
