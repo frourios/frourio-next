@@ -1,7 +1,7 @@
 import minimist from 'minimist';
 import { generate } from './generate.js';
 import { getConfig } from './getConfig.js';
-import watch from './watchInputDir.js';
+import { watchInputDir } from './watchInputDir.js';
 
 export const run = async (args: string[]) => {
   const argv = minimist(args, {
@@ -14,6 +14,6 @@ export const run = async (args: string[]) => {
   await generate(config);
 
   if (argv.watch !== undefined && config.appDir) {
-    watch(config.appDir, () => generate(config));
+    watchInputDir(config.appDir, () => generate(config));
   }
 };

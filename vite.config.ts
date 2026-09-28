@@ -28,7 +28,6 @@ export default defineConfig({
         'src/cli.ts',
         'src/getConfig.ts',
         'src/initTSC.ts',
-        'src/watchInputDir.ts',
         'src/writeDefaults.ts',
         'src/openapi/cli.ts',
         'src/msw/cli.ts',

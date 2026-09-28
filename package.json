@@ -35,7 +35,6 @@
     "frourio"
   ],
   "dependencies": {
-    "chokidar": "^5.0.0",
     "minimist": "^1.2.8",
     "typescript-json-schema": "^0.68.0"
   },

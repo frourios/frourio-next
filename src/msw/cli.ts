@@ -1,5 +1,5 @@
 import minimist from 'minimist';
-import watch from '../watchInputDir.js';
+import { watchInputDir } from '../watchInputDir.js';
 import { generateMsw } from './generateMsw.js';
 import { getMswConfig } from './getMswConfig.js';
 
@@ -13,6 +13,6 @@ export const run = async (args: string[]) => {
   generateMsw(config);
 
   if (argv.watch !== undefined && config.appDir) {
-    watch(config.appDir, () => generateMsw(config));
+    watchInputDir(config.appDir, () => generateMsw(config));
   }
 };

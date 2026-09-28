@@ -1,5 +1,5 @@
 import minimist from 'minimist';
-import watch from '../watchInputDir.js';
+import { watchInputDir } from '../watchInputDir.js';
 import { generateOpenapi } from './generateOpenapi.js';
 import { getOpenapiConfig } from './getOpenapiConfig.js';
 
@@ -17,6 +17,6 @@ export const run = async (args: string[]) => {
   generateOpenapi(config);
 
   if (argv.watch !== undefined && config.appDir) {
-    watch(config.root ?? config.appDir, () => generateOpenapi(config));
+    watchInputDir(config.root ?? config.appDir, () => generateOpenapi(config));
   }
 };
