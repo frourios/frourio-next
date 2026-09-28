@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import path from 'path';
-import type { OpenAPIV3_1 } from 'openapi-types';
 import ts from 'typescript';
 import * as TJS from 'typescript-json-schema';
 import { FROURIO_FILE, PACKAGE_NAME, PARAMS_FILE } from '../constants.js';
@@ -9,16 +8,18 @@ import { createHash } from '../createHash.js';
 import { listFrourioDirs } from '../listFrourioDirs.js';
 import type { OpenapiConfig } from './getOpenapiConfig.js';
 
+type OpenAPIV3_1Document = {
+  paths: Record<string, TJS.Definition>;
+  components: { schemas: Record<string, TJS.Definition> };
+};
+
 export const generateOpenapi = ({ appDir, basePath, output, template, root }: OpenapiConfig) => {
   if (!appDir) return;
 
   if (!existsSync(template)) {
     const skeleton = {
       openapi: '3.1.0',
-      info: {
-        title: `${output.split('/').at(-1)?.replace('.json', '')} api`,
-        version: 'v0.0',
-      },
+      info: { title: `${output.split('/').at(-1)?.replace('.json', '')} api`, version: 'v0.0' },
       ...(basePath ? { servers: [{ url: basePath }] } : {}),
     };
 
@@ -26,8 +27,8 @@ export const generateOpenapi = ({ appDir, basePath, output, template, root }: Op
     console.log(`${template} was generated successfully.`);
   }
 
-  const templateDoc: OpenAPIV3_1.Document = JSON.parse(readFileSync(template, 'utf8'));
-  const baseDoc: OpenAPIV3_1.Document = { ...templateDoc, paths: {} };
+  const templateDoc: OpenAPIV3_1Document = JSON.parse(readFileSync(template, 'utf8'));
+  const baseDoc: OpenAPIV3_1Document = { ...templateDoc, paths: {} };
   const text = toOpenAPI({ appDir, template: baseDoc, root: root ?? appDir });
 
   if (existsSync(output) && readFileSync(output, 'utf8') === text) return;
@@ -41,7 +42,7 @@ const getRefText = (def: TJS.Definition) =>
 
 const toOpenAPI = (params: {
   appDir: string;
-  template: OpenAPIV3_1.Document;
+  template: OpenAPIV3_1Document;
   root: string;
 }): string => {
   const frourioDirs = listFrourioDirs(path.resolve(params.root));
@@ -169,7 +170,7 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
   const program = TJS.getProgramFromFiles([typeFilePath], { ...rawConfig, incremental: false });
   const methodsSchema = TJS.generateSchema(program, 'AllMethods', { required: true });
   const paramsSchema = TJS.generateSchema(program, 'AllParams', { required: true });
-  const doc: OpenAPIV3_1.Document = {
+  const doc: OpenAPIV3_1Document = {
     ...params.template,
     paths: {},
     components: { ...params.template.components, schemas: methodsSchema?.definitions as any },
