@@ -248,34 +248,50 @@ test('DELETE - urlencoded body', async () => {
 
 ### Cookie testing
 
+For cookie operations declared in `frourioSpec`, read [cookies.md](cookies.md). Inspect response cookies directly in Node.js tests; browser JavaScript cannot read `Set-Cookie` headers. The following uses the preferences endpoint from that guide:
+
 ```typescript
+import { GET, POST, DELETE } from '../../app/api/preferences/route';
+
 test('Cookie round-trip', async () => {
-  // 1. Verify no cookie initially
-  const res1 = await lowLevelClient['api/auth/cookie'].$get();
-  expect(res1.data?.body.val).toBeUndefined();
+  const url = 'http://localhost/api/preferences';
+  const initial = await GET(new Request(url));
+  await expect(initial.json()).resolves.toEqual({ theme: 'light' });
 
-  // 2. POST to set cookie
-  const res2 = await lowLevelClient['api/auth/cookie'].$post({ body: { val: 'abc' } });
-  const cookieText = res2.raw?.headers.get('Set-Cookie') ?? '';
-  expect(cookieText).toBe('val=abc; Path=/');
-
-  // 3. Set cookie in browser
-  document.cookie = cookieText;
-
-  // 4. GET with cookie
-  const res3 = await lowLevelClient['api/auth/cookie'].$get({
-    init: { headers: { cookie: cookieText } },
+  const set = await POST(
+    new Request(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ theme: 'dark' }),
+    }),
+  );
+  expect(set.status).toBe(200);
+  expect(set.cookies.get('theme')).toMatchObject({
+    value: 'dark',
+    path: '/',
+    sameSite: 'lax',
+    maxAge: 3600,
   });
-  expect(res3.data?.body.val).toBe('abc');
-});
+  expect(set.cookies.get('oldTheme')).toMatchObject({ value: '', expires: new Date(0) });
+  expect(set.cookies.get('oldTheme')?.maxAge).toBeUndefined();
+  expect(set.headers.getSetCookie()).toHaveLength(2);
 
-// Clean up cookies in afterEach
-afterEach(() => {
-  document.cookie.split(';').forEach((cookie) => {
-    document.cookie = `${cookie.split('=')[0]!.trim()}=; Max-Age=0; path=/`;
+  // Send Cookie name/value pairs, without Set-Cookie attributes.
+  const received = await GET(new Request(url, { headers: { cookie: 'theme=dark' } }));
+  await expect(received.json()).resolves.toEqual({ theme: 'dark' });
+
+  const deleted = await DELETE(new Request(url, { method: 'DELETE' }));
+  expect(deleted.status).toBe(204);
+  expect(deleted.cookies.get('theme')).toMatchObject({
+    value: '',
+    path: '/',
+    expires: new Date(0),
   });
+  expect(deleted.cookies.get('theme')?.maxAge).toBeUndefined();
 });
 ```
+
+Direct route calls do not maintain a browser cookie jar. Test invalid request cookies (422), invalid response cookie values (500 with no cookies from the spec applied), optional values, matching Path/Domain on deletion, and separate headers for multiple cookies as relevant. Use a controller passed to the generated `createRoute` to exercise invalid response values. For browser or MSW tests, use credentials settings and a cookie jar; read non-HttpOnly cookies through `document.cookie` only when the environment supports it.
 
 ### Streaming response
 
@@ -378,18 +394,18 @@ type Result =
 
 ## What to test
 
-| Scenario                  | Client | Key assertions                                          |
-| ------------------------- | ------ | ------------------------------------------------------- |
-| Happy path                | `$fc`  | Return value matches expected data                      |
-| API error (4xx/5xx)       | `$fc`  | `rejects.toThrow(/HTTP Error: NNN/)`                    |
-| Response validation error | `$fc`  | `rejects.toThrow(ZodError)`                             |
-| Happy path (detailed)     | `fc`   | `ok: true`, `isValid: true`, `data.status`, `data.body` |
-| API error (detailed)      | `fc`   | `ok: false`, `failure.status`, `failure.body`           |
-| Response validation error | `fc`   | `isValid: false`, `reason` is `ZodError`                |
-| Request validation error  | `fc`   | `ok: undefined`, `isValid: false`, `raw: undefined`     |
-| File upload               | `fc`   | FormData with `File` object, check response             |
-| Cookie round-trip         | `fc`   | Set-Cookie header, document.cookie, re-send             |
-| Streaming                 | `fc`   | Read chunks via `getReader()`                           |
+| Scenario                  | Client                        | Key assertions                                                        |
+| ------------------------- | ----------------------------- | --------------------------------------------------------------------- |
+| Happy path                | `$fc`                         | Return value matches expected data                                    |
+| API error (4xx/5xx)       | `$fc`                         | `rejects.toThrow(/HTTP Error: NNN/)`                                  |
+| Response validation error | `$fc`                         | `rejects.toThrow(ZodError)`                                           |
+| Happy path (detailed)     | `fc`                          | `ok: true`, `isValid: true`, `data.status`, `data.body`               |
+| API error (detailed)      | `fc`                          | `ok: false`, `failure.status`, `failure.body`                         |
+| Response validation error | `fc`                          | `isValid: false`, `reason` is `ZodError`                              |
+| Request validation error  | `fc`                          | `ok: undefined`, `isValid: false`, `raw: undefined`                   |
+| File upload               | `fc`                          | FormData with `File` object, check response                           |
+| Cookie round-trip         | Direct route calls in Node.js | Cookie values/options, separate Set-Cookie headers, deletion, re-send |
+| Streaming                 | `fc`                          | Read chunks via `getReader()`                                         |
 
 ## Notes
 

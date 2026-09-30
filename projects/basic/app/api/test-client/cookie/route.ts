@@ -1,10 +1,10 @@
 import { createRoute } from './frourio.server';
 
 export const { GET, POST } = createRoute({
-  async get(_, ctx) {
-    return { status: 200, body: ctx };
+  async get({ cookies }) {
+    return { status: 200, body: cookies };
   },
-  async post() {
-    return { status: 200 };
+  async post({ body }) {
+    return { status: 200, headers: { 'x-cookie-test': 'set' }, cookies: { val: body.val } };
   },
 });

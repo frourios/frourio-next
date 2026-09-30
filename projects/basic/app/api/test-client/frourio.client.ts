@@ -64,7 +64,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
     async $delete(req: Parameters<ReturnType<typeof methods_1rqfh40>['$delete']>[0]): Promise<void> {
       const result = await methods_1rqfh40(option).$delete(req);
@@ -73,7 +73,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
   },
   'cookie': {
@@ -110,6 +110,8 @@ export const $fc = (option?: FrourioClientOption) => ({
       const result = await methods_wkn1x4(option).$post(req);
 
       if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+      if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
       return result.data.body;
     },
@@ -760,7 +762,8 @@ const methods_wkn1x4 = (option?: FrourioClientOption) => ({
     }
   },
   async $post(req: { body: z.infer<typeof frourioSpec_wkn1x4.post.body>, init?: RequestInit }): Promise<
-    | { ok: true; isValid: true; data: { status: 200; headers?: undefined; body?: undefined }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: true; isValid: true; data: { status: 200; headers: z.infer<typeof frourioSpec_wkn1x4.post.res[200]['headers']>; body?: undefined }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: false; isValid: true; data?: undefined; failure: { status: 400; headers?: undefined; body?: undefined }; raw: Response; reason?: undefined; error?: undefined }
     | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
     | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
     | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
@@ -790,10 +793,22 @@ const methods_wkn1x4 = (option?: FrourioClientOption) => ({
 
     switch (result.res.status) {
       case 200: {
+        const headers = frourioSpec_wkn1x4.post.res[200].headers.safeParse(Object.fromEntries(result.res.headers.entries()));
+
+        if (!headers.success) return { ok: true, isValid: false, raw: result.res, reason: headers.error };
+
         return {
           ok: true,
           isValid: true,
-          data: { status: 200 },
+          data: { status: 200, headers: headers.data },
+          raw: result.res,
+        };
+      }
+      case 400: {
+        return {
+          ok: false,
+          isValid: true,
+          failure: { status: 400 },
           raw: result.res,
         };
       }

@@ -1,6 +1,6 @@
 ---
 name: frourio-next
-description: Skills for building type-safe Next.js API routes with frourio-next. Covers project setup, adding endpoints, middleware, and client usage with SWR/TanStack Query.
+description: Skills for building type-safe Next.js API routes with frourio-next. Covers project setup, adding endpoints, cookies, middleware, and client usage with SWR/TanStack Query.
 user-invocable: false
 ---
 
@@ -10,6 +10,7 @@ This skill set provides guidance for working with frourio-next, a type-safe API 
 
 - [setup.md](setup.md) — Integrate frourio-next into an existing Next.js project
 - [add-endpoint.md](add-endpoint.md) — Add a new API endpoint with `frourio.ts` and `route.ts`
+- [cookies.md](cookies.md) — Validate request cookies and set or delete response cookies using `frourioSpec`; read this when an endpoint handles cookies
 - [add-middleware.md](add-middleware.md) — Add middleware for authentication, authorization, logging, etc.
 - [client-usage.md](client-usage.md) — Use the auto-generated type-safe client (`fc`/`$fc`) with SWR and TanStack Query
 - [testing.md](testing.md) — Write tests for API routes using MSW and Vitest

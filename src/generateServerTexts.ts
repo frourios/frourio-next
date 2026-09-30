@@ -268,6 +268,29 @@ const generateServer = (
   ].filter((txt) => txt !== undefined && txt !== false);
 
   const chunks: string[] = [
+    methods.some((m) => m.hasCookies) &&
+      `const parseCookieHeader = (header: string | null): Record<string, string> => {
+  const cookies: Record<string, string> = Object.create(null);
+
+  for (const segment of (header ?? '').split(';')) {
+    const separator = segment.indexOf('=');
+    if (separator < 0) continue;
+
+    const name = segment.slice(0, separator).trim();
+    if (!name || name in cookies) continue;
+
+    let value = segment.slice(separator + 1).trim();
+    if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
+
+    try {
+      cookies[name] = decodeURIComponent(value);
+    } catch {
+      cookies[name] = value;
+    }
+  }
+
+  return cookies;
+}`,
     methods.length > 0 &&
       `type RouteChecker = [${methods.map((m) => `typeof ${m.name.toUpperCase()}`).join(', ')}]`,
     'type SpecType = typeof frourioSpec',
@@ -277,6 +300,8 @@ const generateServer = (
           `\n  ${m.name}: (
     req: {${params ? '\n      params: ParamsType;' : ''}${
       m.hasHeaders ? `\n      headers: z.infer<SpecType['${m.name}']['headers']>;` : ''
+    }${
+      m.hasCookies ? `\n      cookies: z.infer<SpecType['${m.name}']['cookies']>;` : ''
     }${m.query ? `\n      query: z.infer<SpecType['${m.name}']['query']>;` : ''}${
       m.body ? `\n      body: z.infer<SpecType['${m.name}']['body']>;` : ''
     }
@@ -290,6 +315,18 @@ const generateServer = (
         status: ${r.status};${
           r.hasHeaders
             ? `\n        headers: z.infer<SpecType['${m.name}']['res'][${r.status}]['headers']>;`
+            : ''
+        }${
+          r.cookies.some((c) => c.command === 'set')
+            ? `\n        cookies: z.infer<z.ZodObject<{
+${r.cookies
+  .filter((c) => c.command === 'set')
+  .map(
+    (c) =>
+      `          ${JSON.stringify(c.name)}: SpecType['${m.name}']['res'][${r.status}]['cookies'][${JSON.stringify(c.name)}]['value'];`,
+  )
+  .join('\n')}
+        }>>;`
             : ''
         }${r.body ? `\n        body: z.infer<SpecType['${m.name}']['res'][${r.status}]['body']>;` : ''}
       }`,
@@ -346,6 +383,10 @@ ${methods
       m.hasHeaders && [
         'headers',
         `frourioSpec.${m.name}.headers.safeParse(Object.fromEntries(req.headers))`,
+      ],
+      m.hasCookies && [
+        'cookies',
+        `frourioSpec.${m.name}.cookies.safeParse(parseCookieHeader(req.headers.get('cookie')))`,
       ],
       m.query && [
         'query',
@@ -431,10 +472,41 @@ ${m.res
         (t) =>
           `\n          const ${t} = frourioSpec.${m.name}.res[${r.status}].${t}.safeParse(res.${t});\n\n          if (${t}.error) return createResErr();\n`,
       )
+      .join('')}${r.cookies
+      .filter((c) => c.command === 'set')
+      .map(
+        (c, i) => `
+          const cookies${i} = frourioSpec.${m.name}.res[${r.status}].cookies[${JSON.stringify(c.name)}].value.safeParse(res.cookies?.[${JSON.stringify(c.name)}]);
+
+          if (cookies${i}.error) return createResErr();
+`,
+      )
       .join('')}
-          return ${
+          ${r.cookies.length > 0 ? 'const response =' : 'return'} ${
             r.body ? 'createResponse(body.data' : `new NextResponse(null`
-          }, { status: ${r.status}${r.hasHeaders ? ', headers: headers.data' : ''} });
+          }, { status: ${r.status}${r.hasHeaders ? ', headers: headers.data' : ''} });${
+            r.cookies.length > 0
+              ? `
+${r.cookies
+  .map((c) => {
+    const cookiesSpec = `frourioSpec.${m.name}.res[${r.status}].cookies[${JSON.stringify(c.name)}]`;
+    const options = c.hasOptions ? `...${cookiesSpec}.options, ` : '';
+    if (c.command === 'delete')
+      return `
+          response.cookies.delete({ ${options}name: ${JSON.stringify(c.name)} });`;
+    const i = r.cookies
+      .filter((c) => c.command === 'set')
+      .findIndex((item) => item.name === c.name);
+    return `
+          if (cookies${i}.data !== undefined) {
+            response.cookies.set({ ${options}name: ${JSON.stringify(c.name)}, value: String(cookies${i}.data) });
+          }`;
+  })
+  .join('\n')}
+
+          return response;`
+              : ''
+          }
         }`;
   })
   .join('\n')}

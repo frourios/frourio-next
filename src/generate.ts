@@ -31,6 +31,7 @@ export type MiddlewareDict = Record<string, { hasCtx: boolean } | undefined>;
 export type MethodInfo = {
   name: string;
   hasHeaders: boolean;
+  hasCookies: boolean;
   query: { isOptional: boolean; props: PropOption[] } | null;
   body:
     | { isFormData: true; isUrlEncoded: false; data: PropOption[] }
@@ -41,6 +42,7 @@ export type MethodInfo = {
     | {
         status: string;
         hasHeaders: boolean;
+        cookies: { name: string; command: 'set' | 'delete'; hasOptions: boolean }[];
         body: { type: 'text' | 'json' | 'arrayBuffer' | 'blob' } | null;
       }[]
     | undefined;
@@ -116,6 +118,7 @@ export const generate = async ({ appDir, basePath }: Config): Promise<void> => {
               return {
                 name: t.getName(),
                 hasHeaders: props.some((p) => p.getName() === 'headers'),
+                hasCookies: props.some((p) => p.getName() === 'cookies'),
                 query: queryZodType
                   ? {
                       isOptional: (() => {
@@ -199,6 +202,39 @@ export const generate = async ({ appDir, basePath }: Config): Promise<void> => {
                     return {
                       status: s.getName(),
                       hasHeaders: statusProps.some((p) => p.getName() === 'headers'),
+                      cookies: (() => {
+                        const cookiesSymbol = statusProps.find((p) => p.getName() === 'cookies');
+                        const cookiesType =
+                          cookiesSymbol?.valueDeclaration &&
+                          checker.getTypeOfSymbolAtLocation(
+                            cookiesSymbol,
+                            cookiesSymbol.valueDeclaration,
+                          );
+
+                        return (
+                          cookiesType?.getProperties().flatMap((symbol) => {
+                            if (!symbol.valueDeclaration) return [];
+                            const type = checker.getTypeOfSymbolAtLocation(
+                              symbol,
+                              symbol.valueDeclaration,
+                            );
+                            const command = type.getProperty('command');
+                            const commandType =
+                              command?.valueDeclaration &&
+                              checker.getTypeOfSymbolAtLocation(command, command.valueDeclaration);
+
+                            return commandType?.isStringLiteral()
+                              ? [
+                                  {
+                                    name: symbol.getName(),
+                                    command: commandType.value as 'set' | 'delete',
+                                    hasOptions: !!type.getProperty('options'),
+                                  },
+                                ]
+                              : [];
+                          }) ?? []
+                        );
+                      })(),
                       body: resBodyType
                         ? {
                             type:

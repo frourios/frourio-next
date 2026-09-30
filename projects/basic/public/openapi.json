@@ -980,20 +980,54 @@
     },
     "/api/test-client/cookie": {
       "get": {
+        "parameters": [
+          {
+            "name": "val",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/2v7kz9"
+                  "$ref": "#/components/schemas/y03qf1"
                 }
+              }
+            },
+            "headers": {
+              "Set-Cookie": {
+                "description": "Each value is sent as a separate Set-Cookie header.",
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "example": [
+                  "legacy=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
+                ]
               }
             }
           }
         }
       },
       "post": {
+        "parameters": [
+          {
+            "name": "val",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1005,6 +1039,36 @@
         },
         "responses": {
           "200": {
+            "description": "",
+            "content": {
+              "application/json": {}
+            },
+            "headers": {
+              "x-cookie-test": {
+                "schema": {
+                  "type": "string",
+                  "const": "set"
+                },
+                "required": true
+              },
+              "Set-Cookie": {
+                "description": "Each value is sent as a separate Set-Cookie header.",
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "example": [
+                  "val=string; Path=/",
+                  "enabled=true; Path=/",
+                  "count=1; Path=/api; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=3600; Domain=example.com; Secure; HttpOnly; SameSite=lax; Partitioned; Priority=high",
+                  "legacy=; Path=/api; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=3600; Domain=example.com"
+                ]
+              }
+            }
+          },
+          "400": {
             "description": "",
             "content": {
               "application/json": {}
@@ -2159,24 +2223,51 @@
           "body"
         ]
       },
-      "18svjw": {
+      "1qxp2xb": {
         "type": "object",
         "properties": {
           "body": {
-            "$ref": "#/components/schemas/2v7kz9"
+            "$ref": "#/components/schemas/y03qf1"
+          },
+          "cookies": {
+            "$ref": "#/components/schemas/1gqpems"
           }
         },
         "required": [
-          "body"
+          "body",
+          "cookies"
         ]
       },
-      "2v7kz9": {
+      "y03qf1": {
         "type": "object",
         "properties": {
           "val": {
             "type": "string"
           }
         }
+      },
+      "1gqpems": {
+        "type": "object",
+        "properties": {
+          "legacy": {
+            "$ref": "#/components/schemas/x056jg"
+          }
+        },
+        "required": [
+          "legacy"
+        ]
+      },
+      "x056jg": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "const": "delete"
+          }
+        },
+        "required": [
+          "command"
+        ]
       },
       "19l6z74": {
         "type": "object",
@@ -2187,6 +2278,202 @@
         },
         "required": [
           "val"
+        ]
+      },
+      "11wuem9": {
+        "type": "object",
+        "properties": {
+          "headers": {
+            "$ref": "#/components/schemas/s28xf4"
+          },
+          "cookies": {
+            "$ref": "#/components/schemas/116r5sb"
+          }
+        },
+        "required": [
+          "cookies",
+          "headers"
+        ]
+      },
+      "s28xf4": {
+        "type": "object",
+        "properties": {
+          "x-cookie-test": {
+            "type": "string",
+            "const": "set"
+          }
+        },
+        "required": [
+          "x-cookie-test"
+        ]
+      },
+      "116r5sb": {
+        "type": "object",
+        "properties": {
+          "val": {
+            "$ref": "#/components/schemas/on9i5u"
+          },
+          "enabled": {
+            "$ref": "#/components/schemas/82qkvd"
+          },
+          "count": {
+            "$ref": "#/components/schemas/172tgtp"
+          },
+          "legacy": {
+            "$ref": "#/components/schemas/17rbk53"
+          }
+        },
+        "required": [
+          "count",
+          "enabled",
+          "legacy",
+          "val"
+        ]
+      },
+      "on9i5u": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "const": "set"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "command",
+          "value"
+        ]
+      },
+      "82qkvd": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "const": "set"
+          },
+          "value": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "command"
+        ]
+      },
+      "172tgtp": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "const": "set"
+          },
+          "value": {
+            "type": "number"
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "const": "/api",
+                "default": "/api"
+              },
+              "domain": {
+                "type": "string",
+                "const": "example.com",
+                "default": "example.com"
+              },
+              "secure": {
+                "type": "boolean",
+                "const": true,
+                "default": true
+              },
+              "httpOnly": {
+                "type": "boolean",
+                "const": true,
+                "default": true
+              },
+              "sameSite": {
+                "type": "string",
+                "const": "lax",
+                "default": "lax"
+              },
+              "partitioned": {
+                "type": "boolean",
+                "const": true,
+                "default": true
+              },
+              "priority": {
+                "type": "string",
+                "const": "high",
+                "default": "high"
+              },
+              "expires": {
+                "type": "number",
+                "const": 0,
+                "default": 0
+              },
+              "maxAge": {
+                "type": "number",
+                "const": 3600,
+                "default": 3600
+              }
+            },
+            "required": [
+              "domain",
+              "expires",
+              "httpOnly",
+              "maxAge",
+              "partitioned",
+              "path",
+              "priority",
+              "sameSite",
+              "secure"
+            ]
+          }
+        },
+        "required": [
+          "command",
+          "options"
+        ]
+      },
+      "17rbk53": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "const": "delete"
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "const": "/api",
+                "default": "/api"
+              },
+              "domain": {
+                "type": "string",
+                "const": "example.com",
+                "default": "example.com"
+              },
+              "maxAge": {
+                "type": "number",
+                "const": 3600,
+                "default": 3600
+              }
+            },
+            "required": [
+              "domain",
+              "maxAge",
+              "path"
+            ]
+          }
+        },
+        "required": [
+          "command",
+          "options"
         ]
       },
       "1mfiyk4": {

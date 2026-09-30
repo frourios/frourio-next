@@ -72,7 +72,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
   },
   'users-copy': {
@@ -102,7 +102,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
   },
   $url: {

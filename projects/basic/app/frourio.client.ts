@@ -709,7 +709,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
     async $post(req: Parameters<ReturnType<typeof methods_n3it2j>['$post']>[0]): Promise<z.infer<typeof frourioSpec_n3it2j.post.res[201]['body']>> {
       const result = await methods_n3it2j(option).$post(req);
@@ -718,7 +718,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
   },
   'api/mw/admin/users': {
@@ -748,7 +748,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
   },
   'api/mw/admin/users-copy': {
@@ -778,7 +778,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
   },
   'api/mw/public': {
@@ -853,7 +853,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
     async $post(req: Parameters<ReturnType<typeof methods_17yqnk1>['$post']>[0]): Promise<z.infer<typeof frourioSpec_17yqnk1.post.res[201]['body']>> {
       const result = await methods_17yqnk1(option).$post(req);
@@ -862,7 +862,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
     async $patch(req: Parameters<ReturnType<typeof methods_17yqnk1>['$patch']>[0]): Promise<z.infer<typeof frourioSpec_17yqnk1.patch.res[200]['body']>> {
       const result = await methods_17yqnk1(option).$patch(req);
@@ -871,7 +871,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
     async $delete(req: Parameters<ReturnType<typeof methods_17yqnk1>['$delete']>[0]): Promise<z.infer<typeof frourioSpec_17yqnk1.delete.res[200]['body']>> {
       const result = await methods_17yqnk1(option).$delete(req);
@@ -880,7 +880,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
   },
   'api/test-client/[userId]': {
@@ -907,7 +907,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
     async $delete(req: Parameters<ReturnType<typeof methods_1rqfh40>['$delete']>[0]): Promise<void> {
       const result = await methods_1rqfh40(option).$delete(req);
@@ -916,7 +916,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
   },
   'api/test-client/cookie': {
@@ -953,6 +953,8 @@ export const $fc = (option?: FrourioClientOption) => ({
       const result = await methods_wkn1x4(option).$post(req);
 
       if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+      if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
       return result.data.body;
     },
@@ -3016,7 +3018,8 @@ const methods_wkn1x4 = (option?: FrourioClientOption) => ({
     }
   },
   async $post(req: { body: z.infer<typeof frourioSpec_wkn1x4.post.body>, init?: RequestInit }): Promise<
-    | { ok: true; isValid: true; data: { status: 200; headers?: undefined; body?: undefined }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: true; isValid: true; data: { status: 200; headers: z.infer<typeof frourioSpec_wkn1x4.post.res[200]['headers']>; body?: undefined }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: false; isValid: true; data?: undefined; failure: { status: 400; headers?: undefined; body?: undefined }; raw: Response; reason?: undefined; error?: undefined }
     | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
     | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
     | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
@@ -3046,10 +3049,22 @@ const methods_wkn1x4 = (option?: FrourioClientOption) => ({
 
     switch (result.res.status) {
       case 200: {
+        const headers = frourioSpec_wkn1x4.post.res[200].headers.safeParse(Object.fromEntries(result.res.headers.entries()));
+
+        if (!headers.success) return { ok: true, isValid: false, raw: result.res, reason: headers.error };
+
         return {
           ok: true,
           isValid: true,
-          data: { status: 200 },
+          data: { status: 200, headers: headers.data },
+          raw: result.res,
+        };
+      }
+      case 400: {
+        return {
+          ok: false,
+          isValid: true,
+          failure: { status: 400 },
           raw: result.res,
         };
       }

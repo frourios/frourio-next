@@ -17,6 +17,8 @@ import * as queryRoute from '../../projects/basic/app/(group1)/[pid]/route';
 import * as numberRoute from '../../projects/basic/app/(group1)/blog/[...slug]/route';
 import * as stringRoute from '../../projects/basic/app/(group1)/blog/hoge/[[...fuga]]/route';
 import * as paramsRoute from '../../projects/basic/app/[a]/[b]/[...c]/route';
+import { createRoute as createCookieRoute } from '../../projects/basic/app/api/test-client/cookie/frourio.server';
+import * as cookieRoute from '../../projects/basic/app/api/test-client/cookie/route';
 import * as baseRoute from '../../projects/basic/app/route';
 import type { frourioSpec as formSpec } from '../../projects/src-dir/src/app/api/frourio';
 import * as formReqRoute from '../../projects/src-dir/src/app/api/route';
@@ -138,6 +140,149 @@ test('validate openapi.json', async () => {
       expect(isValid).toBeTruthy();
     }),
   );
+});
+
+test('request cookies', async () => {
+  const url = 'http://example.com/api/test-client/cookie';
+  const missing = await cookieRoute.GET(new Request(url));
+  expect(missing.status).toBe(200);
+  await expect(missing.json()).resolves.toEqual({});
+
+  const decoded = await cookieRoute.GET(
+    new Request(url, { headers: { cookie: 'val=hello%20world; another=a=b; val=ignored' } }),
+  );
+  expect(decoded.status).toBe(200);
+  await expect(decoded.json()).resolves.toEqual({ val: 'hello world' });
+
+  const invalid = await cookieRoute.GET(new Request(url, { headers: { cookie: 'val=x' } }));
+  expect(invalid.status).toBe(422);
+
+  const invalidPost = await cookieRoute.POST(
+    new Request(url, {
+      method: 'POST',
+      headers: { cookie: 'val=x' },
+      body: JSON.stringify({ val: 'new' }),
+    }),
+  );
+  expect(invalidPost.status).toBe(422);
+});
+
+test('response cookie sets validated values and applies options and deletion', async () => {
+  const started = Date.now();
+  const { POST } = createCookieRoute({
+    async get() {
+      return { status: 200, body: {} };
+    },
+    async post() {
+      return {
+        status: 200,
+        headers: { 'x-cookie-test': 'set' },
+        cookies: { val: '  hello world  ', count: 42, enabled: false },
+      };
+    },
+  });
+  const res = await POST(
+    new Request('http://example.com/api/test-client/cookie', {
+      method: 'POST',
+      body: JSON.stringify({ val: 'input' }),
+    }),
+  );
+
+  expect(res.status).toBe(200);
+  expect(res.headers.get('x-cookie-test')).toBe('set');
+  expect(res.headers.getSetCookie()).toHaveLength(4);
+  expect(res.headers.getSetCookie()).toContain('val=hello%20world; Path=/');
+  expect(res.headers.getSetCookie()).toContain('enabled=false; Path=/');
+  expect(res.cookies.get('count')).toMatchObject({
+    value: '42',
+    path: '/api',
+    domain: 'example.com',
+    secure: true,
+    httpOnly: true,
+    sameSite: 'lax',
+    partitioned: true,
+    priority: 'high',
+    maxAge: 3600,
+  });
+  const legacy = res.cookies.get('legacy');
+  expect(legacy).toMatchObject({ value: '', path: '/api', domain: 'example.com', maxAge: 3600 });
+  expect(legacy?.expires).toBeInstanceOf(Date);
+  const expires = legacy?.expires as Date;
+  expect(expires.getTime()).toBeGreaterThanOrEqual(started + 3600 * 1000);
+  expect(expires.getTime()).toBeLessThanOrEqual(Date.now() + 3600 * 1000);
+  expect(res.headers.getSetCookie()).toContain(
+    `legacy=; Path=/api; Expires=${expires.toUTCString()}; Max-Age=3600; Domain=example.com`,
+  );
+  expect(await res.text()).toBe('');
+});
+
+test('response cookie skips optional values and supports deletion without returned cookie values', async () => {
+  const url = 'http://example.com/api/test-client/cookie';
+  const res = await cookieRoute.POST(
+    new Request(url, {
+      method: 'POST',
+      body: JSON.stringify({ val: 'new' }),
+    }),
+  );
+  expect(res.status).toBe(200);
+  expect(res.cookies.get('val')?.value).toBe('new');
+  expect(res.cookies.has('count')).toBe(false);
+  expect(res.cookies.has('enabled')).toBe(false);
+
+  const deleted = await cookieRoute.GET(new Request(url));
+  expect(deleted.status).toBe(200);
+  expect(deleted.headers.getSetCookie()).toEqual([
+    'legacy=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
+  ]);
+  expect(deleted.cookies.get('legacy')?.maxAge).toBeUndefined();
+  await expect(deleted.json()).resolves.toEqual({});
+});
+
+test('response cookie rejects invalid values before sending any Set-Cookie headers', async () => {
+  for (const cookie of [
+    undefined,
+    {},
+    { val: 'x' },
+    { val: 'valid', count: '42' },
+    { val: 'valid', enabled: 'false' },
+  ]) {
+    const { POST } = createCookieRoute({
+      async get() {
+        return { status: 200, body: {} };
+      },
+      async post() {
+        return { status: 200, headers: { 'x-cookie-test': 'set' }, cookies: cookie as never };
+      },
+    });
+    const res = await POST(
+      new Request('http://example.com/api/test-client/cookie', {
+        method: 'POST',
+        body: JSON.stringify({ val: 'input' }),
+      }),
+    );
+    expect(res.status).toBe(500);
+    expect(res.headers.getSetCookie()).toEqual([]);
+    await expect(res.json()).resolves.toMatchObject({ error: 'Internal Server Error' });
+  }
+});
+
+test('response cookie applies only to its declared response status', async () => {
+  const { POST } = createCookieRoute({
+    async get() {
+      return { status: 200, body: {} };
+    },
+    async post() {
+      return { status: 400 };
+    },
+  });
+  const res = await POST(
+    new Request('http://example.com/api/test-client/cookie', {
+      method: 'POST',
+      body: JSON.stringify({ val: 'input' }),
+    }),
+  );
+  expect(res.status).toBe(400);
+  expect(res.headers.getSetCookie()).toEqual([]);
 });
 
 test('base handler', async () => {

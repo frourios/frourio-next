@@ -46,6 +46,10 @@ client['api/test-client/[userId]'].$put({ params: { userId: 123 }, body: { name:
 client['(group1)/[pid]'].$get({ params: { pid: 'abc' }, query: { ... } });
 ```
 
+## Cookies
+
+Browser clients use Fetch credentials settings to send and receive cookies; the generated client has no `cookies` argument or parsed response cookies property. Use `init: { credentials: 'include' }` when needed. Browser JavaScript cannot read `Set-Cookie` headers or `httpOnly` cookies. Define server-side Cookie validation, setting, and deletion through `frourioSpec`; see [cookies.md](cookies.md).
+
 ## $fc() — High-level (throwing) client
 
 Returns the response body directly. Throws on any error.

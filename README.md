@@ -84,7 +84,7 @@ FrourioNext revolves around defining your API structure in `frourio.ts` files an
 
 ### 1. Define API Specification (`frourio.ts`)
 
-In each API route directory (e.g., `app/api/users/[userId]/`), create a `frourio.ts` file. Use Zod to define the schemas for path parameters (`param`), query parameters (`query`), request headers (`headers`), request body (`body`), and possible responses (`res`).
+In each API route directory (e.g., `app/api/users/[userId]/`), create a `frourio.ts` file. Use Zod to define the schemas for path parameters (`param`), query parameters (`query`), request headers (`headers`), request cookies (`cookies`), request body (`body`), and possible responses (`res`).
 
 `app/api/tasks/[taskId]/frourio.ts`:
 
@@ -174,7 +174,7 @@ db.set('task-1', { id: 'task-1', label: 'Implement Frourio', isDone: false });
 
 export const { GET, PATCH, DELETE } = createRoute({
   // GET /api/tasks/:taskId
-  // 'req' contains validated { params, query, headers, body } based on frourio.ts
+  // 'req' contains validated { params, query, headers, cookies, body } based on frourio.ts
   get: async ({ params, query }) => {
     console.log('Fetching task:', params); // Type-safe: params is string (from frourio.ts)
     console.log('Include assignee?', query.includeAssignee); // Type-safe: query.includeAssignee is boolean | undefined
@@ -220,13 +220,44 @@ export const { GET, PATCH, DELETE } = createRoute({
 // How createRoute works:
 // 1. It receives your controller implementation.
 // 2. For each method (GET, POST, etc.), it generates a Next.js Route Handler.
-// 3. Inside the handler, it parses and validates the incoming NextRequest (params, query, headers, body) using the schemas from frourio.ts.
+// 3. Inside the handler, it parses and validates the incoming NextRequest (params, query, headers, cookies, body) using the schemas from frourio.ts.
 // 4. If validation fails, it returns an appropriate error response (e.g., 400, 422).
 // 5. If validation succeeds, it calls your controller function with the typed, validated request data.
 // 6. It validates the response returned by your controller against the 'res' schemas in frourio.ts.
 // 7. If response validation fails, it returns a 500 error.
 // 8. If response validation succeeds, it sends the response to the client.
 ```
+
+To validate request cookies, define `cookies: z.object({ session: z.string() })` on an HTTP method in `frourio.ts`. The route handler receives the parsed value as `req.cookies`; an invalid or missing required cookie returns 422. Browser clients send cookies through Fetch credentials settings such as `init: { credentials: 'include' }`, rather than a `cookies` request argument. OpenAPI generation emits each cookie field as an `in: cookie` parameter.
+
+To set or delete response cookies, declare each cookie under a response status in `frourio.ts`:
+
+```typescript
+res: {
+  200: {
+    cookies: {
+      session: {
+        command: 'set',
+        value: z.string(),
+        options: { httpOnly: true, secure: true, sameSite: 'lax', path: '/' },
+      },
+      oldSession: { command: 'delete', options: { path: '/' } },
+    },
+  },
+},
+```
+
+The controller returns only values for cookies with `command: 'set'`:
+
+```typescript
+export const { POST } = createRoute({
+  async post() {
+    return { status: 200, cookies: { session: 'session-token' } };
+  },
+});
+```
+
+The generated server validates each value, applies the declared options, and deletes the declared cookies automatically. Invalid response cookies return 500. Optional values that parse to `undefined` are skipped; numbers and booleans are serialized as strings. A response that only deletes cookies needs no `cookies` return property. OpenAPI documents response cookies as a `Set-Cookie` header with an array of example header values inferred from the spec's types. Use `as const` on options to preserve literal strings and numbers in those examples. Computed values such as dates use representative examples.
 
 ### 4. Initialize and Use the Type-Safe Client
 

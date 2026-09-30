@@ -274,7 +274,7 @@ ${indent}    ${
 ${indent}    return result.data;`
             : `${
                 method.res.some((r) => !r.status.startsWith('2'))
-                  ? `if (!result.ok) throw new Error(\`HTTP Error: \${result.failure.status}\`);\n\n    `
+                  ? `if (!result.ok) throw new Error(\`HTTP Error: \${result.failure.status}\`);\n\n${indent}    `
                   : ''
               }return result.data.body;`
       }

@@ -22,8 +22,8 @@ If the path or methods are not specified, use AskUserQuestion to confirm:
 
 - **API path**: Directory path within App Router (e.g., `app/api/users/[id]`)
 - **HTTP methods**: Select from GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS (multiple allowed)
-- **Request spec**: query, headers, body, format needed for each method
-- **Response spec**: Status codes and response body/headers
+- **Request spec**: query, headers, cookies, body, format needed for each method
+- **Response spec**: Status codes and response body/headers/cookies commands
 
 ### 2. Create frourio.ts
 
@@ -61,6 +61,35 @@ export const frourioSpec = {
 #### FrourioSpec type definition
 
 ```typescript
+import type { NextResponse } from 'next/server.js';
+import type { z } from 'zod';
+
+type Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+
+type CookieOptions<Command extends 'set' | 'delete'> = Omit<
+  Extract<Parameters<NextResponse['cookies'][Command]>, [options: object]>[0],
+  'name' | 'value'
+>;
+
+type FrourioResponse = {
+  [Status in `${2 | 4 | 5}${Digit}${Digit}`]?: {
+    headers?: z.ZodType;
+    body?: z.ZodType;
+    cookies?: Record<
+      string,
+      | {
+          command: 'set';
+          value: z.ZodType;
+          options?: CookieOptions<'set'>;
+        }
+      | {
+          command: 'delete';
+          options?: CookieOptions<'delete'>;
+        }
+    >;
+  };
+};
+
 type FrourioSpec = {
   param?: z.ZodType; // Path parameter validation
   middleware?: true | { context: z.ZodType }; // Middleware definition
@@ -68,27 +97,19 @@ type FrourioSpec = {
   // Methods without body
   [method in 'get' | 'head' | 'options']?: {
     headers?: z.ZodType;
+    cookies?: z.ZodType;
     query?: z.ZodType;
-    res?: {
-      [status: `${2 | 4 | 5}${Digit}${Digit}`]: {
-        headers?: z.ZodType;
-        body?: z.ZodType;
-      };
-    };
+    res?: FrourioResponse;
   };
 } & {
   // Methods with body
   [method in 'post' | 'put' | 'patch' | 'delete']?: {
     headers?: z.ZodType;
+    cookies?: z.ZodType;
     query?: z.ZodType;
     format?: 'formData' | 'urlencoded'; // Defaults to JSON
     body?: z.ZodType;
-    res?: {
-      [status: `${2 | 4 | 5}${Digit}${Digit}`]: {
-        headers?: z.ZodType;
-        body?: z.ZodType;
-      };
-    };
+    res?: FrourioResponse;
   };
 };
 ```
@@ -112,11 +133,15 @@ type FrourioSpec = {
 ```typescript
 res: {
   201: {
-    headers: z.object({ 'Set-Cookie': z.string() }),
+    headers: z.object({ 'X-Request-Id': z.string() }),
     body: z.object({ id: z.number() }),
   },
 }
 ```
+
+#### Cookies
+
+Define request cookies with method-level `cookies: z.object(...)`. Define response cookies with `res[status].cookies`, using `command: 'set'` with a Zod `value` schema or `command: 'delete'`. See [cookies.md](cookies.md) for options, value conversion, and complete route examples.
 
 #### Body-less responses
 
@@ -171,17 +196,21 @@ Each method handler receives the following properties:
 - `params` — Path parameters (only when `param` is defined)
 - `query` — Query parameters (only when `query` is defined)
 - `headers` — Request headers (only when `headers` is defined)
+- `cookies` — Parsed and validated request cookies (only when `cookies` is defined)
 - `body` — Request body (only when `body` is defined, for POST/PUT/PATCH/DELETE)
 
 When middleware exists, `ctx` is passed as the second argument.
 
 #### Returning responses
 
-The returned object requires `status`. If the status has `body` or `headers` defined, those are also required:
+The returned object requires `status`. If the status has `body` or `headers` defined, those are also required. For response cookies, return a `cookies` object containing only the `set` values; options and `delete` commands are applied automatically:
 
 ```typescript
 // body + headers
-return { status: 201, body: { id: 1 }, headers: { 'Set-Cookie': 'token=abc' } };
+return { status: 201, body: { id: 1 }, headers: { 'X-Request-Id': 'request-1' } };
+
+// set cookies values; declare commands and options in frourio.ts
+return { status: 200, cookies: { session: 'token' } };
 
 // body only
 return { status: 200, body: { data: items } };

@@ -40,6 +40,77 @@ export const generateOpenapi = ({ appDir, basePath, output, template, root }: Op
 const getRefText = (def: TJS.Definition) =>
   !def.$ref ? '' : decodeURIComponent(def.$ref.replace('#/definitions/', ''));
 
+const resolveDefinition = (
+  def: TJS.Definition,
+  definitions: Record<string, TJS.Definition | boolean>,
+): TJS.Definition => {
+  const resolved = def.$ref ? definitions[getRefText(def)] : def;
+  return typeof resolved === 'object' ? resolved : def;
+};
+
+const getSchemaExample = (
+  def: TJS.Definition,
+  definitions: Record<string, TJS.Definition | boolean>,
+  depth = 0,
+): unknown => {
+  if (depth > 8) return undefined;
+  const schema = resolveDefinition(def, definitions);
+  if ('const' in schema) return schema.const;
+  if (schema.enum) return schema.enum[0];
+  const alternatives = schema.anyOf ?? schema.oneOf ?? schema.allOf;
+  if (alternatives) {
+    return alternatives
+      .map((item) => getSchemaExample(item as TJS.Definition, definitions, depth + 1))
+      .find((value) => value !== undefined && value !== null);
+  }
+  if (schema.type === 'string') return 'string';
+  if (schema.type === 'number' || schema.type === 'integer') return 1;
+  if (schema.type === 'boolean') return true;
+  if (schema.type === 'null') return null;
+  if (schema.type === 'array') return [];
+  if (schema.type === 'object') return {};
+  return undefined;
+};
+
+const getResponseCookieExamples = (
+  cookie: TJS.Definition | undefined,
+  definitions: Record<string, TJS.Definition | boolean>,
+): string[] => {
+  if (!cookie) return [];
+  const cookies = resolveDefinition(cookie, definitions);
+  return Object.entries(cookies.properties ?? {}).map(([name, definition]) => {
+    const spec = resolveDefinition(definition as TJS.Definition, definitions).properties ?? {};
+    const command = spec.command && getSchemaExample(spec.command as TJS.Definition, definitions);
+    const options = spec.options
+      ? (resolveDefinition(spec.options as TJS.Definition, definitions).properties ?? {})
+      : {};
+    const option = (key: string) =>
+      options[key] && getSchemaExample(options[key] as TJS.Definition, definitions);
+    const deleting = command === 'delete';
+    const value = deleting
+      ? ''
+      : spec.value && getSchemaExample(spec.value as TJS.Definition, definitions);
+    const attrs = [`${name}=${encodeURIComponent(String(value === undefined ? '' : value))}`];
+    attrs.push(`Path=${option('path') ?? '/'}`);
+    if (deleting || options.expires) {
+      const expires = deleting ? 0 : option('expires');
+      attrs.push(`Expires=${new Date(typeof expires === 'number' ? expires : 0).toUTCString()}`);
+    }
+    const maxAge = option('maxAge');
+    if (typeof maxAge === 'number') attrs.push(`Max-Age=${maxAge}`);
+    const domain = option('domain');
+    if (domain) attrs.push(`Domain=${domain}`);
+    if (option('secure')) attrs.push('Secure');
+    if (option('httpOnly')) attrs.push('HttpOnly');
+    const sameSite = option('sameSite');
+    if (sameSite) attrs.push(`SameSite=${sameSite}`);
+    if (option('partitioned')) attrs.push('Partitioned');
+    const priority = option('priority');
+    if (priority) attrs.push(`Priority=${priority}`);
+    return attrs.join('; ');
+  });
+};
+
 const convertTupleSchemas = (value: unknown): void => {
   if (!value || typeof value !== 'object') return;
 
@@ -99,18 +170,14 @@ ${hasParamsDirs
 
 type InferType<T extends z.ZodType | undefined> = T extends z.ZodType ? z.infer<T> : undefined;
 
-type Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+type FrourioResponse = NonNullable<NonNullable<FrourioSpec['get']>['res']>;
 
-type FrourioResponse = {
-  [Status in \`\${2 | 4 | 5}\${Digit}\${Digit}\`]?: {
-    headers?: z.ZodType;
-    format?: 'formData' | 'urlencoded';
-    body?: z.ZodType;
-  };
-};
+type ToCookies<T> = {[Name in keyof T]: {
+  [Key in keyof T[Name]]: T[Name][Key] extends z.ZodType ? InferType<T[Name][Key]> : T[Name][Key]
+}};
 
 type ToRes<T extends FrourioResponse | undefined> = {[S in keyof T]: T[S] extends {} ? {
-  [Key in keyof T[S]]: T[S][Key] extends z.ZodType ? InferType<T[S][Key]> : T[S][Key]
+  [Key in keyof T[S]]: Key extends 'cookies' ? ToCookies<T[S][Key]> : T[S][Key] extends z.ZodType ? InferType<T[S][Key]> : T[S][Key]
 }: undefined }
 
 type ToSpecType<T extends FrourioSpec> = {
@@ -118,6 +185,7 @@ type ToSpecType<T extends FrourioSpec> = {
   get: T['get'] extends {}
     ? {
         headers: InferType<T['get']['headers']>;
+        cookies: InferType<T['get']['cookies']>;
         query: InferType<T['get']['query']>;
         res: ToRes<T['get']['res']>;
       }
@@ -125,6 +193,7 @@ type ToSpecType<T extends FrourioSpec> = {
   head: T['head'] extends {}
     ? {
         headers: InferType<T['head']['headers']>;
+        cookies: InferType<T['head']['cookies']>;
         query: InferType<T['head']['query']>;
         res: ToRes<T['head']['res']>;
       }
@@ -132,6 +201,7 @@ type ToSpecType<T extends FrourioSpec> = {
   options: T['options'] extends {}
     ? {
         headers: InferType<T['options']['headers']>;
+        cookies: InferType<T['options']['cookies']>;
         query: InferType<T['options']['query']>;
         res: ToRes<T['options']['res']>;
       }
@@ -139,6 +209,7 @@ type ToSpecType<T extends FrourioSpec> = {
   post: T['post'] extends {}
     ? {
         headers: InferType<T['post']['headers']>;
+        cookies: InferType<T['post']['cookies']>;
         query: InferType<T['post']['query']>;
         format: T['post']['format'];
         body: InferType<T['post']['body']>;
@@ -148,6 +219,7 @@ type ToSpecType<T extends FrourioSpec> = {
   put: T['put'] extends {}
     ? {
         headers: InferType<T['put']['headers']>;
+        cookies: InferType<T['put']['cookies']>;
         query: InferType<T['put']['query']>;
         format: T['put']['format'];
         body: InferType<T['put']['body']>;
@@ -157,6 +229,7 @@ type ToSpecType<T extends FrourioSpec> = {
   patch: T['patch'] extends {}
     ? {
         headers: InferType<T['patch']['headers']>;
+        cookies: InferType<T['patch']['cookies']>;
         query: InferType<T['patch']['query']>;
         format: T['patch']['format'];
         body: InferType<T['patch']['body']>;
@@ -166,6 +239,7 @@ type ToSpecType<T extends FrourioSpec> = {
   delete: T['delete'] extends {}
     ? {
         headers: InferType<T['delete']['headers']>;
+        cookies: InferType<T['delete']['cookies']>;
         query: InferType<T['delete']['query']>;
         format: T['delete']['format'];
         body: InferType<T['delete']['body']>;
@@ -208,7 +282,7 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
 
     const parameters: {
       name: string;
-      in: 'path' | 'query' | 'header';
+      in: 'path' | 'query' | 'header' | 'cookie';
       required: boolean;
       schema: any;
     }[] = [];
@@ -279,6 +353,21 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
         );
       }
 
+      const cookiesDef =
+        props.cookies &&
+        (methodsSchema?.definitions?.[getRefText(props.cookies)] as TJS.Definition);
+
+      if (cookiesDef?.properties) {
+        methodParameters.push(
+          ...Object.entries(cookiesDef.properties).map(([name, value]) => ({
+            name,
+            in: 'cookie' as const,
+            required: cookiesDef.required?.includes(name) ?? false,
+            schema: value,
+          })),
+        );
+      }
+
       const reqContentType =
         ((headersDef?.properties?.['content-type'] as TJS.Definition)?.const as string) ??
         (reqFormat === 'formData'
@@ -315,6 +404,11 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
                     ] as TJS.Definition)
                   : (statusDef.properties as Record<string, TJS.Definition>)?.headers;
 
+                const responseCookies = getResponseCookieExamples(
+                  (statusDef.properties as Record<string, TJS.Definition>)?.cookies,
+                  methodsSchema?.definitions ?? {},
+                );
+
                 const resContentType =
                   ((headersDef?.properties?.['content-type'] as TJS.Definition)?.const as string) ??
                   ((statusDef.properties as Record<string, TJS.Definition>)?.format?.const ===
@@ -344,16 +438,32 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
                       },
                     },
                     headers:
-                      headersDef?.properties &&
-                      Object.entries(headersDef.properties).reduce((dict, [key, val]) => {
-                        return {
-                          ...dict,
-                          [key]: {
-                            schema: val,
-                            required: headersDef.required?.includes(key) ?? false,
-                          },
-                        };
-                      }, {}),
+                      headersDef?.properties || responseCookies.length > 0
+                        ? {
+                            ...Object.entries(headersDef?.properties ?? {}).reduce(
+                              (dict, [key, val]) => {
+                                return {
+                                  ...dict,
+                                  [key]: {
+                                    schema: val,
+                                    required: headersDef?.required?.includes(key) ?? false,
+                                  },
+                                };
+                              },
+                              {},
+                            ),
+                            ...(responseCookies.length > 0
+                              ? {
+                                  'Set-Cookie': {
+                                    description:
+                                      'Each value is sent as a separate Set-Cookie header.',
+                                    schema: { type: 'array', items: { type: 'string' } },
+                                    example: responseCookies,
+                                  },
+                                }
+                              : {}),
+                          }
+                        : undefined,
                   },
                 };
               }, {})

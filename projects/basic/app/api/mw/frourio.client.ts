@@ -97,7 +97,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
     async $post(req: Parameters<ReturnType<typeof methods_n3it2j>['$post']>[0]): Promise<z.infer<typeof frourioSpec_n3it2j.post.res[201]['body']>> {
       const result = await methods_n3it2j(option).$post(req);
@@ -106,7 +106,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
   },
   'admin/users': {
@@ -136,7 +136,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
   },
   'admin/users-copy': {
@@ -166,7 +166,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
 
-    return result.data.body;
+      return result.data.body;
     },
   },
   'public': {
