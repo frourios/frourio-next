@@ -246,6 +246,12 @@ test('DELETE - urlencoded body', async () => {
 });
 ```
 
+### Middleware request validation
+
+For middleware request schemas, read [add-middleware.md](add-middleware.md). Call route handlers directly in Node.js using both `Request` and `NextRequest`, or invoke a handler created by `createMiddleware(callback)(next)` to observe callback arguments and execution.
+
+Verify that declared cookies and headers are parsed and query numbers, booleans, and repeated-key arrays are converted. Missing required or invalid values should return 422 without calling the local middleware callback or downstream handler. Cover request schemas without `context`, schemas combined with `context`, and ancestor validation on a nested route when applicable. Middleware request schemas do not add arguments to the generated client: send headers via `init.headers` and query values in the URL, or declare method-level schemas for typed client arguments.
+
 ### Cookie testing
 
 For cookie operations declared in `frourioSpec`, read [cookies.md](cookies.md). Inspect response cookies directly in Node.js tests; browser JavaScript cannot read `Set-Cookie` headers. The following uses the preferences endpoint from that guide:

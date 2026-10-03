@@ -91,7 +91,7 @@ const generateMiddlewareServer = (
   middleware: {
     ancestor: string | undefined;
     ancestorCtx: string | undefined;
-    current: { hasCtx: boolean } | undefined;
+    current: MiddlewareDict[string];
   },
 ): string => {
   const middlewareImportPath = MIDDLEWARE_FILE.replace('.ts', '');
@@ -105,7 +105,12 @@ const generateMiddlewareServer = (
   );
   const imports: string[] = [
     "import { type NextRequest, NextResponse } from 'next/server'",
-    (params || middleware.current?.hasCtx || middleware.ancestorCtx) &&
+    (params ||
+      middleware.current?.hasCtx ||
+      middleware.ancestorCtx ||
+      middleware.current?.hasHeaders ||
+      middleware.current?.hasCookies ||
+      middleware.current?.query) &&
       "import type { z } from 'zod'",
     hasLocalParamsFile &&
       `import { paramsSchema, type ParamsType, type NextParams } from './${paramsImportPath}'`,
@@ -121,10 +126,16 @@ const generateMiddlewareServer = (
       `import { middleware as ancestorMiddleware } from '${middleware.ancestor}/${middlewareImportPath}'`,
     middleware.ancestorCtx &&
       `import { contextSchema as ancestorContextSchema${middleware.current ? ', type ContextType as AncestorContextType' : ''} } from '${ancestorImportPath(middleware.ancestorCtx, ancestorHasMiddleware)}'`,
-    middleware.current?.hasCtx && "import { frourioSpec } from './frourio'",
-  ].filter((txt) => txt !== undefined && txt !== false);
+    (middleware.current?.hasCtx ||
+      middleware.current?.hasHeaders ||
+      middleware.current?.hasCookies ||
+      middleware.current?.query) &&
+      "import { frourioSpec } from './frourio'",
+  ].filter((txt): txt is string => typeof txt === 'string');
 
-  const needsReqErr = !!params || !!middleware.ancestorCtx || !!middleware.current?.hasCtx;
+  const requests = middleware.current ? requestParsers(middleware.current, 'middleware') : [];
+  const needsReqErr =
+    requests.length > 0 || !!params || !!middleware.ancestorCtx || !!middleware.current?.hasCtx;
   const chunks: (string | undefined)[] = [
     middleware.current?.hasCtx
       ? `export const contextSchema = frourioSpec.middleware.context${middleware.ancestorCtx ? '.and(ancestorContextSchema)' : ''};\n\nexport type ContextType = z.infer<typeof contextSchema>`
@@ -133,7 +144,7 @@ const generateMiddlewareServer = (
         : undefined,
     `type MiddlewareFn = (
   args: {
-    req: NextRequest | Request,${params ? '\n    params: ParamsType,' : ''}
+    req: NextRequest | Request,${requests.map(([name]) => `\n    ${name}: z.infer<typeof frourioSpec.middleware.${name}>,`).join('')}${params ? '\n    params: ParamsType,' : ''}
     next: (${middleware.current?.hasCtx ? 'ctx: z.infer<typeof frourioSpec.middleware.context>' : ''}) => Promise<NextResponse>,
   },${middleware.ancestorCtx ? '\n  ctx: AncestorContextType,' : ''}
 ) => Promise<NextResponse>`,
@@ -160,9 +171,9 @@ const generateMiddlewareServer = (
         }`
       : ''
   }
-    return await middlewareFn(
+${requests.map(([name, parser]) => `${name === 'query' ? '\n    const url = new URL(req.url);' : ''}\n    const ${name} = ${parser};\n    if (${name}.error) return createReqErr(${name}.error);\n`).join('')}    return await middlewareFn(
       {
-        req,${params ? '\n        params: params.data,' : ''}
+        req,${requests.map(([name]) => `\n        ${name}: ${name}.data,`).join('')}${params ? '\n        params: params.data,' : ''}
         next: async (${middleware.current?.hasCtx ? ' context' : ''}) => {
 ${
   middleware.current?.hasCtx
@@ -192,9 +203,9 @@ ${
   return `${imports.join(';\n')};
 
 ${chunks.join(';\n\n')};
-${
-  needsReqErr
-    ? `
+${middleware.current?.hasCookies ? `${parseCookieHeaderText};\n` : ''}${middleware.current?.query ? `${queryHelpers(middleware.current.query)}\n` : ''}${
+    needsReqErr
+      ? `
 type FrourioError =
   | { status: 422; error: string; issues: { path: (string | number)[]; message: string }[] }
   | { status: 500; error: string; issues?: undefined };
@@ -209,8 +220,8 @@ const createReqErr = (err: z.ZodError) =>
     { status: 422 },
   );
 `
-    : ''
-}`;
+      : ''
+  }`;
 };
 
 const generateServer = (
@@ -218,7 +229,7 @@ const generateServer = (
   middleware: {
     ancestor: string | undefined;
     ancestorCtx: string | undefined;
-    current: { hasCtx: boolean } | undefined;
+    current: MiddlewareDict[string];
   },
   methods: MethodInfo[],
 ): string => {
@@ -265,32 +276,10 @@ const generateServer = (
     "import { frourioSpec } from './frourio'",
     methods.length > 0 &&
       `import type { ${methods.map((m) => m.name.toUpperCase()).join(', ')} } from './route'`,
-  ].filter((txt) => txt !== undefined && txt !== false);
+  ].filter((txt): txt is string => typeof txt === 'string');
 
   const chunks: string[] = [
-    methods.some((m) => m.hasCookies) &&
-      `const parseCookieHeader = (header: string | null): Record<string, string> => {
-  const cookies: Record<string, string> = Object.create(null);
-
-  for (const segment of (header ?? '').split(';')) {
-    const separator = segment.indexOf('=');
-    if (separator < 0) continue;
-
-    const name = segment.slice(0, separator).trim();
-    if (!name || name in cookies) continue;
-
-    let value = segment.slice(separator + 1).trim();
-    if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
-
-    try {
-      cookies[name] = decodeURIComponent(value);
-    } catch {
-      cookies[name] = value;
-    }
-  }
-
-  return cookies;
-}`,
+    methods.some((m) => m.hasCookies) && parseCookieHeaderText,
     methods.length > 0 &&
       `type RouteChecker = [${methods.map((m) => `typeof ${m.name.toUpperCase()}`).join(', ')}]`,
     'type SpecType = typeof frourioSpec',
@@ -380,27 +369,7 @@ ${
 ${methods
   .map((m) => {
     const requests = [
-      m.hasHeaders && [
-        'headers',
-        `frourioSpec.${m.name}.headers.safeParse(Object.fromEntries(req.headers))`,
-      ],
-      m.hasCookies && [
-        'cookies',
-        `frourioSpec.${m.name}.cookies.safeParse(parseCookieHeader(req.headers.get('cookie')))`,
-      ],
-      m.query && [
-        'query',
-        `frourioSpec.${m.name}.query.safeParse({
-${m.query.props
-  .map((p) => {
-    const fn = `url.searchParams.get${p.isArray ? 'All' : ''}('${p.name}')${p.isArray ? '' : ' ?? undefined'}`;
-    const wrapped = `${p.typeName === 'string' ? '' : `queryTo${p.typeName === 'number' ? 'Num' : 'Bool'}${p.isArray ? 'Arr' : ''}(`}${fn}${p.typeName === 'string' ? '' : ')'}`;
-
-    return `        '${p.name}': ${p.isArray && p.isOptional ? `${fn}.length > 0 ? ${wrapped} : undefined` : wrapped},`;
-  })
-  .join('\n')}
-      })`,
-      ],
+      ...requestParsers(m, m.name),
       m.body && [
         'body',
         `frourioSpec.${m.name}.body.safeParse(${
@@ -538,7 +507,7 @@ ${r.cookies
 
   return NextResponse.json(body, init);
 }`,
-  ].filter((txt) => txt !== undefined && txt !== false);
+  ].filter((txt): txt is string => typeof txt === 'string');
 
   const suffixes: string[] = [
     methods.some((m) => m.query?.props.some((q) => q.typeName === 'number')) && queryToNumText,
@@ -575,7 +544,7 @@ ${r.cookies
       (m) =>
         m.body?.isUrlEncoded && m.body.data?.some((b) => b.typeName === 'boolean' && b.isArray),
     ) && urlencodedToBoolArrText,
-  ].filter((txt) => txt !== undefined && txt !== false);
+  ].filter((txt): txt is string => typeof txt === 'string');
 
   return `${imports.join(';\n')};
 
@@ -665,3 +634,64 @@ const urlencodedToBoolText = `const urlencodedToBool = (val: string | undefined)
 
 const urlencodedToBoolArrText =
   'const urlencodedToBoolArr = (val: string[]) => val.map(urlencodedToBool)';
+
+const parseCookieHeaderText = `const parseCookieHeader = (header: string | null): Record<string, string> => {
+  const cookies: Record<string, string> = Object.create(null);
+
+  for (const segment of (header ?? '').split(';')) {
+    const separator = segment.indexOf('=');
+    if (separator < 0) continue;
+
+    const name = segment.slice(0, separator).trim();
+    if (!name || name in cookies) continue;
+
+    let value = segment.slice(separator + 1).trim();
+    if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
+
+    try {
+      cookies[name] = decodeURIComponent(value);
+    } catch {
+      cookies[name] = value;
+    }
+  }
+
+  return cookies;
+}`;
+
+const requestParsers = (
+  info: Pick<MethodInfo, 'hasHeaders' | 'hasCookies' | 'query'>,
+  name: string,
+) =>
+  [
+    info.hasHeaders && [
+      'headers',
+      `frourioSpec.${name}.headers.safeParse(Object.fromEntries(req.headers))`,
+    ],
+    info.hasCookies && [
+      'cookies',
+      `frourioSpec.${name}.cookies.safeParse(parseCookieHeader(req.headers.get('cookie')))`,
+    ],
+    info.query && [
+      'query',
+      `frourioSpec.${name}.query.safeParse({
+${info.query.props
+  .map((p) => {
+    const fn = `url.searchParams.get${p.isArray ? 'All' : ''}('${p.name}')${p.isArray ? '' : ' ?? undefined'}`;
+    const wrapped = `${p.typeName === 'string' ? '' : `queryTo${p.typeName === 'number' ? 'Num' : 'Bool'}${p.isArray ? 'Arr' : ''}(`}${fn}${p.typeName === 'string' ? '' : ')'}`;
+
+    return `        '${p.name}': ${p.isArray && p.isOptional ? `${fn}.length > 0 ? ${wrapped} : undefined` : wrapped},`;
+  })
+  .join('\n')}
+      })`,
+    ],
+  ].filter((r): r is string[] => !!r);
+
+const queryHelpers = (query: MethodInfo['query']) =>
+  [
+    query?.props.some((q) => q.typeName === 'number') && queryToNumText,
+    query?.props.some((q) => q.typeName === 'number' && q.isArray) && queryToNumArrText,
+    query?.props.some((q) => q.typeName === 'boolean') && queryToBoolText,
+    query?.props.some((q) => q.typeName === 'boolean' && q.isArray) && queryToBoolArrText,
+  ]
+    .filter(Boolean)
+    .join(';\n\n');

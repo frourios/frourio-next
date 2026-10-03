@@ -1,6 +1,6 @@
 # Cookies
 
-Use method-level `cookies` to validate incoming cookies and `res[status].cookies` to declare response cookies commands. Read [add-endpoint.md](add-endpoint.md) for the endpoint creation workflow.
+Use method-level `cookies` or `middleware.cookies` to validate incoming cookies and `res[status].cookies` to declare response cookies commands. Read [add-endpoint.md](add-endpoint.md) for the endpoint creation workflow.
 
 ## Define the cookie behavior in frourio.ts
 
@@ -42,6 +42,8 @@ Cookie names are the keys of the response `cookies` object. `value` is a Zod sch
 
 Request cookies are decoded strings passed to Zod, just like request headers. Use `z.coerce.number()` or `z.stringbool()` when a request cookie should become a number or boolean. For example, `z.coerce.number().int().optional()` allows a missing numeric cookie. `z.coerce.boolean()` treats the string `'false'` as true; use `z.stringbool()` for textual booleans. Invalid cookies, including missing required cookies, return 422 before the controller runs.
 
+For shared validation across a route hierarchy, declare `middleware: { cookies: z.object(...) }` and read validated `cookies` in the `createMiddleware` callback. `context` is optional. Invalid middleware cookies return 422 before that callback runs. Read [add-middleware.md](add-middleware.md) for the definition and implementation workflow.
+
 ## Generate and implement the route
 
 Run `npx frourio-next` after updating the spec. Implement `route.ts` using the generated `createRoute`:
@@ -70,4 +72,4 @@ Optional value schemas produce optional properties in the returned `cookies` obj
 
 The generated client has no `cookies` request argument or parsed response cookies property. Browser clients send and receive cookies through Fetch, using `init: { credentials: 'include' }` when needed. Browsers do not expose `Set-Cookie` to JavaScript, and `httpOnly` cookies cannot be read through `document.cookie`. For Node.js tests, call the route handler directly and inspect `res.cookies` or `res.headers.getSetCookie()`. Read [testing.md](testing.md) for test patterns.
 
-OpenAPI emits request cookies as `in: cookie` parameters and response cookies as a `Set-Cookie` header with an array of example header values. Each array entry represents a separate header. Examples use the spec's inferred types: literal and enum values are preserved, while broad types and computed dates use representative values. Use `as const` on options when examples should retain literal strings and numbers. Regenerate with `npx frourio-next-openapi` after changing the spec.
+For method-level schemas, OpenAPI emits request cookies as `in: cookie` parameters and response cookies as a `Set-Cookie` header with an array of example header values. Each array entry represents a separate header. Examples use the spec's inferred types: literal and enum values are preserved, while broad types and computed dates use representative values. Use `as const` on options when examples should retain literal strings and numbers. Regenerate with `npx frourio-next-openapi` after changing the spec.

@@ -29,7 +29,9 @@ type MethodProps = {
 
 export type FrourioSpec = {
   param?: z.ZodType;
-  middleware?: true | { context: z.ZodType };
+  middleware?:
+    | true
+    | { context?: z.ZodType; cookies?: z.ZodType; headers?: z.ZodType; query?: z.ZodType };
 } & {
   [method in 'get' | 'head' | 'options']?: MethodProps;
 } & {

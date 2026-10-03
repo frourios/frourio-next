@@ -26,7 +26,10 @@ import { writeDefaults } from './writeDefaults.js';
 
 export type HasParamsDict = Record<string, boolean>;
 
-export type MiddlewareDict = Record<string, { hasCtx: boolean } | undefined>;
+export type MiddlewareDict = Record<
+  string,
+  ({ hasCtx: boolean } & Pick<MethodInfo, 'hasHeaders' | 'hasCookies' | 'query'>) | undefined
+>;
 
 export type MethodInfo = {
   name: string;
@@ -87,7 +90,8 @@ export const generate = async ({ appDir, basePath }: Config): Promise<void> => {
           checker.getTypeOfSymbolAtLocation(middlewareSymbol, middlewareSymbol.valueDeclaration);
 
         middlewareDict[dirPath] = middlewareType && {
-          hasCtx: checker.typeToString(middlewareType) !== 'true',
+          hasCtx: middlewareType.getProperties().some((p) => p.getName() === 'context'),
+          ...getRequestInfo(checker, middlewareType.getProperties()),
         };
 
         return {
@@ -102,8 +106,6 @@ export const generate = async ({ appDir, basePath }: Config): Promise<void> => {
               if (!type) return null;
 
               const props = type.getProperties();
-              const querySymbol = props.find((p) => p.getName() === 'query');
-              const queryZodType = querySymbol ? inferZodType(checker, querySymbol) : null;
               const bodySymbol = props.find((p) => p.getName() === 'body');
               const bodyZodType = bodySymbol ? inferZodType(checker, bodySymbol) : null;
               const bodyType =
@@ -117,26 +119,7 @@ export const generate = async ({ appDir, basePath }: Config): Promise<void> => {
 
               return {
                 name: t.getName(),
-                hasHeaders: props.some((p) => p.getName() === 'headers'),
-                hasCookies: props.some((p) => p.getName() === 'cookies'),
-                query: queryZodType
-                  ? {
-                      isOptional: (() => {
-                        if (!queryZodType.valueDeclaration) return false;
-
-                        const zodType = checker.getTypeOfSymbolAtLocation(
-                          queryZodType,
-                          queryZodType.valueDeclaration,
-                        );
-
-                        return (
-                          zodType.isUnion() &&
-                          zodType.types.some((t) => t.flags & ts.TypeFlags.Undefined)
-                        );
-                      })(),
-                      props: getPropOptions(checker, queryZodType) ?? [],
-                    }
-                  : null,
+                ...getRequestInfo(checker, props),
                 body: props.some((p) => p.getName() === 'body')
                   ? (() => {
                       const formatSymbol = props.find((p) => p.getName() === 'format');
@@ -284,4 +267,28 @@ export const generate = async ({ appDir, basePath }: Config): Promise<void> => {
       return needsUpdate && writeFile(d.filePath, textWithComment);
     }),
   ]);
+};
+
+const getRequestInfo = (
+  checker: ts.TypeChecker,
+  props: ts.Symbol[],
+): Pick<MethodInfo, 'hasHeaders' | 'hasCookies' | 'query'> => {
+  const querySymbol = props.find((p) => p.getName() === 'query');
+  const queryZodType = querySymbol ? inferZodType(checker, querySymbol) : null;
+  const zodType =
+    queryZodType?.valueDeclaration &&
+    checker.getTypeOfSymbolAtLocation(queryZodType, queryZodType.valueDeclaration);
+  return {
+    hasHeaders: props.some((p) => p.getName() === 'headers'),
+    hasCookies: props.some((p) => p.getName() === 'cookies'),
+    query: queryZodType
+      ? {
+          isOptional:
+            !!zodType &&
+            zodType.isUnion() &&
+            zodType.types.some((t) => t.flags & ts.TypeFlags.Undefined),
+          props: getPropOptions(checker, queryZodType) ?? [],
+        }
+      : null,
+  };
 };

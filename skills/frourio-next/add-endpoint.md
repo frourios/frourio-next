@@ -92,7 +92,14 @@ type FrourioResponse = {
 
 type FrourioSpec = {
   param?: z.ZodType; // Path parameter validation
-  middleware?: true | { context: z.ZodType }; // Middleware definition
+  middleware?:
+    | true
+    | {
+        context?: z.ZodType;
+        cookies?: z.ZodType;
+        headers?: z.ZodType;
+        query?: z.ZodType;
+      }; // Middleware definition
 } & {
   // Methods without body
   [method in 'get' | 'head' | 'options']?: {

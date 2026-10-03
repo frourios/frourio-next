@@ -494,6 +494,25 @@ Define middleware in `frourio.ts` to execute code before your main route handler
 - **Inherit & Add Context**: Specify a `middleware` object with a `context` schema (using Zod) to inherit context from parent middleware AND define additional context passed _from_ this middleware _to_ its children.
 - **Inherit Only (Default)**: Omitting the `middleware` property entirely defaults to inheriting context from the parent middleware without executing any middleware logic in the current directory. Handlers will receive the parent's context directly.
 
+Middleware objects also accept request `cookies`, `headers`, and `query` schemas, with or without `context`. Validated values are available in the first argument of `createMiddleware`. Query conversion and validation follow the same rules as HTTP methods; invalid requests return 422 before the middleware function runs.
+
+```typescript
+// frourio.ts
+export const frourioSpec = {
+  middleware: {
+    cookies: z.object({ session: z.string() }),
+    headers: z.object({ authorization: z.string() }),
+    query: z.object({ page: z.number().optional() }),
+  },
+} satisfies FrourioSpec;
+
+// route.middleware.ts
+export const middleware = createMiddleware(async ({ cookies, headers, query, next }) => {
+  console.log(cookies.session, headers.authorization, query.page);
+  return next();
+});
+```
+
 `app/api/frourio.ts` (Root middleware - e.g., for authentication):
 
 ```typescript
