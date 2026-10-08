@@ -209,6 +209,13 @@ ${indent}    },`,
 ${indent}  },`;
 };
 
+const clientMethod = (method: MethodInfo): MethodInfo => ({
+  ...method,
+  res: method.res?.some((r) => ['301', '302', '303', '307', '308'].includes(r.status) && !r.dest)
+    ? undefined
+    : method.res?.flatMap((r) => r.dest ?? [r]),
+});
+
 const generateHighLevelMethods = (
   propKey: string,
   hash: string,
@@ -218,18 +225,23 @@ const generateHighLevelMethods = (
   indent: string,
 ): string => {
   return methods
-    .map((method) => {
+    .map((serverMethod) => {
+      const method = clientMethod(serverMethod);
       const resType = method.res?.every((r) => !r.status.startsWith('2'))
         ? 'never'
         : !method.res
-          ? 'Response'
+          ? serverMethod.res
+            ? 'unknown'
+            : 'Response'
           : [
               ...(method.res.some((r) => r.status.startsWith('2') && r.body)
                 ? [
-                    `z.infer<typeof frourioSpec_${hash}.${method.name}.res[${method.res
+                    ...method.res
                       .filter((r) => r.status.startsWith('2') && r.body)
-                      .map((r) => r.status)
-                      .join(' | ')}]['body']>`,
+                      .map(
+                        (r) =>
+                          `z.infer<typeof frourioSpec_${hash}.${method.name}.res${r.source ?? `[${r.status}]`}['body']>`,
+                      ),
                   ]
                 : []),
               ...(method.res.some((r) => r.status.startsWith('2') && !r.body) ? ['void'] : []),
@@ -271,7 +283,7 @@ ${indent}    ${
           : !method.res
             ? `if (!result.ok) throw new Error(\`HTTP Error: \${result.failure.status}\`);
 
-${indent}    return result.data;`
+${indent}    return result.data${serverMethod.res ? '.body' : ''};`
             : `${
                 method.res.some((r) => !r.status.startsWith('2'))
                   ? `if (!result.ok) throw new Error(\`HTTP Error: \${result.failure.status}\`);\n\n${indent}    `
@@ -368,7 +380,8 @@ const generateMethodsFn = (
   params: ClientParamsInfo | undefined,
 ): string => {
   return `(option?: FrourioClientOption) => ({${methods
-    .map((method) => {
+    .map((serverMethod) => {
+      const method = clientMethod(serverMethod);
       return `\n  async $${method.name}(req${
         params || method.hasHeaders || method.query?.isOptional === false || method.body ? '' : '?'
       }: { ${[
@@ -386,8 +399,8 @@ const generateMethodsFn = (
       ].join(', ')} }): Promise<${
         !method.res
           ? `
-    | { ok: true; isValid: true; data: Response; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
-    | { ok: false; isValid: true; data?: undefined; failure: Response; raw: Response; reason?: undefined; error?: undefined }`
+    | { ok: true; isValid: true; data: ${serverMethod.res ? '{ status: number; body: unknown }' : 'Response'}; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: false; isValid: true; data?: undefined; failure: ${serverMethod.res ? '{ status: number; body: unknown }' : 'Response'}; raw: Response; reason?: undefined; error?: undefined }`
           : `${
               method.res.some((r) => r.status.startsWith('2'))
                 ? `\n    | { ok: true; isValid: true; data: ${method.res
@@ -396,11 +409,11 @@ const generateMethodsFn = (
                       (r) =>
                         `{ status: ${r.status}; headers${
                           r.hasHeaders
-                            ? `: z.infer<typeof frourioSpec_${hash}.${method.name}.res[${r.status}]['headers']>`
+                            ? `: z.infer<typeof frourioSpec_${hash}.${method.name}.res${r.source ?? `[${r.status}]`}['headers']>`
                             : '?: undefined'
                         }; body${
                           r.body
-                            ? `: z.infer<typeof frourioSpec_${hash}.${method.name}.res[${r.status}]['body']>`
+                            ? `: z.infer<typeof frourioSpec_${hash}.${method.name}.res${r.source ?? `[${r.status}]`}['body']>`
                             : '?: undefined'
                         } }`,
                     )
@@ -416,11 +429,11 @@ const generateMethodsFn = (
                       (r) =>
                         `{ status: ${r.status}; headers${
                           r.hasHeaders
-                            ? `: z.infer<typeof frourioSpec_${hash}.${method.name}.res[${r.status}]['headers']>`
+                            ? `: z.infer<typeof frourioSpec_${hash}.${method.name}.res${r.source ?? `[${r.status}]`}['headers']>`
                             : '?: undefined'
                         }; body${
                           r.body
-                            ? `: z.infer<typeof frourioSpec_${hash}.${method.name}.res[${r.status}]['body']>`
+                            ? `: z.infer<typeof frourioSpec_${hash}.${method.name}.res${r.source ?? `[${r.status}]`}['body']>`
                             : '?: undefined'
                         } }`,
                     )
@@ -521,11 +534,14 @@ ${
 
     ${
       method.res
-        ? `switch (result.res.status) {${method.res
-            .map(
-              (item) => `\n      case ${item.status}: {${
+        ? `switch (result.res.status) {${Object.values(Object.groupBy(method.res, (r) => r.status))
+            .map((items) => {
+              const variants = items as NonNullable<MethodInfo['res']>;
+              const render = (
+                item: NonNullable<MethodInfo['res']>[number],
+              ) => `\n      case ${item.status}: {${
                 item.hasHeaders
-                  ? `\n        const headers = frourioSpec_${hash}.${method.name}.res[${item.status}].headers.safeParse(Object.fromEntries(result.res.headers.entries()));
+                  ? `\n        const headers = frourioSpec_${hash}.${method.name}.res${item.source ?? `[${item.status}]`}.headers.safeParse(Object.fromEntries(result.res.headers.entries()));
 
         if (!headers.success) return { ok: ${item.status.startsWith('2')}, isValid: false, raw: result.res, reason: headers.error };\n`
                   : ''
@@ -537,7 +553,7 @@ ${
 
         if (!resBody.success) return { ok: ${item.status.startsWith('2')}, raw: result.res, error: resBody.error };
 
-        const body = frourioSpec_${hash}.${method.name}.res[${item.status}].body.safeParse(resBody.data);
+        const body = frourioSpec_${hash}.${method.name}.res${item.source ?? `[${item.status}]`}.body.safeParse(resBody.data);
 
         if (!body.success) return { ok: ${item.status.startsWith('2')}, isValid: false, raw: result.res, reason: body.error };\n`
                   : ''
@@ -548,13 +564,31 @@ ${
           ${item.status.startsWith('2') ? 'data' : 'failure'}: { status: ${item.status}${item.hasHeaders ? ', headers: headers.data' : ''}${item.body ? ', body: body.data' : ''} },
           raw: result.res,
         };
-      }`,
-            )
+      }`;
+              if (variants.length === 1) return render(variants[0]);
+              return `\n      case ${variants[0].status}: {${variants
+                .map(
+                  (item, i) => `
+        const candidate${i} = await (async () => {${render(item)
+          .replace(/^[\s\S]*?case \d+: \{/, '')
+          .replace(/\s*\}$/, '')
+          .replaceAll('result.res.', 'result.res.clone().')
+          .replace(/return (\{[^;]*\});/g, 'return $1 as const;')}
+        })();
+        ${i === variants.length - 1 ? `return candidate${i};` : `if ('isValid' in candidate${i} && candidate${i}.isValid) return candidate${i};`}
+`,
+                )
+                .join('')}
+      }`;
+            })
             .join('')}
       default:
         return { ok: result.res.ok, raw: result.res, error: new Error(\`Unknown status: \${result.res.status}\`) };
     }`
-        : 'return result.res.ok ? { ok: true, isValid: true, data: result.res, raw: result.res } : { ok: false, isValid: true, failure: result.res, raw: result.res };'
+        : serverMethod.res
+          ? `const body: unknown = [204, 205, 304].includes(result.res.status) || ${method.name === 'head'} ? undefined : await result.res.text().then(text => { try { return JSON.parse(text); } catch { return text; } });
+    return result.res.ok ? { ok: true, isValid: true, data: { status: result.res.status, body }, raw: result.res } : { ok: false, isValid: true, failure: { status: result.res.status, body }, raw: result.res };`
+          : 'return result.res.ok ? { ok: true, isValid: true, data: result.res, raw: result.res } : { ok: false, isValid: true, failure: result.res, raw: result.res };'
     }
   },`;
     })

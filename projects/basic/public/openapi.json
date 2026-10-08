@@ -37,10 +37,7 @@
             }
           },
           "404": {
-            "description": "",
-            "content": {
-              "application/json": {}
-            }
+            "description": ""
           }
         }
       },
@@ -960,10 +957,7 @@
         ],
         "responses": {
           "204": {
-            "description": "",
-            "content": {
-              "application/json": {}
-            }
+            "description": ""
           },
           "404": {
             "description": "",
@@ -1040,9 +1034,6 @@
         "responses": {
           "200": {
             "description": "",
-            "content": {
-              "application/json": {}
-            },
             "headers": {
               "x-cookie-test": {
                 "schema": {
@@ -1069,9 +1060,136 @@
             }
           },
           "400": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/test-client/redirect": {
+      "get": {
+        "responses": {
+          "200": {
             "description": "",
             "content": {
-              "application/json": {}
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/14sp71v"
+                    },
+                    {
+                      "$ref": "#/components/schemas/17ihar0"
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {
+              "x-result": {
+                "schema": {
+                  "type": "string",
+                  "const": "ok"
+                },
+                "required": false
+              }
+            }
+          },
+          "304": {
+            "description": "",
+            "headers": {
+              "etag": {
+                "schema": {
+                  "type": "string"
+                },
+                "required": true
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/10oedn"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "responses": {
+          "300": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "",
+            "headers": {
+              "location": {
+                "schema": {
+                  "type": "string"
+                },
+                "required": true
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "responses": {
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
             }
           }
         }
@@ -2479,6 +2597,341 @@
       "1mfiyk4": {
         "type": "object"
       },
+      "10dlplq": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/14sp71v"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "14sp71v": {
+        "type": "object",
+        "properties": {
+          "direct": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "direct"
+        ]
+      },
+      "1wcl9b": {
+        "type": "object",
+        "properties": {
+          "headers": {
+            "$ref": "#/components/schemas/1855sls"
+          },
+          "cookies": {
+            "$ref": "#/components/schemas/vju3oq"
+          },
+          "dest": {
+            "$ref": "#/components/schemas/am9n5r"
+          }
+        },
+        "required": [
+          "cookies",
+          "dest",
+          "headers"
+        ]
+      },
+      "1855sls": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      },
+      "vju3oq": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/ri4nf6"
+          }
+        },
+        "required": [
+          "session"
+        ]
+      },
+      "ri4nf6": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "const": "set"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "command",
+          "value"
+        ]
+      },
+      "am9n5r": {
+        "type": "object",
+        "properties": {
+          "200": {
+            "$ref": "#/components/schemas/1evad3d"
+          },
+          "403": {
+            "$ref": "#/components/schemas/1h11rhc"
+          }
+        },
+        "required": [
+          "200",
+          "403"
+        ]
+      },
+      "1evad3d": {
+        "type": "object",
+        "properties": {
+          "headers": {
+            "$ref": "#/components/schemas/1jixaa6"
+          },
+          "body": {
+            "$ref": "#/components/schemas/17ihar0"
+          }
+        },
+        "required": [
+          "body",
+          "headers"
+        ]
+      },
+      "1jixaa6": {
+        "type": "object",
+        "properties": {
+          "x-result": {
+            "type": "string",
+            "const": "ok"
+          }
+        },
+        "required": [
+          "x-result"
+        ]
+      },
+      "17ihar0": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user"
+        ]
+      },
+      "1h11rhc": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/10oedn"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "10oedn": {
+        "type": "object",
+        "properties": {
+          "forbidden": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "forbidden"
+        ]
+      },
+      "1y1vjvh": {
+        "type": "object",
+        "properties": {
+          "headers": {
+            "$ref": "#/components/schemas/2v9yzy"
+          }
+        },
+        "required": [
+          "headers"
+        ]
+      },
+      "2v9yzy": {
+        "type": "object",
+        "properties": {
+          "etag": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "etag"
+        ]
+      },
+      "10k9hhp": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "1ta9h04": {
+        "type": "object",
+        "properties": {
+          "headers": {
+            "$ref": "#/components/schemas/17frx1g"
+          },
+          "body": {
+            "type": "string"
+          },
+          "dest": {
+            "$ref": "#/components/schemas/107s6yx"
+          }
+        },
+        "required": [
+          "body",
+          "dest",
+          "headers"
+        ]
+      },
+      "17frx1g": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      },
+      "107s6yx": {
+        "type": "object",
+        "properties": {
+          "201": {
+            "$ref": "#/components/schemas/1vu2plh"
+          }
+        },
+        "required": [
+          "201"
+        ]
+      },
+      "1vu2plh": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "1ftcnr9": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "vb7nnr": {
+        "type": "object",
+        "properties": {
+          "headers": {
+            "$ref": "#/components/schemas/189qq4d"
+          }
+        },
+        "required": [
+          "headers"
+        ]
+      },
+      "189qq4d": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      },
+      "slumwa": {
+        "type": "object",
+        "properties": {
+          "dest": {
+            "$ref": "#/components/schemas/huq6d7"
+          }
+        },
+        "required": [
+          "dest"
+        ]
+      },
+      "huq6d7": {
+        "type": "object",
+        "properties": {
+          "204": {
+            "$ref": "#/components/schemas/1mpik93"
+          }
+        },
+        "required": [
+          "204"
+        ]
+      },
+      "1mpik93": {
+        "type": "object"
+      },
+      "cf7lgr": {
+        "type": "object",
+        "properties": {
+          "dest": {
+            "$ref": "#/components/schemas/u7z4ri"
+          }
+        },
+        "required": [
+          "dest"
+        ]
+      },
+      "u7z4ri": {
+        "type": "object",
+        "properties": {
+          "403": {
+            "$ref": "#/components/schemas/yer2q4"
+          }
+        },
+        "required": [
+          "403"
+        ]
+      },
+      "yer2q4": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
       "s6aaa3": {
         "type": "object",
         "properties": {
@@ -2549,7 +3002,7 @@
           "page"
         ]
       },
-      "1ftcnr9": {
+      "1ezduoc": {
         "type": "object",
         "properties": {
           "body": {

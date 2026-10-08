@@ -21,6 +21,7 @@ import * as route_76vmqd from '../app/api/mw/public/route';
 import * as route_17yqnk1 from '../app/api/test-client/route';
 import * as route_1rqfh40 from '../app/api/test-client/[userId]/route';
 import * as route_wkn1x4 from '../app/api/test-client/cookie/route';
+import * as route_5bwrha from '../app/api/test-client/redirect/route';
 import * as route_1tp1ur6 from '../app/api/test-client/stream/route';
 import * as route_1dt6t80 from '../app/header-only/route';
 import * as route_11w4uys from '../app/param-only/[pageNum]/content/route';
@@ -160,6 +161,24 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
     }),
     http.post(`${baseURL}/api/test-client/cookie`, ({ request }) => {
       return route_wkn1x4.POST(patchDuplicateCookie(request)).then(toMswResponseForCookie);
+    }),
+    http.get(`${baseURL}/api/test-client/redirect`, ({ request }) => {
+      return route_5bwrha.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
+    }),
+    http.post(`${baseURL}/api/test-client/redirect`, ({ request }) => {
+      return route_5bwrha.POST(patchDuplicateCookie(request)).then(toMswResponseForCookie);
+    }),
+    http.put(`${baseURL}/api/test-client/redirect`, ({ request }) => {
+      return route_5bwrha.PUT(patchDuplicateCookie(request)).then(toMswResponseForCookie);
+    }),
+    http.patch(`${baseURL}/api/test-client/redirect`, ({ request }) => {
+      return route_5bwrha.PATCH(patchDuplicateCookie(request)).then(toMswResponseForCookie);
+    }),
+    http.delete(`${baseURL}/api/test-client/redirect`, ({ request }) => {
+      return route_5bwrha.DELETE(patchDuplicateCookie(request)).then(toMswResponseForCookie);
+    }),
+    http.options(`${baseURL}/api/test-client/redirect`, ({ request }) => {
+      return route_5bwrha.OPTIONS(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.post(`${baseURL}/api/test-client/stream`, ({ request }) => {
       return route_1tp1ur6.POST(patchDuplicateCookie(request)).then(toMswResponseForCookie);

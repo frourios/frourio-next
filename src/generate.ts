@@ -44,6 +44,8 @@ export type MethodInfo = {
   res:
     | {
         status: string;
+        source?: string;
+        dest?: NonNullable<MethodInfo['res']> | undefined;
         hasHeaders: boolean;
         cookies: { name: string; command: 'set' | 'delete'; hasOptions: boolean }[];
         body: { type: 'text' | 'json' | 'arrayBuffer' | 'blob' } | null;
@@ -161,78 +163,105 @@ export const generate = async ({ appDir, basePath }: Config): Promise<void> => {
                         : null;
                     })()
                   : null,
-                res: resType
-                  ?.getProperties()
-                  .map((s) => {
-                    const statusType =
-                      s.valueDeclaration &&
-                      checker.getTypeOfSymbolAtLocation(s, s.valueDeclaration);
+                res: (() => {
+                  const responses = (
+                    type: ts.Type | undefined,
+                    source = '',
+                  ): NonNullable<MethodInfo['res']> | undefined =>
+                    type
+                      ?.getProperties()
+                      .map((s) => {
+                        const statusType =
+                          s.valueDeclaration &&
+                          checker.getTypeOfSymbolAtLocation(s, s.valueDeclaration);
 
-                    if (!statusType) return null;
+                        if (!statusType) return null;
 
-                    const statusProps = statusType.getProperties();
-                    const resBodySymbol = statusProps.find((p) => p.getName() === 'body');
-                    const resBodyZodType = resBodySymbol
-                      ? inferZodType(checker, resBodySymbol)
-                      : null;
-                    const resBodyType =
-                      resBodyZodType?.valueDeclaration &&
-                      checker.getTypeOfSymbolAtLocation(
-                        resBodyZodType,
-                        resBodyZodType.valueDeclaration,
-                      );
-
-                    return {
-                      status: s.getName(),
-                      hasHeaders: statusProps.some((p) => p.getName() === 'headers'),
-                      cookies: (() => {
-                        const cookiesSymbol = statusProps.find((p) => p.getName() === 'cookies');
-                        const cookiesType =
-                          cookiesSymbol?.valueDeclaration &&
+                        const statusProps = statusType.getProperties();
+                        const resBodySymbol = statusProps.find((p) => p.getName() === 'body');
+                        const resBodyZodType = resBodySymbol
+                          ? inferZodType(checker, resBodySymbol)
+                          : null;
+                        const resBodyType =
+                          resBodyZodType?.valueDeclaration &&
                           checker.getTypeOfSymbolAtLocation(
-                            cookiesSymbol,
-                            cookiesSymbol.valueDeclaration,
+                            resBodyZodType,
+                            resBodyZodType.valueDeclaration,
                           );
 
-                        return (
-                          cookiesType?.getProperties().flatMap((symbol) => {
-                            if (!symbol.valueDeclaration) return [];
-                            const type = checker.getTypeOfSymbolAtLocation(
-                              symbol,
-                              symbol.valueDeclaration,
+                        return {
+                          status: s.getName(),
+                          ...(source ? { source: `${source}[${s.getName()}]` } : {}),
+                          ...(() => {
+                            const dest = statusType.getProperty('dest');
+                            return dest?.valueDeclaration
+                              ? {
+                                  dest: responses(
+                                    checker.getTypeOfSymbolAtLocation(dest, dest.valueDeclaration),
+                                    `[${s.getName()}]['dest']`,
+                                  ),
+                                }
+                              : {};
+                          })(),
+                          hasHeaders: statusProps.some((p) => p.getName() === 'headers'),
+                          cookies: (() => {
+                            const cookiesSymbol = statusProps.find(
+                              (p) => p.getName() === 'cookies',
                             );
-                            const command = type.getProperty('command');
-                            const commandType =
-                              command?.valueDeclaration &&
-                              checker.getTypeOfSymbolAtLocation(command, command.valueDeclaration);
+                            const cookiesType =
+                              cookiesSymbol?.valueDeclaration &&
+                              checker.getTypeOfSymbolAtLocation(
+                                cookiesSymbol,
+                                cookiesSymbol.valueDeclaration,
+                              );
 
-                            return commandType?.isStringLiteral()
-                              ? [
-                                  {
-                                    name: symbol.getName(),
-                                    command: commandType.value as 'set' | 'delete',
-                                    hasOptions: !!type.getProperty('options'),
-                                  },
-                                ]
-                              : [];
-                          }) ?? []
-                        );
-                      })(),
-                      body: resBodyType
-                        ? {
-                            type:
-                              resBodyType.getSymbol()?.getName() === 'ArrayBuffer'
-                                ? ('arrayBuffer' as const)
-                                : blobType && checker.isTypeAssignableTo(resBodyType, blobType)
-                                  ? ('blob' as const)
-                                  : checker.isTypeAssignableTo(resBodyType, checker.getStringType())
-                                    ? ('text' as const)
-                                    : ('json' as const),
-                          }
-                        : null,
-                    };
-                  })
-                  .filter((s) => s !== null),
+                            return (
+                              cookiesType?.getProperties().flatMap((symbol) => {
+                                if (!symbol.valueDeclaration) return [];
+                                const type = checker.getTypeOfSymbolAtLocation(
+                                  symbol,
+                                  symbol.valueDeclaration,
+                                );
+                                const command = type.getProperty('command');
+                                const commandType =
+                                  command?.valueDeclaration &&
+                                  checker.getTypeOfSymbolAtLocation(
+                                    command,
+                                    command.valueDeclaration,
+                                  );
+
+                                return commandType?.isStringLiteral()
+                                  ? [
+                                      {
+                                        name: symbol.getName(),
+                                        command: commandType.value as 'set' | 'delete',
+                                        hasOptions: !!type.getProperty('options'),
+                                      },
+                                    ]
+                                  : [];
+                              }) ?? []
+                            );
+                          })(),
+                          body: resBodyType
+                            ? {
+                                type:
+                                  resBodyType.getSymbol()?.getName() === 'ArrayBuffer'
+                                    ? ('arrayBuffer' as const)
+                                    : blobType && checker.isTypeAssignableTo(resBodyType, blobType)
+                                      ? ('blob' as const)
+                                      : checker.isTypeAssignableTo(
+                                            resBodyType,
+                                            checker.getStringType(),
+                                          )
+                                        ? ('text' as const)
+                                        : ('json' as const),
+                              }
+                            : null,
+                        };
+                      })
+                      .filter((s) => s !== null);
+                  return responses(resType);
+                })(),
               };
             })
             .filter((n) => n !== null),

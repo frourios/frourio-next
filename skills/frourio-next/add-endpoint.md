@@ -71,52 +71,45 @@ type CookieOptions<Command extends 'set' | 'delete'> = Omit<
   'name' | 'value'
 >;
 
+type RedirectStatus = 301 | 302 | 303 | 307 | 308;
+
 type FrourioResponse = {
-  [Status in `${2 | 4 | 5}${Digit}${Digit}`]?: {
+  [Status in `${2 | 3 | 4 | 5}${Digit}${Digit}`]?: {
     headers?: z.ZodType;
-    body?: z.ZodType;
+    body?: Status extends '304' ? never : z.ZodType;
+    dest?: Status extends `${RedirectStatus}` ? FrourioDestination : never;
     cookies?: Record<
       string,
-      | {
-          command: 'set';
-          value: z.ZodType;
-          options?: CookieOptions<'set'>;
-        }
-      | {
-          command: 'delete';
-          options?: CookieOptions<'delete'>;
-        }
+      | { command: 'set'; value: z.ZodType; options?: CookieOptions<'set'> }
+      | { command: 'delete'; options?: CookieOptions<'delete'> }
     >;
   };
 };
 
+type FrourioDestination = {
+  [Status in keyof FrourioResponse]?: Omit<NonNullable<FrourioResponse[Status]>, 'dest'>;
+};
+
+type MethodProps = {
+  headers?: z.ZodType;
+  cookies?: z.ZodType;
+  query?: z.ZodType;
+  res?: FrourioResponse;
+};
+
 type FrourioSpec = {
-  param?: z.ZodType; // Path parameter validation
+  param?: z.ZodType;
   middleware?:
-    | true
-    | {
-        context?: z.ZodType;
-        cookies?: z.ZodType;
-        headers?: z.ZodType;
-        query?: z.ZodType;
-      }; // Middleware definition
+    true | { context?: z.ZodType; cookies?: z.ZodType; headers?: z.ZodType; query?: z.ZodType };
 } & {
-  // Methods without body
-  [method in 'get' | 'head' | 'options']?: {
-    headers?: z.ZodType;
-    cookies?: z.ZodType;
-    query?: z.ZodType;
-    res?: FrourioResponse;
-  };
+  [method in 'get' | 'head']?: MethodProps;
 } & {
-  // Methods with body
-  [method in 'post' | 'put' | 'patch' | 'delete']?: {
-    headers?: z.ZodType;
-    cookies?: z.ZodType;
-    query?: z.ZodType;
-    format?: 'formData' | 'urlencoded'; // Defaults to JSON
+  options?: Omit<MethodProps, 'res'> & { res?: Omit<FrourioResponse, '304'> };
+} & {
+  [method in 'post' | 'put' | 'patch' | 'delete']?: Omit<MethodProps, 'res'> & {
+    res?: Omit<FrourioResponse, '304'>;
+    format?: 'formData' | 'urlencoded';
     body?: z.ZodType;
-    res?: FrourioResponse;
   };
 };
 ```
@@ -240,3 +233,27 @@ Confirm there are no type errors.
 - `frourio.ts` and `route.ts` are files written by the developer
 - Use the `/add-middleware` skill if middleware is needed
 - `(group)` directories (Route Groups) do not affect the path
+
+### Redirect responses
+
+Declare 3xx responses explicitly. For 301, 302, 303, 307, and 308, `dest` describes the final response after automatic redirect following:
+
+```typescript
+get: {
+  res: {
+    301: {
+      headers: z.object({ location: z.string() }),
+      dest: {
+        200: { body: z.object({ name: z.string() }) },
+        403: { body: z.object({ message: z.string() }) },
+      },
+    },
+  },
+}
+```
+
+The controller returns the redirect status, headers, and any declared body/cookie values. `dest` is not returned or validated by the server. The client validates the final response using `dest`, and OpenAPI replaces the redirect response with the destination responses. Matching statuses from direct responses and destinations form a client union and OpenAPI `anyOf` body schemas.
+
+If any redirect response lacks `dest`, the operation's client body type is `unknown`, including for directly declared 2xx responses. Such a client parses JSON when possible, otherwise returns text, without response schema validation. OpenAPI retains the original redirect response. HTTP failures still throw in `$fc`, while `fc` exposes them as failures. `dest` describes the final response, cannot contain nested `dest`, and does not change fetch redirect behavior. Overriding `redirect` to `manual` or `error` does not produce the declared destination response.
+
+304 is declared only on GET/HEAD, permits headers/cookies, and prohibits a body. 300 can have a body but has no `dest`.

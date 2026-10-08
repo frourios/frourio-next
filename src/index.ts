@@ -8,16 +8,23 @@ type CookieOptions<Command extends 'set' | 'delete'> = Omit<
   'name' | 'value'
 >;
 
+type RedirectStatus = 301 | 302 | 303 | 307 | 308;
+
 type FrourioResponse = {
-  [Status in `${2 | 4 | 5}${Digit}${Digit}`]?: {
+  [Status in `${2 | 3 | 4 | 5}${Digit}${Digit}`]?: {
     headers?: z.ZodType;
-    body?: z.ZodType;
+    body?: Status extends '304' ? never : z.ZodType;
+    dest?: Status extends `${RedirectStatus}` ? FrourioDestination : never;
     cookies?: Record<
       string,
       | { command: 'set'; value: z.ZodType; options?: CookieOptions<'set'> }
       | { command: 'delete'; options?: CookieOptions<'delete'> }
     >;
   };
+};
+
+type FrourioDestination = {
+  [Status in keyof FrourioResponse]?: Omit<NonNullable<FrourioResponse[Status]>, 'dest'>;
 };
 
 type MethodProps = {
@@ -33,9 +40,12 @@ export type FrourioSpec = {
     | true
     | { context?: z.ZodType; cookies?: z.ZodType; headers?: z.ZodType; query?: z.ZodType };
 } & {
-  [method in 'get' | 'head' | 'options']?: MethodProps;
+  [method in 'get' | 'head']?: MethodProps;
 } & {
-  [method in 'post' | 'put' | 'patch' | 'delete']?: MethodProps & {
+  options?: Omit<MethodProps, 'res'> & { res?: Omit<FrourioResponse, '304'> };
+} & {
+  [method in 'post' | 'put' | 'patch' | 'delete']?: Omit<MethodProps, 'res'> & {
+    res?: Omit<FrourioResponse, '304'>;
     format?: 'formData' | 'urlencoded';
     body?: z.ZodType;
   };

@@ -177,7 +177,7 @@ type ToCookies<T> = {[Name in keyof T]: {
 }};
 
 type ToRes<T extends FrourioResponse | undefined> = {[S in keyof T]: T[S] extends {} ? {
-  [Key in keyof T[S]]: Key extends 'cookies' ? ToCookies<T[S][Key]> : T[S][Key] extends z.ZodType ? InferType<T[S][Key]> : T[S][Key]
+  [Key in keyof T[S]]: Key extends 'dest' ? ToRes<T[S][Key] extends FrourioResponse ? T[S][Key] : undefined> : Key extends 'cookies' ? ToCookies<T[S][Key]> : T[S][Key] extends z.ZodType ? InferType<T[S][Key]> : T[S][Key]
 }: undefined }
 
 type ToSpecType<T extends FrourioSpec> = {
@@ -392,51 +392,65 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
               ? undefined
               : { content: { [reqContentType]: { schema: props.body } } },
           responses: resDef?.properties
-            ? Object.entries(resDef.properties).reduce((dict, [status, statusObj]) => {
-                const statusDef = methodsSchema?.definitions?.[
-                  getRefText(statusObj as TJS.Definition)
-                ] as TJS.Definition;
+            ? Object.entries(resDef.properties)
+                .flatMap(([status, statusObj]): [string, TJS.DefinitionOrBoolean][] => {
+                  const definition = methodsSchema?.definitions?.[
+                    getRefText(statusObj as TJS.Definition)
+                  ] as TJS.Definition;
+                  const dest = definition.properties?.dest as TJS.Definition | undefined;
+                  const destinations = (
+                    dest?.$ref ? methodsSchema?.definitions?.[getRefText(dest)] : dest
+                  ) as TJS.Definition | undefined;
+                  return destinations?.properties
+                    ? Object.entries(destinations.properties)
+                    : [[status, statusObj]];
+                })
+                .reduce((dict: Record<string, any>, [status, statusObj]) => {
+                  const statusDef = methodsSchema?.definitions?.[
+                    getRefText(statusObj as TJS.Definition)
+                  ] as TJS.Definition;
 
-                const headersDef = (statusDef.properties as Record<string, TJS.Definition>)?.headers
-                  ?.$ref
-                  ? (methodsSchema?.definitions?.[
-                      getRefText((statusDef.properties as Record<string, TJS.Definition>).headers)
-                    ] as TJS.Definition)
-                  : (statusDef.properties as Record<string, TJS.Definition>)?.headers;
+                  const headersDef = (statusDef.properties as Record<string, TJS.Definition>)
+                    ?.headers?.$ref
+                    ? (methodsSchema?.definitions?.[
+                        getRefText((statusDef.properties as Record<string, TJS.Definition>).headers)
+                      ] as TJS.Definition)
+                    : (statusDef.properties as Record<string, TJS.Definition>)?.headers;
 
-                const responseCookies = getResponseCookieExamples(
-                  (statusDef.properties as Record<string, TJS.Definition>)?.cookies,
-                  methodsSchema?.definitions ?? {},
-                );
+                  const responseCookies = getResponseCookieExamples(
+                    (statusDef.properties as Record<string, TJS.Definition>)?.cookies,
+                    methodsSchema?.definitions ?? {},
+                  );
 
-                const resContentType =
-                  ((headersDef?.properties?.['content-type'] as TJS.Definition)?.const as string) ??
-                  ((statusDef.properties as Record<string, TJS.Definition>)?.format?.const ===
-                  'formData'
-                    ? 'multipart/form-data'
-                    : (
-                          statusDef.properties as Record<string, TJS.Definition>
-                        )?.body?.$ref?.includes('Blob') ||
-                        (
-                          statusDef.properties as Record<string, TJS.Definition>
-                        )?.body?.$ref?.includes('ArrayBuffer')
-                      ? 'application/octet-stream'
-                      : typeof (statusDef.properties as Record<string, TJS.Definition>)?.body
-                            ?.type === 'string' &&
-                          (statusDef.properties as Record<string, TJS.Definition>)?.body?.type ===
-                            'string'
-                        ? 'text/plain'
-                        : 'application/json');
+                  const resContentType =
+                    ((headersDef?.properties?.['content-type'] as TJS.Definition)
+                      ?.const as string) ??
+                    ((statusDef.properties as Record<string, TJS.Definition>)?.format?.const ===
+                    'formData'
+                      ? 'multipart/form-data'
+                      : (
+                            statusDef.properties as Record<string, TJS.Definition>
+                          )?.body?.$ref?.includes('Blob') ||
+                          (
+                            statusDef.properties as Record<string, TJS.Definition>
+                          )?.body?.$ref?.includes('ArrayBuffer')
+                        ? 'application/octet-stream'
+                        : typeof (statusDef.properties as Record<string, TJS.Definition>)?.body
+                              ?.type === 'string' &&
+                            (statusDef.properties as Record<string, TJS.Definition>)?.body?.type ===
+                              'string'
+                          ? 'text/plain'
+                          : 'application/json');
 
-                return {
-                  ...dict,
-                  [status]: {
+                  const body = (statusDef.properties as Record<string, TJS.Definition>)?.body;
+                  const previous = dict[status]?.content?.[resContentType]?.schema;
+                  const schema =
+                    previous && body ? { anyOf: [...(previous.anyOf ?? [previous]), body] } : body;
+                  const response = {
                     description: '',
-                    content: {
-                      [resContentType]: {
-                        schema: (statusDef.properties as Record<string, TJS.Definition>)?.body,
-                      },
-                    },
+                    content: body
+                      ? { ...dict[status]?.content, [resContentType]: { schema } }
+                      : dict[status]?.content,
                     headers:
                       headersDef?.properties || responseCookies.length > 0
                         ? {
@@ -464,9 +478,38 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
                               : {}),
                           }
                         : undefined,
-                  },
-                };
-              }, {})
+                  };
+                  const prior = dict[status];
+                  if (prior) {
+                    const headers = Object.fromEntries(
+                      [
+                        ...new Set([
+                          ...Object.keys(prior.headers ?? {}),
+                          ...Object.keys(response.headers ?? {}),
+                        ]),
+                      ].map((name) => {
+                        const a = prior.headers?.[name];
+                        const b = (response.headers as Record<string, any> | undefined)?.[name];
+                        return [
+                          name,
+                          {
+                            ...(a ?? b),
+                            schema: a && b ? { anyOf: [a.schema, b.schema] } : (a ?? b).schema,
+                            required: !!(a?.required && b?.required),
+                          },
+                        ];
+                      }),
+                    );
+                    return {
+                      ...dict,
+                      [status]: {
+                        ...response,
+                        headers: Object.keys(headers).length ? headers : undefined,
+                      },
+                    };
+                  }
+                  return { ...dict, [status]: response };
+                }, {})
             : undefined,
         },
       };

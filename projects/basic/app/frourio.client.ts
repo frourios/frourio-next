@@ -21,6 +21,7 @@ import { frourioSpec as frourioSpec_76vmqd } from './api/mw/public/frourio';
 import { frourioSpec as frourioSpec_17yqnk1 } from './api/test-client/frourio';
 import { frourioSpec as frourioSpec_1rqfh40 } from './api/test-client/[userId]/frourio';
 import { frourioSpec as frourioSpec_wkn1x4 } from './api/test-client/cookie/frourio';
+import { frourioSpec as frourioSpec_5bwrha } from './api/test-client/redirect/frourio';
 import { frourioSpec as frourioSpec_1tp1ur6 } from './api/test-client/stream/frourio';
 import { frourioSpec as frourioSpec_1dt6t80 } from './header-only/frourio';
 import { frourioSpec as frourioSpec_11w4uys } from './param-only/[pageNum]/content/frourio';
@@ -269,6 +270,16 @@ export const fc = (option?: FrourioClientOption) => ({
       return [{ lowLevel: true, baseURL: option?.baseURL, dir: '/api/test-client/cookie' }, () => methods_wkn1x4(option).$get(req)];
     },
     ...methods_wkn1x4(option),
+  },
+  'api/test-client/redirect': {
+    $url: $url_5bwrha(option),
+    $build(req?: { init?: RequestInit }): [
+      key: { lowLevel: true; baseURL: FrourioClientOption['baseURL']; dir: string },
+      fetcher: () => Promise<NonNullable<Awaited<ReturnType<ReturnType<typeof methods_5bwrha>['$get']>>>>,
+    ] {
+      return [{ lowLevel: true, baseURL: option?.baseURL, dir: '/api/test-client/redirect' }, () => methods_5bwrha(option).$get(req)];
+    },
+    ...methods_5bwrha(option),
   },
   'api/test-client/stream': {
     $url: $url_1tp1ur6(option),
@@ -959,6 +970,104 @@ export const $fc = (option?: FrourioClientOption) => ({
       return result.data.body;
     },
   },
+  'api/test-client/redirect': {
+    $url: {
+      get(): string {
+        const result = $url_5bwrha(option).get();
+
+        if (!result.isValid) throw result.reason;
+
+        return result.data;
+      },
+      post(): string {
+        const result = $url_5bwrha(option).post();
+
+        if (!result.isValid) throw result.reason;
+
+        return result.data;
+      },
+      put(): string {
+        const result = $url_5bwrha(option).put();
+
+        if (!result.isValid) throw result.reason;
+
+        return result.data;
+      },
+      patch(): string {
+        const result = $url_5bwrha(option).patch();
+
+        if (!result.isValid) throw result.reason;
+
+        return result.data;
+      },
+      delete(): string {
+        const result = $url_5bwrha(option).delete();
+
+        if (!result.isValid) throw result.reason;
+
+        return result.data;
+      },
+      options(): string {
+        const result = $url_5bwrha(option).options();
+
+        if (!result.isValid) throw result.reason;
+
+        return result.data;
+      },
+    },
+    $build(req?: { init?: RequestInit }): [
+      key: { lowLevel: false; baseURL: FrourioClientOption['baseURL']; dir: string },
+      fetcher: () => Promise<z.infer<typeof frourioSpec_5bwrha.get.res[200]['body']> | z.infer<typeof frourioSpec_5bwrha.get.res[301]['dest'][200]['body']>>,
+    ] {
+      return [{ lowLevel: false, baseURL: option?.baseURL, dir: '/api/test-client/redirect' }, () => $fc(option)['api/test-client/redirect'].$get(req)];
+    },
+    async $get(req?: Parameters<ReturnType<typeof methods_5bwrha>['$get']>[0]): Promise<z.infer<typeof frourioSpec_5bwrha.get.res[200]['body']> | z.infer<typeof frourioSpec_5bwrha.get.res[301]['dest'][200]['body']>> {
+      const result = await methods_5bwrha(option).$get(req);
+
+      if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+      if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
+
+      return result.data.body;
+    },
+    async $post(req?: Parameters<ReturnType<typeof methods_5bwrha>['$post']>[0]): Promise<z.infer<typeof frourioSpec_5bwrha.post.res[307]['dest'][201]['body']>> {
+      const result = await methods_5bwrha(option).$post(req);
+
+      if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+      return result.data.body;
+    },
+    async $put(req?: Parameters<ReturnType<typeof methods_5bwrha>['$put']>[0]): Promise<unknown> {
+      const result = await methods_5bwrha(option).$put(req);
+
+      if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+      if (!result.ok) throw new Error(`HTTP Error: ${result.failure.status}`);
+
+      return result.data.body;
+    },
+    async $patch(req?: Parameters<ReturnType<typeof methods_5bwrha>['$patch']>[0]): Promise<void> {
+      const result = await methods_5bwrha(option).$patch(req);
+
+      if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+      return result.data.body;
+    },
+    async $delete(req?: Parameters<ReturnType<typeof methods_5bwrha>['$delete']>[0]): Promise<never> {
+      const result = await methods_5bwrha(option).$delete(req);
+
+      if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+      throw new Error(`HTTP Error: ${result.failure.status}`);
+    },
+    async $options(req?: Parameters<ReturnType<typeof methods_5bwrha>['$options']>[0]): Promise<never> {
+      const result = await methods_5bwrha(option).$options(req);
+
+      if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
+
+      throw new Error(`HTTP Error: ${result.failure.status}`);
+    },
+  },
   'api/test-client/stream': {
     $url: {
       post(): string {
@@ -1449,6 +1558,27 @@ const $url_wkn1x4 = (option?: FrourioClientOption) => ({
   },
   post(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
     return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/test-client/cookie` };
+  },
+});
+
+const $url_5bwrha = (option?: FrourioClientOption) => ({
+  get(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/test-client/redirect` };
+  },
+  post(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/test-client/redirect` };
+  },
+  put(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/test-client/redirect` };
+  },
+  patch(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/test-client/redirect` };
+  },
+  delete(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/test-client/redirect` };
+  },
+  options(): { isValid: true; data: string; reason?: undefined } | { isValid: false, data?: undefined; reason: z.ZodError } {
+    return { isValid: true, data: `${option?.baseURL?.replace(/\/$/, '') ?? ''}/api/test-client/redirect` };
   },
 });
 
@@ -3065,6 +3195,309 @@ const methods_wkn1x4 = (option?: FrourioClientOption) => ({
           ok: false,
           isValid: true,
           failure: { status: 400 },
+          raw: result.res,
+        };
+      }
+      default:
+        return { ok: result.res.ok, raw: result.res, error: new Error(`Unknown status: ${result.res.status}`) };
+    }
+  },
+});
+
+const methods_5bwrha = (option?: FrourioClientOption) => ({
+  async $get(req?: { init?: RequestInit }): Promise<
+    | { ok: true; isValid: true; data: { status: 200; headers?: undefined; body: z.infer<typeof frourioSpec_5bwrha.get.res[200]['body']> } | { status: 200; headers: z.infer<typeof frourioSpec_5bwrha.get.res[301]['dest'][200]['headers']>; body: z.infer<typeof frourioSpec_5bwrha.get.res[301]['dest'][200]['body']> }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: false; isValid: true; data?: undefined; failure: { status: 403; headers?: undefined; body: z.infer<typeof frourioSpec_5bwrha.get.res[301]['dest'][403]['body']> } | { status: 304; headers: z.infer<typeof frourioSpec_5bwrha.get.res[304]['headers']>; body?: undefined }; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
+    | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
+    | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
+    | { ok?: undefined; isValid?: undefined; data?: undefined; failure?: undefined; raw?: undefined; reason?: undefined; error: unknown }
+  > {
+    const url = $url_5bwrha(option).get();
+
+    if (url.reason) return url;
+
+    const fetchFn = option?.fetch ?? fetch;
+    const result: { success: true; res: Response } | { success: false; error: unknown } = await fetchFn(
+      url.data,
+      {
+        method: 'GET',
+        ...option?.init,
+        ...req?.init,
+        headers: { ...option?.init?.headers, ...req?.init?.headers },
+      }
+    ).then(res => ({ success: true, res } as const)).catch(error => ({ success: false, error }));
+
+    if (!result.success) return { error: result.error };
+
+    switch (result.res.status) {
+      case 200: {
+        const candidate0 = await (async () => {
+        const resBody: { success: true; data: unknown } | { success: false; error: unknown } = await result.res.clone().json().then(data => ({ success: true, data } as const)).catch(error => ({ success: false, error }));
+
+        if (!resBody.success) return { ok: true, raw: result.res, error: resBody.error } as const;
+
+        const body = frourioSpec_5bwrha.get.res[200].body.safeParse(resBody.data);
+
+        if (!body.success) return { ok: true, isValid: false, raw: result.res, reason: body.error } as const;
+
+        return {
+          ok: true,
+          isValid: true,
+          data: { status: 200, body: body.data },
+          raw: result.res,
+        } as const;
+        })();
+        if ('isValid' in candidate0 && candidate0.isValid) return candidate0;
+
+        const candidate1 = await (async () => {
+        const headers = frourioSpec_5bwrha.get.res[301]['dest'][200].headers.safeParse(Object.fromEntries(result.res.clone().headers.entries()));
+
+        if (!headers.success) return { ok: true, isValid: false, raw: result.res, reason: headers.error } as const;
+
+        const resBody: { success: true; data: unknown } | { success: false; error: unknown } = await result.res.clone().json().then(data => ({ success: true, data } as const)).catch(error => ({ success: false, error }));
+
+        if (!resBody.success) return { ok: true, raw: result.res, error: resBody.error } as const;
+
+        const body = frourioSpec_5bwrha.get.res[301]['dest'][200].body.safeParse(resBody.data);
+
+        if (!body.success) return { ok: true, isValid: false, raw: result.res, reason: body.error } as const;
+
+        return {
+          ok: true,
+          isValid: true,
+          data: { status: 200, headers: headers.data, body: body.data },
+          raw: result.res,
+        } as const;
+        })();
+        return candidate1;
+
+      }
+      case 304: {
+        const headers = frourioSpec_5bwrha.get.res[304].headers.safeParse(Object.fromEntries(result.res.headers.entries()));
+
+        if (!headers.success) return { ok: false, isValid: false, raw: result.res, reason: headers.error };
+
+        return {
+          ok: false,
+          isValid: true,
+          failure: { status: 304, headers: headers.data },
+          raw: result.res,
+        };
+      }
+      case 403: {
+        const resBody: { success: true; data: unknown } | { success: false; error: unknown } = await result.res.json().then(data => ({ success: true, data } as const)).catch(error => ({ success: false, error }));
+
+        if (!resBody.success) return { ok: false, raw: result.res, error: resBody.error };
+
+        const body = frourioSpec_5bwrha.get.res[301]['dest'][403].body.safeParse(resBody.data);
+
+        if (!body.success) return { ok: false, isValid: false, raw: result.res, reason: body.error };
+
+        return {
+          ok: false,
+          isValid: true,
+          failure: { status: 403, body: body.data },
+          raw: result.res,
+        };
+      }
+      default:
+        return { ok: result.res.ok, raw: result.res, error: new Error(`Unknown status: ${result.res.status}`) };
+    }
+  },
+  async $post(req?: { init?: RequestInit }): Promise<
+    | { ok: true; isValid: true; data: { status: 201; headers?: undefined; body: z.infer<typeof frourioSpec_5bwrha.post.res[307]['dest'][201]['body']> }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
+    | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
+    | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
+    | { ok?: undefined; isValid?: undefined; data?: undefined; failure?: undefined; raw?: undefined; reason?: undefined; error: unknown }
+  > {
+    const url = $url_5bwrha(option).post();
+
+    if (url.reason) return url;
+
+    const fetchFn = option?.fetch ?? fetch;
+    const result: { success: true; res: Response } | { success: false; error: unknown } = await fetchFn(
+      url.data,
+      {
+        method: 'POST',
+        ...option?.init,
+        ...req?.init,
+        headers: { ...option?.init?.headers, ...req?.init?.headers },
+      }
+    ).then(res => ({ success: true, res } as const)).catch(error => ({ success: false, error }));
+
+    if (!result.success) return { error: result.error };
+
+    switch (result.res.status) {
+      case 201: {
+        const resBody: { success: true; data: unknown } | { success: false; error: unknown } = await result.res.json().then(data => ({ success: true, data } as const)).catch(error => ({ success: false, error }));
+
+        if (!resBody.success) return { ok: true, raw: result.res, error: resBody.error };
+
+        const body = frourioSpec_5bwrha.post.res[307]['dest'][201].body.safeParse(resBody.data);
+
+        if (!body.success) return { ok: true, isValid: false, raw: result.res, reason: body.error };
+
+        return {
+          ok: true,
+          isValid: true,
+          data: { status: 201, body: body.data },
+          raw: result.res,
+        };
+      }
+      default:
+        return { ok: result.res.ok, raw: result.res, error: new Error(`Unknown status: ${result.res.status}`) };
+    }
+  },
+  async $put(req?: { init?: RequestInit }): Promise<
+    | { ok: true; isValid: true; data: { status: number; body: unknown }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: false; isValid: true; data?: undefined; failure: { status: number; body: unknown }; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
+    | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
+    | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
+    | { ok?: undefined; isValid?: undefined; data?: undefined; failure?: undefined; raw?: undefined; reason?: undefined; error: unknown }
+  > {
+    const url = $url_5bwrha(option).put();
+
+    if (url.reason) return url;
+
+    const fetchFn = option?.fetch ?? fetch;
+    const result: { success: true; res: Response } | { success: false; error: unknown } = await fetchFn(
+      url.data,
+      {
+        method: 'PUT',
+        ...option?.init,
+        ...req?.init,
+        headers: { ...option?.init?.headers, ...req?.init?.headers },
+      }
+    ).then(res => ({ success: true, res } as const)).catch(error => ({ success: false, error }));
+
+    if (!result.success) return { error: result.error };
+
+    const body: unknown = [204, 205, 304].includes(result.res.status) || false ? undefined : await result.res.text().then(text => { try { return JSON.parse(text); } catch { return text; } });
+    return result.res.ok ? { ok: true, isValid: true, data: { status: result.res.status, body }, raw: result.res } : { ok: false, isValid: true, failure: { status: result.res.status, body }, raw: result.res };
+  },
+  async $patch(req?: { init?: RequestInit }): Promise<
+    | { ok: true; isValid: true; data: { status: 204; headers?: undefined; body?: undefined }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
+    | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
+    | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
+    | { ok?: undefined; isValid?: undefined; data?: undefined; failure?: undefined; raw?: undefined; reason?: undefined; error: unknown }
+  > {
+    const url = $url_5bwrha(option).patch();
+
+    if (url.reason) return url;
+
+    const fetchFn = option?.fetch ?? fetch;
+    const result: { success: true; res: Response } | { success: false; error: unknown } = await fetchFn(
+      url.data,
+      {
+        method: 'PATCH',
+        ...option?.init,
+        ...req?.init,
+        headers: { ...option?.init?.headers, ...req?.init?.headers },
+      }
+    ).then(res => ({ success: true, res } as const)).catch(error => ({ success: false, error }));
+
+    if (!result.success) return { error: result.error };
+
+    switch (result.res.status) {
+      case 204: {
+        return {
+          ok: true,
+          isValid: true,
+          data: { status: 204 },
+          raw: result.res,
+        };
+      }
+      default:
+        return { ok: result.res.ok, raw: result.res, error: new Error(`Unknown status: ${result.res.status}`) };
+    }
+  },
+  async $delete(req?: { init?: RequestInit }): Promise<
+    | { ok: false; isValid: true; data?: undefined; failure: { status: 403; headers?: undefined; body: z.infer<typeof frourioSpec_5bwrha.delete.res[303]['dest'][403]['body']> }; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
+    | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
+    | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
+    | { ok?: undefined; isValid?: undefined; data?: undefined; failure?: undefined; raw?: undefined; reason?: undefined; error: unknown }
+  > {
+    const url = $url_5bwrha(option).delete();
+
+    if (url.reason) return url;
+
+    const fetchFn = option?.fetch ?? fetch;
+    const result: { success: true; res: Response } | { success: false; error: unknown } = await fetchFn(
+      url.data,
+      {
+        method: 'DELETE',
+        ...option?.init,
+        ...req?.init,
+        headers: { ...option?.init?.headers, ...req?.init?.headers },
+      }
+    ).then(res => ({ success: true, res } as const)).catch(error => ({ success: false, error }));
+
+    if (!result.success) return { error: result.error };
+
+    switch (result.res.status) {
+      case 403: {
+        const resBody: { success: true; data: unknown } | { success: false; error: unknown } = await result.res.json().then(data => ({ success: true, data } as const)).catch(error => ({ success: false, error }));
+
+        if (!resBody.success) return { ok: false, raw: result.res, error: resBody.error };
+
+        const body = frourioSpec_5bwrha.delete.res[303]['dest'][403].body.safeParse(resBody.data);
+
+        if (!body.success) return { ok: false, isValid: false, raw: result.res, reason: body.error };
+
+        return {
+          ok: false,
+          isValid: true,
+          failure: { status: 403, body: body.data },
+          raw: result.res,
+        };
+      }
+      default:
+        return { ok: result.res.ok, raw: result.res, error: new Error(`Unknown status: ${result.res.status}`) };
+    }
+  },
+  async $options(req?: { init?: RequestInit }): Promise<
+    | { ok: false; isValid: true; data?: undefined; failure: { status: 300; headers?: undefined; body: z.infer<typeof frourioSpec_5bwrha.options.res[300]['body']> }; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
+    | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
+    | { ok?: undefined; isValid: false; data?: undefined; failure?: undefined; raw?: undefined; reason: z.ZodError; error?: undefined }
+    | { ok?: undefined; isValid?: undefined; data?: undefined; failure?: undefined; raw?: undefined; reason?: undefined; error: unknown }
+  > {
+    const url = $url_5bwrha(option).options();
+
+    if (url.reason) return url;
+
+    const fetchFn = option?.fetch ?? fetch;
+    const result: { success: true; res: Response } | { success: false; error: unknown } = await fetchFn(
+      url.data,
+      {
+        method: 'OPTIONS',
+        ...option?.init,
+        ...req?.init,
+        headers: { ...option?.init?.headers, ...req?.init?.headers },
+      }
+    ).then(res => ({ success: true, res } as const)).catch(error => ({ success: false, error }));
+
+    if (!result.success) return { error: result.error };
+
+    switch (result.res.status) {
+      case 300: {
+        const resBody: { success: true; data: unknown } | { success: false; error: unknown } = await result.res.json().then(data => ({ success: true, data } as const)).catch(error => ({ success: false, error }));
+
+        if (!resBody.success) return { ok: false, raw: result.res, error: resBody.error };
+
+        const body = frourioSpec_5bwrha.options.res[300].body.safeParse(resBody.data);
+
+        if (!body.success) return { ok: false, isValid: false, raw: result.res, reason: body.error };
+
+        return {
+          ok: false,
+          isValid: true,
+          failure: { status: 300, body: body.data },
           raw: result.res,
         };
       }

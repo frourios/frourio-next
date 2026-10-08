@@ -259,6 +259,39 @@ export const { POST } = createRoute({
 
 The generated server validates each value, applies the declared options, and deletes the declared cookies automatically. Invalid response cookies return 500. Optional values that parse to `undefined` are skipped; numbers and booleans are serialized as strings. A response that only deletes cookies needs no `cookies` return property. OpenAPI documents response cookies as a `Set-Cookie` header with an array of example header values inferred from the spec's types. Use `as const` on options to preserve literal strings and numbers in those examples. Computed values such as dates use representative examples.
 
+### Redirect and Cache Responses
+
+Declare 3xx responses in `res`. For redirects (301, 302, 303, 307, 308), `dest` describes the final response received after following redirects:
+
+```typescript
+export const frourioSpec = {
+  get: {
+    res: {
+      301: {
+        headers: z.object({ location: z.string() }),
+        dest: {
+          200: { body: z.object({ name: z.string() }) },
+          403: { body: z.object({ message: z.string() }) },
+        },
+      },
+      304: { headers: z.object({ etag: z.string() }) },
+    },
+  },
+} satisfies FrourioSpec;
+
+export const { GET } = createRoute({
+  async get() {
+    return { status: 301, headers: { location: '/users/me' } };
+  },
+});
+```
+
+The server validates the original response; the client validates the final response against `dest`. OpenAPI replaces the redirect with its destination responses. If multiple responses share a status, their body schemas are combined with `anyOf` and their client types form a union. `dest` does not change the request method or fetch's redirect behavior and cannot be nested.
+
+If any redirect lacks `dest`, the client body type for the entire operation is `unknown`, and response schema validation is skipped. The client parses JSON when possible and otherwise returns text. OpenAPI retains that redirect status. The low-level `fc` still exposes status and raw response; `$fc` throws for non-2xx responses.
+
+304 can be declared on GET/HEAD and cannot have a body. 300 may have a body and does not support `dest`.
+
 ### 4. Initialize and Use the Type-Safe Client
 
 FrourioNext generates `frourio.client.ts` files only for endpoints that define HTTP methods (GET, POST, etc.), which export client functions (`fc` and `$fc`). It's best practice to initialize a central client instance. Endpoints that only define middleware will not have client code generated.
