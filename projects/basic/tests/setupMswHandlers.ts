@@ -18,6 +18,7 @@ import * as route_n3it2j from '../app/api/mw/admin/route';
 import * as route_gye2fo from '../app/api/mw/admin/users/route';
 import * as route_1xw72ki from '../app/api/mw/admin/users-copy/route';
 import * as route_76vmqd from '../app/api/mw/public/route';
+import * as route_1hegnn from '../app/api/optional-request/route';
 import * as route_17yqnk1 from '../app/api/test-client/route';
 import * as route_1rqfh40 from '../app/api/test-client/[userId]/route';
 import * as route_wkn1x4 from '../app/api/test-client/cookie/route';
@@ -131,6 +132,12 @@ export function setupMswHandlers(option?: { baseURL: string }): RequestHandler[]
     }),
     http.get(`${baseURL}/api/mw/public`, ({ request }) => {
       return route_76vmqd.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
+    }),
+    http.get(`${baseURL}/api/optional-request`, ({ request }) => {
+      return route_1hegnn.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);
+    }),
+    http.post(`${baseURL}/api/optional-request`, ({ request }) => {
+      return route_1hegnn.POST(patchDuplicateCookie(request)).then(toMswResponseForCookie);
     }),
     http.get(`${baseURL}/api/test-client`, ({ request }) => {
       return route_17yqnk1.GET(patchDuplicateCookie(request)).then(toMswResponseForCookie);

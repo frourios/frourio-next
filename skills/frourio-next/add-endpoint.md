@@ -257,3 +257,7 @@ The controller returns the redirect status, headers, and any declared body/cooki
 If any redirect response lacks `dest`, the operation's client body type is `unknown`, including for directly declared 2xx responses. Such a client parses JSON when possible, otherwise returns text, without response schema validation. OpenAPI retains the original redirect response. HTTP failures still throw in `$fc`, while `fc` exposes them as failures. `dest` describes the final response, cannot contain nested `dest`, and does not change fetch redirect behavior. Overriding `redirect` to `manual` or `error` does not produce the declared destination response.
 
 304 is declared only on GET/HEAD, permits headers/cookies, and prohibits a body. 300 can have a body but has no `dest`.
+
+### Optional request objects
+
+Fixed-key `z.object({...}).optional()` on request `cookies`, `headers`, or `query` skips validation and omits the handler argument property if no declared key is present. One present key triggers full validation; missing required fields still return 422. Empty values count as present and header names are case insensitive. The same rule applies to middleware. Generated clients allow optional headers/query to be omitted. Arbitrary-key record/passthrough/catchall schemas are outside this behavior.

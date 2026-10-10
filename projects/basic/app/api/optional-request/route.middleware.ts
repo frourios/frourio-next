@@ -1,0 +1,3 @@
+import { createMiddleware } from './frourio.middleware';
+
+export const middleware = createMiddleware(async ({ next }) => next());

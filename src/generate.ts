@@ -28,13 +28,18 @@ export type HasParamsDict = Record<string, boolean>;
 
 export type MiddlewareDict = Record<
   string,
-  ({ hasCtx: boolean } & Pick<MethodInfo, 'hasHeaders' | 'hasCookies' | 'query'>) | undefined
+  | ({ hasCtx: boolean } & Pick<
+      MethodInfo,
+      'hasHeaders' | 'hasCookies' | 'query' | 'optionalRequestKeys'
+    >)
+  | undefined
 >;
 
 export type MethodInfo = {
   name: string;
   hasHeaders: boolean;
   hasCookies: boolean;
+  optionalRequestKeys?: Partial<Record<'headers' | 'cookies' | 'query', string[]>>;
   query: { isOptional: boolean; props: PropOption[] } | null;
   body:
     | { isFormData: true; isUrlEncoded: false; data: PropOption[] }
@@ -301,13 +306,30 @@ export const generate = async ({ appDir, basePath }: Config): Promise<void> => {
 const getRequestInfo = (
   checker: ts.TypeChecker,
   props: ts.Symbol[],
-): Pick<MethodInfo, 'hasHeaders' | 'hasCookies' | 'query'> => {
+): Pick<MethodInfo, 'hasHeaders' | 'hasCookies' | 'query' | 'optionalRequestKeys'> => {
   const querySymbol = props.find((p) => p.getName() === 'query');
   const queryZodType = querySymbol ? inferZodType(checker, querySymbol) : null;
   const zodType =
     queryZodType?.valueDeclaration &&
     checker.getTypeOfSymbolAtLocation(queryZodType, queryZodType.valueDeclaration);
+  const optionalRequestKeys: Partial<Record<'headers' | 'cookies' | 'query', string[]>> = {};
+  for (const name of ['headers', 'cookies', 'query'] as const) {
+    const symbol = props.find((p) => p.getName() === name);
+    const output = symbol && inferZodType(checker, symbol);
+    const type =
+      output?.valueDeclaration &&
+      checker.getTypeOfSymbolAtLocation(output, output.valueDeclaration);
+    if (type?.isUnion() && type.types.some((t) => t.flags & ts.TypeFlags.Undefined)) {
+      const object = checker.getNonNullableType(type);
+      if (
+        (object.flags & ts.TypeFlags.Object) !== 0 &&
+        checker.getIndexInfosOfType(object).length === 0
+      )
+        optionalRequestKeys[name] = object.getProperties().map((p) => p.getName());
+    }
+  }
   return {
+    optionalRequestKeys,
     hasHeaders: props.some((p) => p.getName() === 'headers'),
     hasCookies: props.some((p) => p.getName() === 'cookies'),
     query: queryZodType

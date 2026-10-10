@@ -144,7 +144,7 @@ const generateMiddlewareServer = (
         : undefined,
     `type MiddlewareFn = (
   args: {
-    req: NextRequest | Request,${requests.map(([name]) => `\n    ${name}: z.infer<typeof frourioSpec.middleware.${name}>,`).join('')}${params ? '\n    params: ParamsType,' : ''}
+    req: NextRequest | Request,${requests.map(([name]) => `\n    ${name}${middleware.current?.optionalRequestKeys?.[name as 'headers' | 'cookies' | 'query'] ? '?' : ''}: z.infer<typeof frourioSpec.middleware.${name}>,`).join('')}${params ? '\n    params: ParamsType,' : ''}
     next: (${middleware.current?.hasCtx ? 'ctx: z.infer<typeof frourioSpec.middleware.context>' : ''}) => Promise<NextResponse>,
   },${middleware.ancestorCtx ? '\n  ctx: AncestorContextType,' : ''}
 ) => Promise<NextResponse>`,
@@ -173,7 +173,7 @@ const generateMiddlewareServer = (
   }
 ${requests.map(([name, parser]) => `${name === 'query' ? '\n    const url = new URL(req.url);' : ''}\n    const ${name} = ${parser};\n    if (${name}.error) return createReqErr(${name}.error);\n`).join('')}    return await middlewareFn(
       {
-        req,${requests.map(([name]) => `\n        ${name}: ${name}.data,`).join('')}${params ? '\n        params: params.data,' : ''}
+        req,${requests.map(([name]) => `\n        ${middleware.current?.optionalRequestKeys?.[name as 'headers' | 'cookies' | 'query'] ? `...(${name}.data === undefined ? {} : { ${name}: ${name}.data }),` : `${name}: ${name}.data,`}`).join('')}${params ? '\n        params: params.data,' : ''}
         next: async (${middleware.current?.hasCtx ? ' context' : ''}) => {
 ${
   middleware.current?.hasCtx
@@ -288,10 +288,14 @@ const generateServer = (
         (m) =>
           `\n  ${m.name}: (
     req: {${params ? '\n      params: ParamsType;' : ''}${
-      m.hasHeaders ? `\n      headers: z.infer<SpecType['${m.name}']['headers']>;` : ''
+      m.hasHeaders
+        ? `\n      headers${m.optionalRequestKeys?.headers ? '?' : ''}: z.infer<SpecType['${m.name}']['headers']>;`
+        : ''
     }${
-      m.hasCookies ? `\n      cookies: z.infer<SpecType['${m.name}']['cookies']>;` : ''
-    }${m.query ? `\n      query: z.infer<SpecType['${m.name}']['query']>;` : ''}${
+      m.hasCookies
+        ? `\n      cookies${m.optionalRequestKeys?.cookies ? '?' : ''}: z.infer<SpecType['${m.name}']['cookies']>;`
+        : ''
+    }${m.query ? `\n      query${m.optionalRequestKeys?.query ? '?' : ''}: z.infer<SpecType['${m.name}']['query']>;` : ''}${
       m.body ? `\n      body: z.infer<SpecType['${m.name}']['body']>;` : ''
     }
     },${middleware.ancestorCtx || middleware.current?.hasCtx ? '\n    ctx: ContextType,' : ''}
@@ -425,7 +429,11 @@ ${m.body.data
       )
       .join('')}
       const res = await controller.${m.name}({ ${[
-        ...requests.map((r) => `${r[0]}: ${r[0]}.data`),
+        ...requests.map(([name]) =>
+          m.optionalRequestKeys?.[name as 'headers' | 'cookies' | 'query']
+            ? `...(${name}.data === undefined ? {} : { ${name}: ${name}.data })`
+            : `${name}: ${name}.data`,
+        ),
         ...(params ? ['params'] : []),
       ].join(', ')} }${middleware.ancestorCtx || middleware.current?.hasCtx ? ', ctx' : ''});
 
@@ -659,7 +667,7 @@ const parseCookieHeaderText = `const parseCookieHeader = (header: string | null)
 }`;
 
 const requestParsers = (
-  info: Pick<MethodInfo, 'hasHeaders' | 'hasCookies' | 'query'>,
+  info: Pick<MethodInfo, 'hasHeaders' | 'hasCookies' | 'query' | 'optionalRequestKeys'>,
   name: string,
 ) =>
   [
@@ -684,7 +692,26 @@ ${info.query.props
   .join('\n')}
       })`,
     ],
-  ].filter((r): r is string[] => !!r);
+  ]
+    .filter((r): r is string[] => !!r)
+    .map(([key, parser]) => {
+      const keys = info.optionalRequestKeys?.[key as 'headers' | 'cookies' | 'query'];
+      if (!keys) return [key, parser];
+      const present =
+        key === 'headers'
+          ? 'req.headers.has(key)'
+          : key === 'cookies'
+            ? "Object.hasOwn(parseCookieHeader(req.headers.get('cookie')), key)"
+            : 'url.searchParams.has(key)';
+      const expression =
+        key === 'headers'
+          ? `frourioSpec.${name}.headers.safeParse(Object.fromEntries([...req.headers].map(([key, value]) => [${JSON.stringify(keys)}.find(name => name.toLowerCase() === key) ?? key, value])))`
+          : parser;
+      return [
+        key,
+        `${JSON.stringify(keys)}.some(key => ${present}) ? ${expression} : { data: undefined, error: undefined }`,
+      ];
+    });
 
 const queryHelpers = (query: MethodInfo['query']) =>
   [

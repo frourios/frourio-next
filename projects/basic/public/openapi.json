@@ -744,6 +744,79 @@
         }
       }
     },
+    "/api/optional-request": {
+      "get": {
+        "parameters": [
+          {
+            "name": "count",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "X-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-user",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "session",
+            "in": "cookie",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user",
+            "in": "cookie",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/r9acjj"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/test-client": {
       "get": {
         "parameters": [
@@ -2040,6 +2113,79 @@
           "message"
         ]
       },
+      "nefzt3": {
+        "type": "object",
+        "properties": {
+          "X-Token": {
+            "type": "string"
+          },
+          "x-user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "X-Token",
+          "x-user"
+        ]
+      },
+      "1gvy44": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "session",
+          "user"
+        ]
+      },
+      "1cnb7pp": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "active",
+          "count"
+        ]
+      },
+      "14mishe": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/r9acjj"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "r9acjj": {
+        "type": "object",
+        "properties": {
+          "headers": {
+            "$ref": "#/components/schemas/nefzt3"
+          },
+          "cookies": {
+            "$ref": "#/components/schemas/1gvy44"
+          },
+          "query": {
+            "$ref": "#/components/schemas/1cnb7pp"
+          }
+        }
+      },
+      "1n9hrn1": {
+        "type": "object"
+      },
       "l4759l": {
         "type": "object",
         "properties": {
@@ -2327,7 +2473,7 @@
           "message"
         ]
       },
-      "1n9hrn1": {
+      "1mfiyk4": {
         "type": "object"
       },
       "1p0mlx6": {
@@ -2594,7 +2740,7 @@
           "options"
         ]
       },
-      "1mfiyk4": {
+      "1mpik93": {
         "type": "object"
       },
       "10dlplq": {
@@ -2889,14 +3035,14 @@
         "type": "object",
         "properties": {
           "204": {
-            "$ref": "#/components/schemas/1mpik93"
+            "$ref": "#/components/schemas/1lvjr66"
           }
         },
         "required": [
           "204"
         ]
       },
-      "1mpik93": {
+      "1lvjr66": {
         "type": "object"
       },
       "cf7lgr": {

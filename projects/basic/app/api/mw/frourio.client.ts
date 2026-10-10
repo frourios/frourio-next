@@ -129,7 +129,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       return [{ lowLevel: false, baseURL: option?.baseURL, dir: '/api/mw/admin/users', ...rest }, () => $fc(option)['admin/users'].$get(req)];
     },
-    async $get(req: Parameters<ReturnType<typeof methods_gye2fo>['$get']>[0]): Promise<z.infer<typeof frourioSpec_gye2fo.get.res[200]['body']>> {
+    async $get(req?: Parameters<ReturnType<typeof methods_gye2fo>['$get']>[0]): Promise<z.infer<typeof frourioSpec_gye2fo.get.res[200]['body']>> {
       const result = await methods_gye2fo(option).$get(req);
 
       if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
@@ -159,7 +159,7 @@ export const $fc = (option?: FrourioClientOption) => ({
 
       return [{ lowLevel: false, baseURL: option?.baseURL, dir: '/api/mw/admin/users-copy', ...rest }, () => $fc(option)['admin/users-copy'].$get(req)];
     },
-    async $get(req: Parameters<ReturnType<typeof methods_1xw72ki>['$get']>[0]): Promise<z.infer<typeof frourioSpec_1xw72ki.get.res[200]['body']>> {
+    async $get(req?: Parameters<ReturnType<typeof methods_1xw72ki>['$get']>[0]): Promise<z.infer<typeof frourioSpec_1xw72ki.get.res[200]['body']>> {
       const result = await methods_1xw72ki(option).$get(req);
 
       if (!result.isValid) throw result.isValid === false ? result.reason : result.error;
