@@ -422,3 +422,5 @@ type Result =
 - MSW handlers run in Node.js via `setupServer` (not browser service worker)
 - `server.resetHandlers()` in `afterEach` reverts any `server.use()` overrides back to auto-generated handlers
 - Auto-generated `frourio.server.ts`, `frourio.client.ts`, `setupMswHandlers.ts` must not be edited manually
+
+For response cookies, return command objects for both set and delete. Test dynamic option overrides while checking that non-overridden spec defaults remain intact. Required cookies must be returned; test omissions/wrong commands return 500 with no Set-Cookie. Declare `required: false` for conditional commands and verify omitted commands do nothing. OpenAPI cookie metadata lives in `x-frourio-cookies`, not response headers.

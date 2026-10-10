@@ -247,17 +247,23 @@ res: {
 },
 ```
 
-The controller returns only values for cookies with `command: 'set'`:
+The controller returns explicit cookie commands:
 
 ```typescript
 export const { POST } = createRoute({
   async post() {
-    return { status: 200, cookies: { session: 'session-token' } };
+    return {
+      status: 200,
+      cookies: {
+        session: { command: 'set', value: 'session-token' },
+        oldSession: { command: 'delete' },
+      },
+    };
   },
 });
 ```
 
-The generated server validates each value, applies the declared options, and deletes the declared cookies automatically. Invalid response cookies return 500. Optional values that parse to `undefined` are skipped; numbers and booleans are serialized as strings. A response that only deletes cookies needs no `cookies` return property. OpenAPI documents response cookies as a `Set-Cookie` header with an array of example header values inferred from the spec's types. Use `as const` on options to preserve literal strings and numbers in those examples. Computed values such as dates use representative examples.
+The generated server validates each value, applies the declared options, and executes the returned cookie commands. Invalid response cookies return 500. Set command values that parse to `undefined` are skipped; numbers and booleans are serialized as strings. Deletion commands must also be returned explicitly. Cookies are required unless the spec declares `required: false`; only `false` is allowed. If every cookie is optional, the `cookies` property itself may be omitted. OpenAPI documents response cookies as a `Set-Cookie` header with an array of example header values inferred from the spec's types. Spec options are defaults merged as `{ ...specOptions, ...handlerOptions }`. Handler options use Next.js types and may override these defaults dynamically. OpenAPI adds `x-frourio-cookies` metadata with each cookie's command and required flag; this is document metadata, not an HTTP header. Use `as const` on options to preserve literal strings and numbers in those examples. Computed values such as dates use representative examples.
 
 ### Redirect and Cache Responses
 

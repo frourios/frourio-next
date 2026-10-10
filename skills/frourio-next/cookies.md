@@ -56,20 +56,27 @@ export const { GET, POST, DELETE } = createRoute({
     return { status: 200, body: { theme: cookies.theme ?? 'light' } };
   },
   async post({ body }) {
-    return { status: 200, cookies: { theme: body.theme } };
+    return {
+      status: 200,
+      cookies: { theme: { command: 'set', value: body.theme }, oldTheme: { command: 'delete' } },
+    };
   },
   async delete() {
-    return { status: 204 };
+    return { status: 204, cookies: { theme: { command: 'delete' } } };
   },
 });
 ```
 
-The controller returns only the values for `set` commands. The generated server validates them and applies the options and deletion commands for the returned status. Do not return commands, options, or values for `delete` entries. A response containing only deletions needs no `cookies` return property. Declare cookie operations for each response status that needs them.
+Return `{ command: 'set', value, options? }` or `{ command: 'delete', options? }` for each declared cookie. Cookie names, commands, and value types must match the spec. Cookies are required by default, including deletions; declare `required: false` in the spec for a cookie that may be omitted. Only literal `false` is accepted. If all cookies are optional, the entire `cookies` return property may be omitted. An omitted optional cookie performs no operation.
 
-Optional value schemas produce optional properties in the returned `cookies` object. A value that parses to `undefined` sends no cookie; it does not delete an existing cookie. Numbers and booleans are validated before being serialized as strings, and Zod transformations apply before serialization. Invalid response values return 500 with no cookies from the response spec applied.
+Spec options are defaults. Effective options are `{ ...specOptions, ...handlerOptions }`; runtime handler options use the Next.js argument types for their command, so default literal values do not restrict overrides. Delete options exclude `expires`, just as Next.js does. Mandatory cookie omissions, incorrect commands, and invalid values return 500 before any declared cookie is applied.
+
+An optional Zod value allows `value: undefined` inside a set command and is separate from `required: false`. Values parsing to `undefined` send no cookie. Numbers and booleans serialize as strings and Zod transformations apply before serialization.
 
 ## Clients and OpenAPI
 
 The generated client has no `cookies` request argument or parsed response cookies property. Browser clients send and receive cookies through Fetch, using `init: { credentials: 'include' }` when needed. Browsers do not expose `Set-Cookie` to JavaScript, and `httpOnly` cookies cannot be read through `document.cookie`. For Node.js tests, call the route handler directly and inspect `res.cookies` or `res.headers.getSetCookie()`. Read [testing.md](testing.md) for test patterns.
 
 For method-level schemas, OpenAPI emits request cookies as `in: cookie` parameters and response cookies as a `Set-Cookie` header with an array of example header values. Each array entry represents a separate header. Examples use the spec's inferred types: literal and enum values are preserved, while broad types and computed dates use representative values. Use `as const` on options when examples should retain literal strings and numbers. Regenerate with `npx frourio-next-openapi` after changing the spec.
+
+OpenAPI responses include `x-frourio-cookies`, an extension mapping cookie names to `command` and `required`. This is specification metadata only, never a response header. Set-Cookie examples use spec defaults and representative values; dynamic handler option overrides are not encoded in the document.

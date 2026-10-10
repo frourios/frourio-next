@@ -80,10 +80,24 @@ type FrourioResponse = {
     dest?: Status extends `${RedirectStatus}` ? FrourioDestination : never;
     cookies?: Record<
       string,
-      | { command: 'set'; value: z.ZodType; options?: CookieOptions<'set'> }
-      | { command: 'delete'; options?: CookieOptions<'delete'> }
+      | { command: 'set'; value: z.ZodType; options?: CookieOptions<'set'>; required?: false }
+      | { command: 'delete'; options?: CookieOptions<'delete'>; required?: false }
     >;
   };
+};
+
+type ResponseCookieCommand<T> = T extends { command: 'set'; value: z.ZodType }
+  ? { command: 'set'; value: z.infer<T['value']>; options?: CookieOptions<'set'> }
+  : { command: 'delete'; options?: CookieOptions<'delete'> };
+
+export type FrourioResponseCookies<T> = {
+  [Name in keyof T as T[Name] extends { required: false } ? never : Name]: ResponseCookieCommand<
+    T[Name]
+  >;
+} & {
+  [Name in keyof T as T[Name] extends { required: false } ? Name : never]?: ResponseCookieCommand<
+    T[Name]
+  >;
 };
 
 type FrourioDestination = {
@@ -97,7 +111,7 @@ type MethodProps = {
   res?: FrourioResponse;
 };
 
-type FrourioSpec = {
+export type FrourioSpec = {
   param?: z.ZodType;
   middleware?:
     true | { context?: z.ZodType; cookies?: z.ZodType; headers?: z.ZodType; query?: z.ZodType };
@@ -203,14 +217,14 @@ When middleware exists, `ctx` is passed as the second argument.
 
 #### Returning responses
 
-The returned object requires `status`. If the status has `body` or `headers` defined, those are also required. For response cookies, return a `cookies` object containing only the `set` values; options and `delete` commands are applied automatically:
+The returned object requires `status`. If the status has `body` or `headers` defined, those are also required. For response cookies, return explicit set/delete command objects. Cookie names and commands match the spec; handler options override spec defaults. Every cookie is required unless declared with `required: false`.
 
 ```typescript
 // body + headers
 return { status: 201, body: { id: 1 }, headers: { 'X-Request-Id': 'request-1' } };
 
-// set cookies values; declare commands and options in frourio.ts
-return { status: 200, cookies: { session: 'token' } };
+// Return the command and value; options may override spec defaults
+return { status: 200, cookies: { session: { command: 'set', value: 'token' } } };
 
 // body only
 return { status: 200, body: { data: items } };

@@ -1,5 +1,11 @@
 import path from 'path';
-import { MIDDLEWARE_FILE, MIDDLEWARE_SERVER_FILE, PARAMS_FILE, SERVER_FILE } from './constants.js';
+import {
+  MIDDLEWARE_FILE,
+  MIDDLEWARE_SERVER_FILE,
+  PACKAGE_NAME,
+  PARAMS_FILE,
+  SERVER_FILE,
+} from './constants.js';
 import type { DirSpec, MethodInfo, MiddlewareDict } from './generate.js';
 import type { ParamsInfo } from './paramsUtil.js';
 import { paramsToText, pathToParams } from './paramsUtil.js';
@@ -246,6 +252,8 @@ const generateServer = (
   const imports: string[] = [
     "import { type NextRequest, NextResponse } from 'next/server'",
     "import type { z } from 'zod'",
+    methods.some((m) => m.res?.some((r) => r.cookies.length > 0)) &&
+      `import type { FrourioResponseCookies } from '${PACKAGE_NAME}'`,
     hasLocalParamsFile &&
       !middleware.current &&
       `import { paramsSchema } from './${paramsImportPath}'`,
@@ -310,16 +318,8 @@ const generateServer = (
             ? `\n        headers: z.infer<SpecType['${m.name}']['res'][${r.status}]['headers']>;`
             : ''
         }${
-          r.cookies.some((c) => c.command === 'set')
-            ? `\n        cookies: z.infer<z.ZodObject<{
-${r.cookies
-  .filter((c) => c.command === 'set')
-  .map(
-    (c) =>
-      `          ${JSON.stringify(c.name)}: SpecType['${m.name}']['res'][${r.status}]['cookies'][${JSON.stringify(c.name)}]['value'];`,
-  )
-  .join('\n')}
-        }>>;`
+          r.cookies.length > 0
+            ? `\n        cookies${r.cookies.every((c) => c.isOptional) ? '?' : ''}: FrourioResponseCookies<SpecType['${m.name}']['res'][${r.status}]['cookies']>;`
             : ''
         }${r.body ? `\n        body: z.infer<SpecType['${m.name}']['res'][${r.status}]['body']>;` : ''}
       }`,
@@ -450,12 +450,16 @@ ${m.res
           `\n          const ${t} = frourioSpec.${m.name}.res[${r.status}].${t}.safeParse(res.${t});\n\n          if (${t}.error) return createResErr();\n`,
       )
       .join('')}${r.cookies
-      .filter((c) => c.command === 'set')
       .map(
         (c, i) => `
-          const cookies${i} = frourioSpec.${m.name}.res[${r.status}].cookies[${JSON.stringify(c.name)}].value.safeParse(res.cookies?.[${JSON.stringify(c.name)}]);
-
-          if (cookies${i}.error) return createResErr();
+          const cookie${i} = res.cookies?.[${JSON.stringify(c.name)}];
+          if (${c.isOptional ? `cookie${i} !== undefined && ` : ''}(!cookie${i} || cookie${i}.command !== '${c.command}')) return createResErr();
+${
+  c.command === 'set'
+    ? `          const cookies${i} = cookie${i} === undefined ? undefined : frourioSpec.${m.name}.res[${r.status}].cookies[${JSON.stringify(c.name)}].value.safeParse(cookie${i}.value);
+          if (cookies${i}?.error) return createResErr();`
+    : ''
+}
 `,
       )
       .join('')}
@@ -467,15 +471,13 @@ ${m.res
 ${r.cookies
   .map((c) => {
     const cookiesSpec = `frourioSpec.${m.name}.res[${r.status}].cookies[${JSON.stringify(c.name)}]`;
-    const options = c.hasOptions ? `...${cookiesSpec}.options, ` : '';
+    const i = r.cookies.indexOf(c);
+    const options = `${c.hasOptions ? `...${cookiesSpec}.options, ` : ''}...cookie${i}?.options, `;
     if (c.command === 'delete')
       return `
-          response.cookies.delete({ ${options}name: ${JSON.stringify(c.name)} });`;
-    const i = r.cookies
-      .filter((c) => c.command === 'set')
-      .findIndex((item) => item.name === c.name);
+          if (cookie${i} !== undefined) response.cookies.delete({ ${options}name: ${JSON.stringify(c.name)} });`;
     return `
-          if (cookies${i}.data !== undefined) {
+          if (cookies${i}?.data !== undefined) {
             response.cookies.set({ ${options}name: ${JSON.stringify(c.name)}, value: String(cookies${i}.data) });
           }`;
   })

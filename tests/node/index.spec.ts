@@ -171,13 +171,18 @@ test('response cookie sets validated values and applies options and deletion', a
   const started = Date.now();
   const { POST } = createCookieRoute({
     async get() {
-      return { status: 200, body: {} };
+      return { status: 200, body: {}, cookies: { legacy: { command: 'delete' } } };
     },
     async post() {
       return {
         status: 200,
         headers: { 'x-cookie-test': 'set' },
-        cookies: { val: '  hello world  ', count: 42, enabled: false },
+        cookies: {
+          val: { command: 'set', value: '  hello world  ' },
+          count: { command: 'set', value: 42 },
+          enabled: { command: 'set', value: false },
+          legacy: { command: 'delete' },
+        },
       };
     },
   });
@@ -216,7 +221,7 @@ test('response cookie sets validated values and applies options and deletion', a
   expect(await res.text()).toBe('');
 });
 
-test('response cookie skips optional values and supports deletion without returned cookie values', async () => {
+test('response cookie skips optional values and supports explicit deletion and omission of non-required cookies', async () => {
   const url = 'http://example.com/api/test-client/cookie';
   const res = await cookieRoute.POST(
     new Request(url, {
@@ -242,13 +247,25 @@ test('response cookie rejects invalid values before sending any Set-Cookie heade
   for (const cookie of [
     undefined,
     {},
-    { val: 'x' },
-    { val: 'valid', count: '42' },
-    { val: 'valid', enabled: 'false' },
+    { val: { command: 'set', value: 'valid' } },
+    { val: { command: 'delete' }, legacy: { command: 'delete' } },
+    { val: { command: 'set', value: 'valid' }, legacy: { command: 'set', value: 'wrong' } },
+    { val: null, legacy: { command: 'delete' } },
+    { val: { command: 'set', value: 'x' }, legacy: { command: 'delete' } },
+    {
+      val: { command: 'set', value: 'valid' },
+      count: { command: 'set', value: '42' },
+      legacy: { command: 'delete' },
+    },
+    {
+      val: { command: 'set', value: 'valid' },
+      enabled: { command: 'set', value: 'false' },
+      legacy: { command: 'delete' },
+    },
   ]) {
     const { POST } = createCookieRoute({
       async get() {
-        return { status: 200, body: {} };
+        return { status: 200, body: {}, cookies: { legacy: { command: 'delete' } } };
       },
       async post() {
         return { status: 200, headers: { 'x-cookie-test': 'set' }, cookies: cookie as never };
@@ -269,7 +286,7 @@ test('response cookie rejects invalid values before sending any Set-Cookie heade
 test('response cookie applies only to its declared response status', async () => {
   const { POST } = createCookieRoute({
     async get() {
-      return { status: 200, body: {} };
+      return { status: 200, body: {}, cookies: { legacy: { command: 'delete' } } };
     },
     async post() {
       return { status: 400 };
@@ -656,4 +673,69 @@ test('urlencoded request', async () => {
       expect(res.status).toBe(422);
     }),
   );
+});
+
+test('response cookie handler options override defaults and optional deletion is explicit', async () => {
+  const { POST } = createCookieRoute({
+    async get() {
+      return { status: 200, body: {}, cookies: { legacy: { command: 'delete' } } };
+    },
+    async post() {
+      return {
+        status: 200,
+        headers: { 'x-cookie-test': 'set' },
+        cookies: {
+          val: { command: 'set', value: 'valid', options: { httpOnly: true } },
+          count: {
+            command: 'set',
+            value: 10,
+            options: { path: '/dynamic', maxAge: 120, secure: false },
+          },
+          enabled: { command: 'set', value: undefined },
+          legacy: { command: 'delete', options: { path: '/dynamic', maxAge: 0 } },
+          optionalLegacy: { command: 'delete', options: { path: '/dynamic' } },
+        },
+      };
+    },
+  });
+  const request = new Request('http://localhost/', {
+    method: 'POST',
+    body: JSON.stringify({ val: 'input' }),
+  });
+  const response = await POST(request);
+  expect(response.status).toBe(200);
+  expect(response.cookies.get('val')).toMatchObject({ value: 'valid', httpOnly: true });
+  expect(response.cookies.get('count')).toMatchObject({
+    value: '10',
+    path: '/dynamic',
+    maxAge: 120,
+    secure: false,
+    httpOnly: true,
+    domain: 'example.com',
+  });
+  expect(response.cookies.has('enabled')).toBe(false);
+  expect(response.cookies.get('legacy')).toMatchObject({
+    path: '/dynamic',
+    maxAge: 0,
+    domain: 'example.com',
+    expires: new Date(0),
+  });
+  expect(response.cookies.get('optionalLegacy')).toMatchObject({
+    path: '/dynamic',
+    value: '',
+    expires: new Date(0),
+  });
+  const optionalRoute = createCookieRoute({
+    async get() {
+      return { status: 200, body: {}, cookies: { legacy: { command: 'delete' } } };
+    },
+    async post() {
+      return { status: 201 };
+    },
+  });
+  const optional = await optionalRoute.POST(
+    new Request('http://localhost/', { method: 'POST', body: JSON.stringify({ val: 'input' }) }),
+  );
+  expect(optional.status).toBe(201);
+  expect(optional.headers.getSetCookie()).toEqual([]);
 });

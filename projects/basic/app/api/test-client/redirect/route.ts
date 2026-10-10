@@ -4,7 +4,7 @@ export const controller = {
   get: async () => ({
     status: 301,
     headers: { location: '/users' },
-    cookies: { session: 'token' },
+    cookies: { session: { command: 'set', value: 'token' } },
   }),
   post: async () => ({ status: 307, headers: { location: '/users' }, body: 'Moved' }),
   put: async () => ({ status: 302, headers: { location: 'https://example.com' } }),

@@ -1059,6 +1059,12 @@
         ],
         "responses": {
           "200": {
+            "x-frourio-cookies": {
+              "legacy": {
+                "command": "delete",
+                "required": true
+              }
+            },
             "description": "",
             "content": {
               "application/json": {
@@ -1069,7 +1075,7 @@
             },
             "headers": {
               "Set-Cookie": {
-                "description": "Each value is sent as a separate Set-Cookie header.",
+                "description": "Each value is sent as a separate Set-Cookie header. Cookie names, commands, and required flags are described in x-frourio-cookies; examples use default options, which handlers may override.",
                 "schema": {
                   "type": "array",
                   "items": {
@@ -1106,6 +1112,28 @@
         },
         "responses": {
           "200": {
+            "x-frourio-cookies": {
+              "val": {
+                "command": "set",
+                "required": true
+              },
+              "enabled": {
+                "command": "set",
+                "required": false
+              },
+              "count": {
+                "command": "set",
+                "required": false
+              },
+              "optionalLegacy": {
+                "command": "delete",
+                "required": false
+              },
+              "legacy": {
+                "command": "delete",
+                "required": true
+              }
+            },
             "description": "",
             "headers": {
               "x-cookie-test": {
@@ -1116,7 +1144,7 @@
                 "required": true
               },
               "Set-Cookie": {
-                "description": "Each value is sent as a separate Set-Cookie header.",
+                "description": "Each value is sent as a separate Set-Cookie header. Cookie names, commands, and required flags are described in x-frourio-cookies; examples use default options, which handlers may override.",
                 "schema": {
                   "type": "array",
                   "items": {
@@ -1127,7 +1155,31 @@
                   "val=string; Path=/",
                   "enabled=true; Path=/",
                   "count=1; Path=/api; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=3600; Domain=example.com; Secure; HttpOnly; SameSite=lax; Partitioned; Priority=high",
+                  "optionalLegacy=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
                   "legacy=; Path=/api; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=3600; Domain=example.com"
+                ]
+              }
+            }
+          },
+          "201": {
+            "x-frourio-cookies": {
+              "optionalLegacy": {
+                "command": "delete",
+                "required": false
+              }
+            },
+            "description": "",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Each value is sent as a separate Set-Cookie header. Cookie names, commands, and required flags are described in x-frourio-cookies; examples use default options, which handlers may override.",
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "example": [
+                  "optionalLegacy=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
                 ]
               }
             }
@@ -2544,14 +2596,53 @@
           "val"
         ]
       },
-      "11wuem9": {
+      "176vrk7": {
+        "type": "object",
+        "properties": {
+          "cookies": {
+            "$ref": "#/components/schemas/1f0c7h5"
+          }
+        },
+        "required": [
+          "cookies"
+        ]
+      },
+      "1f0c7h5": {
+        "type": "object",
+        "properties": {
+          "optionalLegacy": {
+            "$ref": "#/components/schemas/czxvwj"
+          }
+        },
+        "required": [
+          "optionalLegacy"
+        ]
+      },
+      "czxvwj": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "const": "delete"
+          },
+          "required": {
+            "type": "boolean",
+            "const": false
+          }
+        },
+        "required": [
+          "command",
+          "required"
+        ]
+      },
+      "6sowg1": {
         "type": "object",
         "properties": {
           "headers": {
             "$ref": "#/components/schemas/s28xf4"
           },
           "cookies": {
-            "$ref": "#/components/schemas/116r5sb"
+            "$ref": "#/components/schemas/zi4q17"
           }
         },
         "required": [
@@ -2571,17 +2662,20 @@
           "x-cookie-test"
         ]
       },
-      "116r5sb": {
+      "zi4q17": {
         "type": "object",
         "properties": {
           "val": {
             "$ref": "#/components/schemas/on9i5u"
           },
           "enabled": {
-            "$ref": "#/components/schemas/82qkvd"
+            "$ref": "#/components/schemas/1qqru3s"
           },
           "count": {
-            "$ref": "#/components/schemas/172tgtp"
+            "$ref": "#/components/schemas/1xagy7i"
+          },
+          "optionalLegacy": {
+            "$ref": "#/components/schemas/t9zy67"
           },
           "legacy": {
             "$ref": "#/components/schemas/17rbk53"
@@ -2591,6 +2685,7 @@
           "count",
           "enabled",
           "legacy",
+          "optionalLegacy",
           "val"
         ]
       },
@@ -2610,7 +2705,7 @@
           "value"
         ]
       },
-      "82qkvd": {
+      "1qqru3s": {
         "type": "object",
         "properties": {
           "command": {
@@ -2619,18 +2714,27 @@
           },
           "value": {
             "type": "boolean"
+          },
+          "required": {
+            "type": "boolean",
+            "const": false
           }
         },
         "required": [
-          "command"
+          "command",
+          "required"
         ]
       },
-      "172tgtp": {
+      "1xagy7i": {
         "type": "object",
         "properties": {
           "command": {
             "type": "string",
             "const": "set"
+          },
+          "required": {
+            "type": "boolean",
+            "const": false
           },
           "value": {
             "type": "number"
@@ -2699,7 +2803,25 @@
         },
         "required": [
           "command",
-          "options"
+          "options",
+          "required"
+        ]
+      },
+      "t9zy67": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "const": "delete"
+          },
+          "required": {
+            "type": "boolean",
+            "const": false
+          }
+        },
+        "required": [
+          "command",
+          "required"
         ]
       },
       "17rbk53": {

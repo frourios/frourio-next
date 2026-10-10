@@ -52,7 +52,12 @@ export type MethodInfo = {
         source?: string;
         dest?: NonNullable<MethodInfo['res']> | undefined;
         hasHeaders: boolean;
-        cookies: { name: string; command: 'set' | 'delete'; hasOptions: boolean }[];
+        cookies: {
+          name: string;
+          command: 'set' | 'delete';
+          hasOptions: boolean;
+          isOptional: boolean;
+        }[];
         body: { type: 'text' | 'json' | 'arrayBuffer' | 'blob' } | null;
       }[]
     | undefined;
@@ -241,6 +246,18 @@ export const generate = async ({ appDir, basePath }: Config): Promise<void> => {
                                         name: symbol.getName(),
                                         command: commandType.value as 'set' | 'delete',
                                         hasOptions: !!type.getProperty('options'),
+                                        isOptional: (() => {
+                                          const required = type.getProperty('required');
+                                          return (
+                                            !!required?.valueDeclaration &&
+                                            checker.typeToString(
+                                              checker.getTypeOfSymbolAtLocation(
+                                                required,
+                                                required.valueDeclaration,
+                                              ),
+                                            ) === 'false'
+                                          );
+                                        })(),
                                       },
                                     ]
                                   : [];

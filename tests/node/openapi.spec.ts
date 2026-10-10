@@ -64,22 +64,35 @@ test('OpenAPI preserves template components except schemas and replaces paths', 
     });
     const cookieResponses = doc.paths['/api/test-client/cookie'];
     expect(cookieResponses.get.responses['200'].headers['Set-Cookie']).toEqual({
-      description: 'Each value is sent as a separate Set-Cookie header.',
+      description:
+        'Each value is sent as a separate Set-Cookie header. Cookie names, commands, and required flags are described in x-frourio-cookies; examples use default options, which handlers may override.',
       schema: { type: 'array', items: { type: 'string' } },
       example: ['legacy=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT'],
     });
     expect(cookieResponses.post.responses['200'].headers).toEqual({
       'x-cookie-test': { schema: { type: 'string', const: 'set' }, required: true },
       'Set-Cookie': {
-        description: 'Each value is sent as a separate Set-Cookie header.',
+        description:
+          'Each value is sent as a separate Set-Cookie header. Cookie names, commands, and required flags are described in x-frourio-cookies; examples use default options, which handlers may override.',
         schema: { type: 'array', items: { type: 'string' } },
         example: [
           'val=string; Path=/',
           'enabled=true; Path=/',
           'count=1; Path=/api; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=3600; Domain=example.com; Secure; HttpOnly; SameSite=lax; Partitioned; Priority=high',
+          'optionalLegacy=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
           'legacy=; Path=/api; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=3600; Domain=example.com',
         ],
       },
+    });
+    expect(cookieResponses.post.responses['200']['x-frourio-cookies']).toEqual({
+      val: { command: 'set', required: true },
+      enabled: { command: 'set', required: false },
+      count: { command: 'set', required: false },
+      optionalLegacy: { command: 'delete', required: false },
+      legacy: { command: 'delete', required: true },
+    });
+    expect(cookieResponses.get.responses['200']['x-frourio-cookies']).toEqual({
+      legacy: { command: 'delete', required: true },
     });
     expect(cookieResponses.post.responses['400']).not.toHaveProperty('headers');
     expect(doc.security).toEqual(security);
@@ -140,7 +153,8 @@ export const frourioSpec = {
       { name: 'preference', in: 'cookie', required: false, schema: { type: 'string' } },
     ]);
     expect(method.responses['200'].headers['Set-Cookie']).toEqual({
-      description: 'Each value is sent as a separate Set-Cookie header.',
+      description:
+        'Each value is sent as a separate Set-Cookie header. Cookie names, commands, and required flags are described in x-frourio-cookies; examples use default options, which handlers may override.',
       schema: { type: 'array', items: { type: 'string' } },
       example: [
         'literal=hello%20world; Path=/',

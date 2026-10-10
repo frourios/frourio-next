@@ -15,13 +15,15 @@ export const frourioSpec = {
     cookies: z.object({ val: z.string().min(2).optional() }),
     body: z.object({ val: z.string() }),
     res: {
+      201: { cookies: { optionalLegacy: { command: 'delete', required: false } } },
       200: {
         headers: z.object({ 'x-cookie-test': z.literal('set') }),
         cookies: {
           val: { command: 'set', value: z.string().trim().min(2) },
-          enabled: { command: 'set', value: z.boolean().optional() },
+          enabled: { command: 'set', value: z.boolean().optional(), required: false },
           count: {
             command: 'set',
+            required: false,
             value: z.number().int().optional(),
             options: {
               path: '/api',
@@ -35,6 +37,7 @@ export const frourioSpec = {
               maxAge: 3600,
             },
           },
+          optionalLegacy: { command: 'delete', required: false },
           legacy: {
             command: 'delete',
             options: { path: '/api', domain: 'example.com', maxAge: 3600 },

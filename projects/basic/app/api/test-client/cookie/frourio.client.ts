@@ -115,7 +115,7 @@ const methods_wkn1x4 = (option?: FrourioClientOption) => ({
     }
   },
   async $post(req: { body: z.infer<typeof frourioSpec_wkn1x4.post.body>, init?: RequestInit }): Promise<
-    | { ok: true; isValid: true; data: { status: 200; headers: z.infer<typeof frourioSpec_wkn1x4.post.res[200]['headers']>; body?: undefined }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
+    | { ok: true; isValid: true; data: { status: 201; headers?: undefined; body?: undefined } | { status: 200; headers: z.infer<typeof frourioSpec_wkn1x4.post.res[200]['headers']>; body?: undefined }; failure?: undefined; raw: Response; reason?: undefined; error?: undefined }
     | { ok: false; isValid: true; data?: undefined; failure: { status: 400; headers?: undefined; body?: undefined }; raw: Response; reason?: undefined; error?: undefined }
     | { ok: boolean; isValid: false; data?: undefined; failure?: undefined; raw: Response; reason: z.ZodError; error?: undefined }
     | { ok: boolean; isValid?: undefined; data?: undefined; failure?: undefined; raw: Response; reason?: undefined; error: unknown }
@@ -154,6 +154,14 @@ const methods_wkn1x4 = (option?: FrourioClientOption) => ({
           ok: true,
           isValid: true,
           data: { status: 200, headers: headers.data },
+          raw: result.res,
+        };
+      }
+      case 201: {
+        return {
+          ok: true,
+          isValid: true,
+          data: { status: 201 },
           raw: result.res,
         };
       }

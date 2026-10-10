@@ -17,10 +17,24 @@ type FrourioResponse = {
     dest?: Status extends `${RedirectStatus}` ? FrourioDestination : never;
     cookies?: Record<
       string,
-      | { command: 'set'; value: z.ZodType; options?: CookieOptions<'set'> }
-      | { command: 'delete'; options?: CookieOptions<'delete'> }
+      | { command: 'set'; value: z.ZodType; options?: CookieOptions<'set'>; required?: false }
+      | { command: 'delete'; options?: CookieOptions<'delete'>; required?: false }
     >;
   };
+};
+
+type ResponseCookieCommand<T> = T extends { command: 'set'; value: z.ZodType }
+  ? { command: 'set'; value: z.infer<T['value']>; options?: CookieOptions<'set'> }
+  : { command: 'delete'; options?: CookieOptions<'delete'> };
+
+export type FrourioResponseCookies<T> = {
+  [Name in keyof T as T[Name] extends { required: false } ? never : Name]: ResponseCookieCommand<
+    T[Name]
+  >;
+} & {
+  [Name in keyof T as T[Name] extends { required: false } ? Name : never]?: ResponseCookieCommand<
+    T[Name]
+  >;
 };
 
 type FrourioDestination = {

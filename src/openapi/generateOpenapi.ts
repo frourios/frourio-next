@@ -446,7 +446,38 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
                   const previous = dict[status]?.content?.[resContentType]?.schema;
                   const schema =
                     previous && body ? { anyOf: [...(previous.anyOf ?? [previous]), body] } : body;
+                  const cookieSchema = (statusDef.properties as Record<string, TJS.Definition>)
+                    ?.cookies;
+                  const cookieDefinitions = cookieSchema
+                    ? (resolveDefinition(cookieSchema, methodsSchema?.definitions ?? {})
+                        .properties ?? {})
+                    : {};
+                  const cookieMetadata = Object.fromEntries(
+                    Object.entries(cookieDefinitions).map(([name, definition]) => {
+                      const cookie =
+                        resolveDefinition(
+                          definition as TJS.Definition,
+                          methodsSchema?.definitions ?? {},
+                        ).properties ?? {};
+                      return [
+                        name,
+                        {
+                          command: getSchemaExample(
+                            cookie.command as TJS.Definition,
+                            methodsSchema?.definitions ?? {},
+                          ),
+                          required:
+                            !cookie.required ||
+                            getSchemaExample(
+                              cookie.required as TJS.Definition,
+                              methodsSchema?.definitions ?? {},
+                            ) !== false,
+                        },
+                      ];
+                    }),
+                  );
                   const response = {
+                    ...(responseCookies.length ? { 'x-frourio-cookies': cookieMetadata } : {}),
                     description: '',
                     content: body
                       ? { ...dict[status]?.content, [resContentType]: { schema } }
@@ -470,7 +501,7 @@ type AllParams = [${hasParamsDirs.map((_, i) => `z.infer<typeof paramsSchema${i}
                               ? {
                                   'Set-Cookie': {
                                     description:
-                                      'Each value is sent as a separate Set-Cookie header.',
+                                      'Each value is sent as a separate Set-Cookie header. Cookie names, commands, and required flags are described in x-frourio-cookies; examples use default options, which handlers may override.',
                                     schema: { type: 'array', items: { type: 'string' } },
                                     example: responseCookies,
                                   },
